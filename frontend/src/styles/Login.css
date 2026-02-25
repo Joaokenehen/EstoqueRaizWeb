@@ -1,0 +1,132 @@
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    }
+
+h   tml, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Proíbe o scroll na página toda */
+  background-color: #FFFFFF;
+    }
+    
+    /* Container principal sem sombras e fundo branco */
+    .login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #FFFFFF; /* Fundo tudo branco */
+    font-family: 'Inter', sans-serif;
+    }
+
+    .login-card {
+    width: 100%;
+    max-width: 360px; /* Reduzimos um pouco a largura para ficar mais esguio */
+    display: flex;
+    flex-direction: column;
+    padding: 10px; 
+    }
+
+    .login-header {
+    text-align: center;
+    margin-bottom: 48px;
+    }
+
+    .titulo {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827; /* Texto quase preto para contraste */
+    margin: 0;
+    }
+
+    .subtitulo {
+    font-size: 15px;
+    color: #6B7280; /* Cinza suave para o subtitulo */
+    margin-top: 15px;
+    }
+
+    /* Inputs */
+    .input-group {
+    margin-bottom: 28px;
+    display: flex;
+    flex-direction: column;
+    }
+
+    .label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+    }
+
+    .web-input {
+    height: 50px;
+    background-color: #FFFFFF; /* Input branco */
+    border: 1px solid #E5E7EB; /* Borda fina cinza */
+    border-radius: 12px;
+    padding: 0 16px;
+    font-size: 16px;
+    color: #111827;
+    outline: none;
+    transition: border-color 0.2s;
+    }
+
+    .web-input:focus {
+    border-color: #111827; /* Borda escurece no foco */
+    }
+
+    /* Botão Raiz */
+    .botao-entrar {
+    background-color: #111827;
+    color: #FFFFFF;
+    height: 52px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 32px;
+    width: 100%;
+    transition: opacity 0.2s;
+    }
+
+    .botao-entrar:hover {
+    opacity: 0.9;
+    }
+
+    .login-footer {
+    margin-top: 32px;
+    text-align: center;
+    }
+
+    .footer-texto {
+    font-size: 14px;
+    color: #9CA3AF;
+    }
+
+    .link-cadastro {
+    color: #111827;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 4px;
+    text-decoration: none;
+    }
+
+    .logo-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px; /* Espaço entre a logo e o texto "Entrar" */
+    }
+
+    .login-logo {
+    max-width: 180px; /* Ajuste o tamanho conforme sua logo */
+    height: auto;
+    object-fit: contain;
+    }
+
+    /* Garante que o header alinhe tudo ao centro */
+    .login-header {
+    text-align: center;
+    margin-bottom: 40px;
+    }
