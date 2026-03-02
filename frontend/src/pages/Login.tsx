@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// Importação da logo (ajuste o caminho se necessário)
 import logoEstoque from '../assets/LogoEstoqueRaiz.png';
-import '../styles/login.css';
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -11,70 +9,72 @@ export const Login = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login disparado");
+    console.log("Login disparado com:", email);
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <header className="login-header">
-          {/* Adicionando a Logo */}
-          <div className="logo-wrapper">
-            <img 
-              src={logoEstoque} 
-              alt="Logo Estoque Raiz" 
-              className="login-logo" 
-              data-test="img-logo"
-            />
-          </div>
-          
-          <h1 className="titulo">Login</h1>
-          <p className="subtitulo">Acesse sua conta para continuar</p>
+    <div className="min-h-screen w-full flex items-center justify-center bg-raiz-bege font-sans">
+      <div className="w-full max-w-[360px] p-6 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom">
+        
+        <header className="text-center mb-10">
+          <img 
+            src={logoEstoque} 
+            alt="Estoque Raiz" 
+            className="w-48 mx-auto mb-4"
+          />
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+            Bem-vindo
+          </h1>
+          <p className="text-sm text-gray-500 mt-2">
+            Acesse seu painel de estoque
+          </p>
         </header>
 
-        <form className="login-form" onSubmit={handleLogin}>
-          <div className="input-group">
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label className="block text-sm font-semibold text-raiz-marrom mb-1">
+              E-mail
+            </label>
             <input
               type="email"
-              placeholder="Email"
-              className="web-input"
+              placeholder="seu@email.com"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              data-test="input-email"
             />
           </div>
 
-          <div className="input-group">
+          <div>
+            <label className="block text-sm font-semibold text-raiz-marrom mb-1">
+              Senha
+            </label>
             <input
               type="password"
-              placeholder="Senha"
-              className="web-input"
+              placeholder="••••••••"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               required
-              data-test="input-password"
             />
           </div>
 
-          <button 
-            type="submit" 
-            className="botao-entrar"
-            data-test="button-login"
+          <button
+            type="submit"
+            className="w-full bg-raiz-verde hover:bg-opacity-90 text-white font-bold py-3 rounded-lg shadow-md transform active:scale-[0.98] transition-all duration-150 mt-2"
           >
-            Entrar
+            Entrar no Sistema
           </button>
         </form>
 
-        <footer className="login-footer">
-          <p className="footer-texto">
-            Não tem uma conta?{" "}
+        <footer className="mt-8 text-center">
+          <p className="text-sm text-gray-600">
+            Ainda não tem conta?{' '}
             <span 
-              className="link-cadastro" 
-              onClick={() => navigate("/cadastro")}
-              data-test="link-cadastro"
-            >   
-              Crie uma aqui
+              onClick={() => navigate('/cadastro')}
+              className="text-raiz-verde font-bold cursor-pointer hover:underline"
+            >
+              Cadastre-se aqui
             </span>
           </p>
         </footer>

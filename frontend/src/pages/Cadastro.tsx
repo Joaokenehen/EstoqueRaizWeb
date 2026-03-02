@@ -1,80 +1,98 @@
 import React, { useState } from 'react';
-import '../styles/Cadastro.css';
+import { useNavigate } from 'react-router-dom';
+import logoEstoque from '../assets/LogoEstoqueRaiz.png';
 
-const Cadastro: React.FC = () => {
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [mensagem, setMensagem] = useState({ texto: '', cor: '' });
+export const Cadastro = () => {
+  const navigate = useNavigate();
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
 
-  const handleCadastro = async (e: React.FormEvent) => {
+  const handleCadastro = (e: React.FormEvent) => {
     e.preventDefault();
-
-    try {
-      const response = await fetch('http://localhost:5000/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, email, senha }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setMensagem({ texto: data.message, cor: 'green' });
-        setNome(''); setEmail(''); setSenha(''); // Limpa o formulário
-      } else {
-        setMensagem({ texto: data.message || 'Erro ao cadastrar', cor: 'red' });
-      }
-    } catch (error) {
-      setMensagem({ texto: 'Não foi possível conectar ao servidor.', cor: 'red' });
-    }
+    console.log("Cadastro disparado:", { nome, email, senha });
   };
 
   return (
-    <div className="cadastro-container">
-      <form className="cadastro-card" onSubmit={handleCadastro}>
-        <h2>Estoque Raiz - Cadastro</h2>
+    <div className="min-h-screen w-full flex items-center justify-center bg-raiz-bege font-sans p-4">
+      <div className="w-full max-w-[400px] p-8 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom">
         
-        <div className="form-group">
-          <input 
-            type="text" 
-            placeholder="Nome Completo" 
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            required 
+        <header className="text-center mb-6">
+          <img 
+            src={logoEstoque} 
+            alt="Estoque Raiz" 
+            className="w-48 md:w-56 mx-auto mb-4 drop-shadow-md cursor-pointer"
+            onClick={() => navigate('/')}
           />
-        </div>
+          <h1 className="text-2xl font-bold text-raiz-marrom tracking-tight">
+            Criar Nova Conta
+          </h1>
+          <div className="h-1 w-12 bg-raiz-verde mx-auto mt-2 rounded-full"></div>
+        </header>
 
-        <div className="form-group">
-          <input 
-            type="email" 
-            placeholder="E-mail" 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required 
-          />
-        </div>
+        <form onSubmit={handleCadastro} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-raiz-marrom mb-1">
+              Nome Completo
+            </label>
+            <input
+              type="text"
+              placeholder="Ex: João da Silva"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              required
+            />
+          </div>
 
-        <div className="form-group">
-          <input 
-            type="password" 
-            placeholder="Senha" 
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            required 
-          />
-        </div>
+          <div>
+            <label className="block text-sm font-semibold text-raiz-marrom mb-1">
+              E-mail
+            </label>
+            <input
+              type="email"
+              placeholder="seu@email.com"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-        <button type="submit" className="btn-cadastrar">Cadastrar</button>
+          <div>
+            <label className="block text-sm font-semibold text-raiz-marrom mb-1">
+              Senha
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+            />
+          </div>
 
-        {mensagem.texto && (
-          <p className="mensagem" style={{ color: mensagem.cor }}>
-            {mensagem.texto}
+          <button
+            type="submit"
+            className="w-full bg-raiz-verde hover:bg-opacity-90 text-white font-bold py-3 rounded-lg shadow-md transform active:scale-[0.98] transition-all duration-150 mt-4"
+          >
+            Finalizar Cadastro
+          </button>
+        </form>
+
+        <footer className="mt-8 text-center border-t border-gray-100 pt-6">
+          <p className="text-sm text-gray-600">
+            Já possui uma conta?{' '}
+            <span 
+              onClick={() => navigate('/')}
+              className="text-raiz-verde font-bold cursor-pointer hover:underline"
+            >
+              Fazer Login
+            </span>
           </p>
-        )}
-      </form>
+        </footer>
+      </div>
     </div>
   );
 };
-
-export default Cadastro;
