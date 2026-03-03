@@ -42,6 +42,7 @@ export const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              input-testid="email-input"
             />
           </div>
 
@@ -56,6 +57,7 @@ export const Login = () => {
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               required
+              input-testid="senha-input"
             />
           </div>
 
