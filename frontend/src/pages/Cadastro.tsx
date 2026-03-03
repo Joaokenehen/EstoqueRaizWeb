@@ -42,6 +42,7 @@ export const Cadastro = () => {
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               required
+              input-testid="nome-input"
             />
           </div>
 
@@ -56,6 +57,7 @@ export const Cadastro = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              input-testid="email-input"
             />
           </div>
 
@@ -70,6 +72,7 @@ export const Cadastro = () => {
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               required
+              input-tetstid="senha-input"
             />
           </div>
 
