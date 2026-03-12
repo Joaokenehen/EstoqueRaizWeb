@@ -36,6 +36,26 @@ services:
       timeout: 3s
       retries: 3
 
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=admin 
+      - POSTGRES_PASSWORD=admin123
+      - POSTGRES_DB=estoque_raiz
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d estoque_raiz -h localhost -p 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   auth-service:
     build:
       context: .
@@ -52,6 +72,8 @@ services:
       - REDIS_PORT=${REDIS_PORT:-6379}
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     networks:
       - microservices-network
@@ -90,6 +112,8 @@ services:
       - EMAIL_PASS=${EMAIL_PASS}
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     networks:
       - microservices-network
