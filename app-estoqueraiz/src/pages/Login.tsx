@@ -1,16 +1,35 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoEstoque from '../assets/LogoEstoqueRaiz.png';
+import api from '../services/api'; 
 
 export const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Login disparado com:", email);
-  };
+  
+  const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  try {
+    const response = await api.post('/api/auth/login', { 
+      email, 
+      senha 
+    });
+
+    // Pega o token retornado pelo auth-service
+    const { token } = response.data;
+    localStorage.setItem('@EstoqueRaiz:token', token);
+
+    console.log("Login feito com sucesso!");
+    navigate('/dashboard'); // Ajuste para a tela inicial do seu sistema
+
+  } catch (error: any) {
+    console.error("Erro ao fazer login:", error);
+    alert("Email ou senha incorretos!");
+  }
+};
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-raiz-bege font-sans">

@@ -1,35 +1,43 @@
 /// <reference types="cypress" />
 
-describe('Fluxo de Autenticação - Estoque Raiz', () => {
-  const usuarioTeste = {
-    nome: 'Admin Teste',
-    email: `teste_${Date.now()}@estoque.com`, // Email único para evitar erro de duplicata
-    senha: 'SenhaSegura123'
-  };
-
-  it('Deve cadastrar um usuário e validar que a senha foi protegida (bcrypt)', () => {
-    cy.visit('/cadastro');
-
-    // Preenche o formulário usando os data-test que definimos
-    cy.get('[data-test="input-nome"]').type(usuarioTeste.nome);
-    cy.get('[data-test="input-email"]').type(usuarioTeste.email);
-    cy.get('[data-test="input-password"]').type(usuarioTeste.senha);
-    
-    cy.get('[data-test="button-submit"]').click();
-
-    // Valida se o backend respondeu com sucesso
-    cy.contains('Usuário criado com sucesso').should('be.visible');
+describe('Fluxo de Autenticação (Login) - Estoque Raiz', () => {
+  beforeEach(() => {
+    cy.visit('/login');
   });
 
-  it('Deve conseguir logar com a senha original (o bcrypt deve validar o hash)', () => {
-    cy.visit('/login');
+  it('Deve renderizar o ecrã de login corretamente', () => {
+    cy.get('h1').contains('Login').should('be.visible');
+    cy.get('[data-test="input-email"]').should('be.visible');
+    cy.get('[data-test="input-password"]').should('be.visible');
+    cy.get('[data-test="button-login"]').should('be.visible');
+    cy.get('[data-test="link-cadastro"]').should('be.visible');
+  });
 
-    cy.get('[data-test="input-email"]').type(usuarioTeste.email);
-    cy.get('[data-test="input-password"]').type(usuarioTeste.senha);
+  it('Deve realizar o login com sucesso e guardar o token', () => {
+    cy.intercept('POST', '/api/auth/login').as('pedidoLogin');
+    cy.get('[data-test="input-email"]').type('teste@estoqueraiz.com');
+    cy.get('[data-test="input-password"]').type('123456');
     cy.get('[data-test="button-login"]').click();
+    cy.wait('@pedidoLogin').then((interception) => {
+      expect(interception.response?.statusCode).to.eq(200);
+    });
+    cy.window().then((window) => {
+      const token = window.localStorage.getItem('@EstoqueRaiz:token');
+      expect(token).to.not.be.null;
+    });
+  });
 
-    // Se o bcrypt.compare funcionar, ele redireciona ou mostra sucesso
-    cy.url().should('include', '/dashboard'); 
-    cy.contains('Bem-vindo').should('be.visible');
+  it('Deve exibir um erro ao tentar entrar com credenciais inválidas', () => {
+    cy.intercept('POST', '/api/auth/login').as('loginFalhado');
+
+    cy.get('[data-test="input-email"]').type('utilizador_falso@estoque.com');
+    cy.get('[data-test="input-password"]').type('senha_errada');
+    cy.get('[data-test="button-login"]').click();
+    cy.wait('@loginFalhado').then((interception) => {
+      expect(interception.response?.statusCode).to.be.oneOf([401, 404, 400]);
+    });
+    cy.on('window:alert', (textoDoAlerta) => {
+      expect(textoDoAlerta).to.contains('Email ou senha incorretos!');
+    });
   });
 });

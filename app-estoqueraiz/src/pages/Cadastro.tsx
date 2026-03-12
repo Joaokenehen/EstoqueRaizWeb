@@ -1,34 +1,33 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoEstoque from '../assets/LogoEstoqueRaiz.png';
+import api from '../services/api'; 
 
 export const Cadastro = () => {
   const navigate = useNavigate();
   const [nome, setNome] = useState(""); 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [mensagem, setMensagem] = useState({ texto: "", cor: "" });
 
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Enviando dados para o servidor:", { nome, email, senha });
 
     try {
-      const response = await fetch('http://localhost:5000/api/usuarios', { // <-- Verifique se a rota é /api/usuarios ou /usuarios
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, email, senha })
+      const response = await api.post('/api/usuarios', {
+        nome,
+        email,
+        senha,
+        cpf: '00000000000' 
       });
 
-      if (response.ok) {
-        alert("Cadastro realizado com sucesso!");
-        navigate('/'); 
-      } else {
-        const erro = await response.json();
-        alert(`Erro ao cadastrar: ${erro.message}`);
+      if (response.status === 201) {
+        setMensagem({ texto: 'Usuário criado com sucesso!', cor: 'green' });
+        setNome(''); setEmail(''); setSenha('');
       }
-    } catch (error) {
-      console.error("Erro na requisição:", error);
-      alert("Não foi possível conectar ao servidor.");
+    } catch (error: any) {
+      const erroBackend = error.response?.data?.message || 'Erro ao cadastrar';
+      setMensagem({ texto: erroBackend, cor: 'red' });
     }
   };
 
@@ -48,6 +47,13 @@ export const Cadastro = () => {
           </h1>
           <div className="h-1 w-12 bg-raiz-verde mx-auto mt-2 rounded-full"></div>
         </header>
+
+        {/* 2. ADICIONADO: Exibição da mensagem na tela */}
+        {mensagem.texto && (
+          <div className={`p-3 mb-4 text-center rounded-lg font-semibold text-white ${mensagem.cor === 'green' ? 'bg-green-500' : 'bg-red-500'}`}>
+            {mensagem.texto}
+          </div>
+        )}
 
         <form onSubmit={handleCadastro} className="space-y-4">
           <div>
