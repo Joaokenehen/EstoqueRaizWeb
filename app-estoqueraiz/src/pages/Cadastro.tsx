@@ -9,6 +9,7 @@ export const Cadastro = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mensagem, setMensagem] = useState({ texto: "", cor: "" });
+  const [cpf, setCpf] = useState("");
 
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +19,7 @@ export const Cadastro = () => {
         nome,
         email,
         senha,
-        cpf: '00000000000' 
+        cpf, 
       });
 
       if (response.status === 201) {
@@ -48,7 +49,6 @@ export const Cadastro = () => {
           <div className="h-1 w-12 bg-raiz-verde mx-auto mt-2 rounded-full"></div>
         </header>
 
-        {/* 2. ADICIONADO: Exibição da mensagem na tela */}
         {mensagem.texto && (
           <div className={`p-3 mb-4 text-center rounded-lg font-semibold text-white ${mensagem.cor === 'green' ? 'bg-green-500' : 'bg-red-500'}`}>
             {mensagem.texto}
@@ -98,6 +98,22 @@ export const Cadastro = () => {
               onChange={(e) => setSenha(e.target.value)}
               required
               data-testid="senha-input"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-raiz-marrom mb-1">
+              CPF (Apenas números)
+            </label>
+            <input
+              type="text"
+              placeholder="00000000000"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
+              value={cpf}
+              onChange={(e) => setCpf(e.target.value.replace(/\D/g, ''))} // Expressão para aceitar só números
+              maxLength={11}
+              required
+              data-testid="cpf-input"
             />
           </div>
 

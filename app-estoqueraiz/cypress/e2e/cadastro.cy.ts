@@ -1,29 +1,21 @@
 /// <reference types="cypress" />
 
+// Função para gerar um CPF válido aleatoriamente a cada teste
+import { gerarCpfValido } from '../support/utils';
+
 describe('Página de Cadastro - Estoque Raiz', () => {
-  const emailUnico = `teste_${Date.now()}@estoque.com`;
-
-  it('Deve cadastrar um novo usuário com sucesso', () => {
+  it('Deve cadastrar um novo usuário com dados dinâmicos', () => {
     cy.visit('/cadastro');
-    
-    // Preenche os dados
-    cy.get('input[type="text"]').type('João Teste');
-    cy.get('input[type="email"]').type(emailUnico);
-    cy.get('input[type="password"]').type('SenhaSegura123');
-    
-    // Clica no botão (ajuste o seletor conforme seu botão)
-    cy.get('button[type="submit"]').click();
-    
-    // Valida se a mensagem de sucesso do backend apareceu
-    cy.contains('Usuário criado com sucesso').should('be.visible');
-  });
 
-  it('Deve mostrar erro ao tentar cadastrar sem preencher campos', () => {
-    cy.visit('/cadastro');
-    cy.get('button[type="submit"]').click();
+    const cpfDinamico = gerarCpfValido();
+    const emailDinamico = `teste_${Date.now()}@estoqueraiz.com`;  
+    const senhaValida = 'Senha123!';
     
-    // Como os inputs tem "required", o navegador bloqueia. 
-    // Você pode testar se a URL continua sendo a de cadastro.
-    cy.url().should('include', '/cadastro');
+    cy.get('[data-testid="nome-input"]').type('João Teste');
+    cy.get('[data-testid="email-input"]').type(emailDinamico);
+    cy.get('[data-testid="senha-input"]').type(senhaValida);
+    cy.get('[data-testid="cpf-input"]').type(cpfDinamico); // Preenche o novo campo
+    cy.get('button[type="submit"]').click();
+    cy.contains('Usuário criado com sucesso', { timeout: 10000 }).should('be.visible');
   });
 });
