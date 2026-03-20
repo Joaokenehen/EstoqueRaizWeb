@@ -1,6 +1,5 @@
 /// <reference types="cypress" />
 
-// Função para gerar um CPF válido aleatoriamente a cada teste
 import { gerarCpfValido } from '../support/utils';
 
 describe('Página de Cadastro - Estoque Raiz', () => {
