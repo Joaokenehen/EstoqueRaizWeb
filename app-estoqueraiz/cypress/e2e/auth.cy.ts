@@ -11,7 +11,7 @@ describe('Página de Login - Estoque Raiz', () => {
 
     cy.request({
       method: 'POST',
-      url: 'http://localhost/api/usuarios', 
+      url: 'http://localhost:8081/api/usuarios', 
       failOnStatusCode: false, 
       body: {
         nome: 'Usuário Teste Login',
@@ -57,7 +57,7 @@ describe('Página de Login - Estoque Raiz', () => {
     
     cy.request({
       method: 'POST',
-      url: 'http://localhost/api/usuarios',
+      url: 'http://localhost:8081/api/usuarios',
       body: {
         nome: 'Usuário Bloqueado',
         email: emailNaoAprovado,
