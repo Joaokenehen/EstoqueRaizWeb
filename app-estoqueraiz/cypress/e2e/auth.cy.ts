@@ -11,7 +11,7 @@ describe('Página de Login - Estoque Raiz', () => {
 
     cy.request({
       method: 'POST',
-      url: 'http://localhost/api/usuarios', 
+      url: 'http://localhost:8081/api/usuarios', 
       failOnStatusCode: false, 
       body: {
         nome: 'Usuário Teste Login',
@@ -22,9 +22,6 @@ describe('Página de Login - Estoque Raiz', () => {
     }).then((resposta) => {
       expect(resposta.status).to.eq(201);
       
-      // 2. A MÁGICA: Roda um comando no Docker para aprovar o usuário no banco!
-      // Nota: Assumi que a coluna se chama 'status' e o valor é 'aprovado'. 
-      // Se no seu banco for diferente (ex: is_aprovado = true), é só ajustar o UPDATE abaixo.
       const comandoSQL = `UPDATE usuarios SET status = 'aprovado' WHERE email = '${emailDinamico}';`;
       
       cy.exec(`docker exec postgres-db psql -U admin -d estoque_raiz -c "${comandoSQL}"`);
@@ -57,7 +54,7 @@ describe('Página de Login - Estoque Raiz', () => {
     
     cy.request({
       method: 'POST',
-      url: 'http://localhost/api/usuarios',
+      url: 'http://localhost:8081/api/usuarios',
       body: {
         nome: 'Usuário Bloqueado',
         email: emailNaoAprovado,
