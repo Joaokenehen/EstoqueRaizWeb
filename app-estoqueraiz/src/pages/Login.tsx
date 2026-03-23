@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react'; // <-- Importamos os ícones
 import logoEstoque from '../assets/LogoEstoqueRaiz.png';
 import api from '../services/api'; 
 
@@ -7,29 +8,29 @@ export const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [mostrarSenha, setMostrarSenha] = useState(false); // <-- Estado do olhinho
 
-  
   const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  try {
-    const response = await api.post('/api/auth/login', { 
-      email, 
-      senha 
-    });
+    e.preventDefault();
+    
+    try {
+      const response = await api.post('/api/auth/login', { 
+        email, 
+        senha 
+      });
 
-    // Pega o token retornado pelo auth-service
-    const { token } = response.data;
-    localStorage.setItem('@EstoqueRaiz:token', token);
+      const { token, usuario } = response.data;
+      localStorage.setItem('@EstoqueRaiz:token', token);
+      localStorage.setItem('@EstoqueRaiz:usuario', JSON.stringify(usuario));
 
-    console.log("Login feito com sucesso!");
-    navigate('/dashboard'); // Ajuste para a tela inicial do seu sistema
+      console.log("Login feito com sucesso!");
+      navigate('/dashboard'); 
 
-  } catch (error: any) {
-    console.error("Erro ao fazer login:", error);
-    alert("Email ou senha incorretos!");
-  }
-};
+    } catch (error: any) {
+      console.error("Erro ao fazer login:", error);
+      alert("Email ou senha incorretos!");
+    }
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-raiz-bege font-sans">
@@ -69,15 +70,27 @@ export const Login = () => {
             <label className="block text-sm font-semibold text-raiz-marrom mb-1">
               Senha
             </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              required
-              input-testid="senha-input"
-            />
+            {/* Wrapper relative para posicionar o botão do olhinho */}
+            <div className="relative">
+              <input
+                type={mostrarSenha ? "text" : "password"} // <-- Mágica acontece aqui
+                placeholder="••••••••"
+                // Adicionamos pr-12 para o texto não ficar embaixo do ícone
+                className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                required
+                input-testid="senha-input"
+              />
+              <button
+                type="button"
+                onClick={() => setMostrarSenha(!mostrarSenha)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-raiz-verde transition-colors"
+                title={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {mostrarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           <button
