@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react'; 
 import logoEstoque from '../assets/LogoEstoqueRaiz.png';
 import api from '../services/api'; 
 
@@ -10,6 +11,7 @@ export const Cadastro = () => {
   const [senha, setSenha] = useState("");
   const [mensagem, setMensagem] = useState({ texto: "", cor: "" });
   const [cpf, setCpf] = useState("");
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +26,7 @@ export const Cadastro = () => {
 
       if (response.status === 201) {
         setMensagem({ texto: 'Usuário criado com sucesso!', cor: 'green' });
-        setNome(''); setEmail(''); setSenha('');
+        setNome(''); setEmail(''); setSenha(''); setCpf('');
       }
     } catch (error: any) {
       const erroBackend = error.response?.data?.message || 'Erro ao cadastrar';
@@ -90,15 +92,25 @@ export const Cadastro = () => {
             <label className="block text-sm font-semibold text-raiz-marrom mb-1">
               Senha
             </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              required
-              data-testid="senha-input"
-            />
+            <div className="relative">
+              <input
+                type={mostrarSenha ? "text" : "password"}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                required
+                data-testid="senha-input"
+              />
+              <button
+                type="button"
+                onClick={() => setMostrarSenha(!mostrarSenha)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-raiz-verde transition-colors"
+                title={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {mostrarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           <div>
@@ -110,7 +122,7 @@ export const Cadastro = () => {
               placeholder="00000000000"
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
               value={cpf}
-              onChange={(e) => setCpf(e.target.value.replace(/\D/g, ''))} // Expressão para aceitar só números
+              onChange={(e) => setCpf(e.target.value.replace(/\D/g, ''))} 
               maxLength={11}
               required
               data-testid="cpf-input"
