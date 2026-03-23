@@ -21,3 +21,9 @@ export interface AprovarUsuarioDTO {
   cargo: "gerente" | "estoquista" | "financeiro";
   unidade_id: number;
 }
+
+export interface RedefinirSenhaDTO {
+  email: string;
+  codigoRecuperacao: string;
+  novaSenha: string;
+}
