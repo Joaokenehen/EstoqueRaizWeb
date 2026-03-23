@@ -19,8 +19,9 @@ export const Login = () => {
         senha 
       });
 
-      const { token } = response.data;
+      const { token, usuario } = response.data;
       localStorage.setItem('@EstoqueRaiz:token', token);
+      localStorage.setItem('@EstoqueRaiz:usuario', JSON.stringify(usuario));
 
       console.log("Login feito com sucesso!");
       navigate('/dashboard'); 
