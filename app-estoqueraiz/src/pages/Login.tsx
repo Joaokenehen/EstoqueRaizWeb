@@ -32,7 +32,7 @@ export const Login = () => {
     }
   };
 
-  return (
+return (
     <div className="min-h-screen w-full flex items-center justify-center bg-raiz-bege font-sans">
       <div className="w-full max-w-[360px] p-6 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom">
         
@@ -67,15 +67,25 @@ export const Login = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-raiz-marrom mb-1">
-              Senha
-            </label>
-            {/* Wrapper relative para posicionar o botão do olhinho */}
+            {/* O "Esqueceu a senha?" agora fica aqui, na mesma linha da Label */}
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-semibold text-raiz-marrom">
+                Senha
+              </label>
+              <button
+                type="button"
+                onClick={() => navigate('/esqueci-senha')}
+                className="text-xs font-semibold text-raiz-verde hover:text-green-700 transition-colors hover:underline"
+                tabIndex={-1} // Evita que o tab pare aqui antes do input da senha
+              >
+                Esqueceu a senha?
+              </button>
+            </div>
+          
             <div className="relative">
               <input
-                type={mostrarSenha ? "text" : "password"} // <-- Mágica acontece aqui
+                type={mostrarSenha ? "text" : "password"}
                 placeholder="••••••••"
-                // Adicionamos pr-12 para o texto não ficar embaixo do ícone
                 className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
@@ -95,7 +105,7 @@ export const Login = () => {
 
           <button
             type="submit"
-            className="w-full bg-raiz-verde hover:bg-opacity-90 text-white font-bold py-3 rounded-lg shadow-md transform active:scale-[0.98] transition-all duration-150 mt-2"
+            className="w-full bg-raiz-verde hover:bg-opacity-90 text-white font-bold py-3 rounded-lg shadow-md transform active:scale-[0.98] transition-all duration-150 mt-6"
           >
             Entrar no Sistema
           </button>
