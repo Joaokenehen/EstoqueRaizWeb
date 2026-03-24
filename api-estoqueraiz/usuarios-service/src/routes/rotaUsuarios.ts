@@ -9,6 +9,8 @@ import {
   aprovarUsuario,
   rejeitarUsuario,
   alterarCargoUsuario,
+  solicitarRecuperacaoSenha,
+  redefinirSenha
 } from "../controllers/UsuariosController";
 import { autenticacao, apenasGerente } from "../middleware/autenticacao";
 
@@ -33,5 +35,8 @@ router.put(
   apenasGerente,
   alterarCargoUsuario
 );
+router.post("/solicitar-recuperacao-senha", solicitarRecuperacaoSenha);
+router.post("/redefinir-senha", redefinirSenha);
+
 
 export default router;

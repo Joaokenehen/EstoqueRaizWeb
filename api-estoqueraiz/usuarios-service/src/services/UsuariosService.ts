@@ -294,8 +294,29 @@ export class UsuariosService {
     if (!validarSenhaForte(novaSenha)) {
       throw new ErroValidacao("Senha deve ter pelo menos 6 caracteres, uma letra maiúscula e um número");
     }
-  }
 
+    const codigoSalvo = await cacheService.buscar(`reset:${email}`, "usuarios");
+    if (!codigoSalvo || codigoSalvo !== codigoRecuperacao) {
+      throw new ErroValidacao("Código de recuperação inválido ou expirado");
+    }
+
+    const usuario = await UsuariosModel.findOne({ where: { email } });
+    if (!usuario) {
+      throw new ErroNaoEncontrado("Usuário não encontrado");
+    }
+
+    await usuario.update({ senha: novaSenha });
+
+    await cacheService.invalidar(`reset:${email}`, "usuarios");
+
+    enviarEmail(
+      email,
+      "Senha Alterada com Sucesso - Estoque Raiz",
+      `Olá ${usuario.nome},\n\nSua senha foi alterada com sucesso em nosso sistema.\n\nSe você não realizou esta alteração, contate o seu administrador de rede imediatamente.`
+    ).catch((erro) => logger.error("Erro ao enviar aviso de alteração de senha:", erro));
+
+    logger.info(`Senha redefinida com sucesso para: ${email}`);
+  }
 }
 
 export const usuariosService = new UsuariosService();

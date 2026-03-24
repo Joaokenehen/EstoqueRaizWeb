@@ -107,3 +107,17 @@ export const alterarCargoUsuario = asyncHandler(
     });
   }
 );
+
+export const solicitarRecuperacaoSenha = asyncHandler(async (req: Request, res: Response) => {
+  const { email } = req.body;
+  logger.info(`Solicitando recuperação de senha para: ${email}`);
+  await usuariosService.solicitarRecuperacaoSenha(email);
+  res.json({ message: "Se o email estiver cadastrado, um código será enviado em instantes"});
+});
+
+export const redefinirSenha = asyncHandler(async (req: Request, res: Response) => {
+  logger.info(`Tentativa de redefinição de senha para o e-mail fornecido`);
+  await usuariosService.redefinirSenha(req.body);
+  res.json({ message: "Senha redefinida com sucesso"});
+});
+
