@@ -15,6 +15,7 @@ import {
   AtualizarUsuarioDTO,
   AprovarUsuarioDTO,
   AlterarCargoDTO,
+  RedefinirSenhaDTO,
 } from "../dto/UsuarioDTO";
 import { enviarEmail } from "../utils/smtp";
 import {
@@ -266,6 +267,55 @@ export class UsuariosService {
     );
 
     return usuario.toJSON();
+  }
+
+  async solicitarRecuperacaoSenha(email: string): Promise<void> {
+    const usuario = await UsuariosModel.findOne({ where: { email } });
+    if (!usuario) {
+      return;
+    }
+
+    const codigoRecuperacao = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await cacheService.armazenar(`reset:${email}`, codigoRecuperacao, { ttl: 900, namespace: "usuarios"});
+
+    await enviarEmail(
+      email,
+      "Recuperação de Senha - Estoque Raiz",
+      `Olá ${usuario.nome},\n\nVocê solicitou a recuperação da sua senha.\n\nSeu código de verificação é: ${codigoRecuperacao}\n\nEste código é válido por apenas 15 minutos.\n\nSe você não solicitou isso, ignore este e-mail.`
+    ).catch((erro) => logger.error("Erro ao enviar email de recuperação:", erro));
+
+    logger.info(`Código de recuperação gerado para email: ${email}`);
+  }
+
+  async redefinirSenha(dados: RedefinirSenhaDTO): Promise<void> {
+    const { email, codigoRecuperacao, novaSenha } = dados;
+
+    if (!validarSenhaForte(novaSenha)) {
+      throw new ErroValidacao("Senha deve ter pelo menos 6 caracteres, uma letra maiúscula e um número");
+    }
+
+    const codigoSalvo = await cacheService.buscar(`reset:${email}`, "usuarios");
+    if (!codigoSalvo || codigoSalvo !== codigoRecuperacao) {
+      throw new ErroValidacao("Código de recuperação inválido ou expirado");
+    }
+
+    const usuario = await UsuariosModel.findOne({ where: { email } });
+    if (!usuario) {
+      throw new ErroNaoEncontrado("Usuário não encontrado");
+    }
+
+    await usuario.update({ senha: novaSenha });
+
+    await cacheService.invalidar(`reset:${email}`, "usuarios");
+
+    enviarEmail(
+      email,
+      "Senha Alterada com Sucesso - Estoque Raiz",
+      `Olá ${usuario.nome},\n\nSua senha foi alterada com sucesso em nosso sistema.\n\nSe você não realizou esta alteração, contate o seu administrador de rede imediatamente.`
+    ).catch((erro) => logger.error("Erro ao enviar aviso de alteração de senha:", erro));
+
+    logger.info(`Senha redefinida com sucesso para: ${email}`);
   }
 }
 

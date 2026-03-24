@@ -3,6 +3,7 @@ import { Login } from './pages/Login';
 import { Cadastro } from './pages/Cadastro';
 import { Dashboard } from './pages/Dashboard';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { EsqueciSenha } from './pages/EqueciSenha';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route path="/esqueci-senha" element={<EsqueciSenha />} />
       </Routes>
     </BrowserRouter>
   );
