@@ -1,5 +1,3 @@
-/// <reference types="cypress" />
-
 import { gerarCpfValido } from '../support/utils';
 
 describe('Página de Cadastro - Estoque Raiz', () => {

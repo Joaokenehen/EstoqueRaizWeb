@@ -5,4 +5,4 @@ export function Relatorios() {
       <p>Aqui você pode gerar relatórios de vendas, estoque e desempenho.</p>
     </div>
   );
-}
+};
