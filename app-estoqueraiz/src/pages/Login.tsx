@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react'; // <-- Importamos os ícones
+import { Eye, EyeOff } from 'lucide-react';
 import logoEstoque from '../assets/LogoEstoqueRaiz.png';
 import api from '../services/api'; 
 
@@ -8,27 +8,43 @@ export const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [mostrarSenha, setMostrarSenha] = useState(false); // <-- Estado do olhinho
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [erro, setErro] = useState('');
+  const [carregando, setCarregando] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setErro('');
+    setCarregando(true);
+
     try {
-      const response = await api.post('/api/auth/login', { 
-        email, 
-        senha 
-      });
+      const response = await api.post('/api/auth/login', { email, senha });
 
       const { token, usuario } = response.data;
+
       localStorage.setItem('@EstoqueRaiz:token', token);
       localStorage.setItem('@EstoqueRaiz:usuario', JSON.stringify(usuario));
 
-      console.log("Login feito com sucesso!");
       navigate('/dashboard'); 
 
-    } catch (error: any) {
-      console.error("Erro ao fazer login:", error);
-      alert("Email ou senha incorretos!");
+   } catch (error: any) {
+      if (error.response && error.response.data && error.response.data.message) {
+        const mensagemBackend = error.response.data.message;
+
+        if (mensagemBackend.toLowerCase().includes('aprovada') || mensagemBackend.toLowerCase().includes('pendente')) {
+          setErro('Sua conta está em análise. Por favor, aguarde a aprovação de um gerente para acessar o sistema.');
+        }
+        else if (mensagemBackend.toLowerCase().includes('rejeitada')) {
+          setErro('O acesso para esta conta foi negado. Contate o administrador.');
+        }
+        else {
+          setErro(mensagemBackend); 
+        }
+      } else {
+        setErro('Falha ao conectar com o servidor. Tente novamente mais tarde.');
+      }
+    } finally {
+      setCarregando(false);
     }
   };
 
@@ -67,7 +83,6 @@ return (
           </div>
 
           <div>
-            {/* O "Esqueceu a senha?" agora fica aqui, na mesma linha da Label */}
             <div className="flex items-center justify-between mb-1">
               <label className="block text-sm font-semibold text-raiz-marrom">
                 Senha
@@ -76,7 +91,7 @@ return (
                 type="button"
                 onClick={() => navigate('/esqueci-senha')}
                 className="text-xs font-semibold text-raiz-verde hover:text-green-700 transition-colors hover:underline"
-                tabIndex={-1} // Evita que o tab pare aqui antes do input da senha
+                tabIndex={-1}
               >
                 Esqueceu a senha?
               </button>
@@ -103,11 +118,22 @@ return (
             </div>
           </div>
 
+         {erro && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-semibold text-center border border-red-200 animate-in fade-in zoom-in duration-200">
+              {erro}
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full bg-raiz-verde hover:bg-opacity-90 text-white font-bold py-3 rounded-lg shadow-md transform active:scale-[0.98] transition-all duration-150 mt-6"
+            disabled={carregando} 
+            className={`w-full text-white font-bold py-3 rounded-lg shadow-md transition-all duration-150 mt-6 
+              ${carregando 
+                ? 'bg-gray-400 cursor-not-allowed opacity-70' 
+                : 'bg-raiz-verde hover:bg-opacity-90 active:scale-[0.98]'
+              }`}
           >
-            Entrar no Sistema
+            {carregando ? 'Processando...' : 'Entrar no Sistema'}
           </button>
         </form>
 

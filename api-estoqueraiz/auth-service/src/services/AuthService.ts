@@ -19,10 +19,22 @@ export class AuthService {
 
     const usuario = await this.buscarUsuarioPorEmail(email);
 
+    // 1. Verifica se o usuário existe (Não damos pista, mensagem genérica)
     if (!usuario) {
       await publicadorEventos.publicar(
         EventosTipo.LOGIN_FALHOU,
         { email, motivo: "Usuario nao encontrado" },
+        "auth-service"
+      );
+      throw new ErroNaoAutorizado("Email ou senha incorretos");
+    }
+
+    const senhaValida = await bcrypt.compare(senha, usuario.senha);
+
+    if (!senhaValida) {
+      await publicadorEventos.publicar(
+        EventosTipo.LOGIN_FALHOU,
+        { email, motivo: "Senha incorreta" },
         "auth-service"
       );
       throw new ErroNaoAutorizado("Email ou senha incorretos");
@@ -35,17 +47,6 @@ export class AuthService {
         "auth-service"
       );
       throw new ErroProibido("Conta aguardando pela aprovação do gerente");
-    }
-
-    const senhaValida = await bcrypt.compare(senha, usuario.senha);
-
-    if (!senhaValida) {
-      await publicadorEventos.publicar(
-        EventosTipo.LOGIN_FALHOU,
-        { email, motivo: "Senha incorreta" },
-        "auth-service"
-      );
-      throw new ErroNaoAutorizado("Email ou senha incorretos");
     }
 
     const token = gerarToken({
