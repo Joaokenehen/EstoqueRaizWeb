@@ -7,14 +7,27 @@ import {
   BarChart3 
 } from 'lucide-react';
 
-export const modulos = [
+export type CargoPermitido = 'gerente' | 'estoquista' | 'financeiro';
+
+export interface ModuloProps{
+  nome: string;
+  descricao: string;
+  rota: string;
+  icon: any;
+  corIcone: string;
+  corFundo: string;
+  cargosPermitidos: CargoPermitido[];
+}
+
+export const modulos: ModuloProps[] = [
   { 
     nome: 'Produtos', 
     descricao: 'Gerencie o catálogo de itens',
     rota: '/produtos', 
-    icon: Package, // <-- Passamos apenas a referência do componente
+    icon: Package, 
     corIcone: 'text-blue-600', 
-    corFundo: 'bg-blue-100' 
+    corFundo: 'bg-blue-100',
+    cargosPermitidos: ['gerente', 'estoquista', 'financeiro'] 
   },
   { 
     nome: 'Movimentações', 
@@ -22,7 +35,8 @@ export const modulos = [
     rota: '/movimentacoes', 
     icon: ArrowRightLeft, 
     corIcone: 'text-green-600', 
-    corFundo: 'bg-green-100' 
+    corFundo: 'bg-green-100',
+    cargosPermitidos: ['gerente', 'estoquista'] 
   },
   { 
     nome: 'Categorias', 
@@ -30,7 +44,8 @@ export const modulos = [
     rota: '/categorias', 
     icon: Tags, 
     corIcone: 'text-yellow-600', 
-    corFundo: 'bg-yellow-100' 
+    corFundo: 'bg-yellow-100',
+    cargosPermitidos: ['gerente', 'estoquista'] 
   },
   { 
     nome: 'Unidades', 
@@ -38,7 +53,8 @@ export const modulos = [
     rota: '/unidades', 
     icon: Building2, 
     corIcone: 'text-purple-600', 
-    corFundo: 'bg-purple-100' 
+    corFundo: 'bg-purple-100',
+    cargosPermitidos: ['gerente'] 
   },
   { 
     nome: 'Usuários', 
@@ -46,7 +62,8 @@ export const modulos = [
     rota: '/usuarios', 
     icon: Users, 
     corIcone: 'text-orange-600', 
-    corFundo: 'bg-orange-100' 
+    corFundo: 'bg-orange-100',
+    cargosPermitidos: ['gerente']  
   },
   { 
     nome: 'Relatórios', 
@@ -54,6 +71,7 @@ export const modulos = [
     rota: '/relatorios', 
     icon: BarChart3, 
     corIcone: 'text-red-600', 
-    corFundo: 'bg-red-100' 
+    corFundo: 'bg-red-100',
+    cargosPermitidos: ['gerente', 'financeiro'] 
   },
 ];
