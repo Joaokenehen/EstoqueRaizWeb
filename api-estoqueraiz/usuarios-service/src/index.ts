@@ -15,6 +15,10 @@ import { assinanteEventos } from "../../shared/eventos/assinante";
 import { EventosTipo } from "../../shared/eventos/publicador";
 import rotaUsuarios from "./routes/rotaUsuarios";
 import "./models/UsuariosModel";
+import UsuariosModel from "./models/UsuariosModel";
+import cron from 'node-cron';
+import { Op } from 'sequelize';
+
 
 dotenv.config();
 
@@ -101,10 +105,34 @@ const iniciar = async () => {
       logger.info(` Métricas disponíveis em http://localhost:${PORT}/metrics`);
       logger.info(`Health check em http://localhost:${PORT}/health`);
     });
+
+    cron.schedule('0 3 * * *', async () => {
+      try {
+        const dataLimite = new Date();
+        dataLimite.setDate(dataLimite.getDate() - 7); 
+
+        const deletados = await UsuariosModel.destroy({
+          where: {
+            status: 'pendente',
+            criado_em: {
+              [Op.lt]: dataLimite,
+            },
+          },
+        });
+
+        if (deletados > 0) {
+          console.log(`[CRON] Limpeza concluída: ${deletados} contas pendentes há mais de 7 dias foram deletadas.`);
+        }
+      } catch (error) {
+        console.error('[CRON] Erro ao executar a limpeza de contas antigas:', error);
+      }
+    });
+
   } catch (erro) {
     logger.error("Erro ao iniciar servidor:", erro);
     process.exit(1);
   }
 };
+
 
 iniciar();

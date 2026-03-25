@@ -11,6 +11,7 @@ class UsuariosModel extends Model {
   public status!: "pendente" | "aprovado" | "rejeitado";
   public cargo!: "gerente" | "estoquista" | "financeiro" | null;
   public unidade_id!: number | null;
+  public criado_em!: Date;
 
   public async verificarSenha(senha: string): Promise<boolean> {
     return bcrypt.compare(senha, this.senha);
@@ -61,6 +62,11 @@ UsuariosModel.init(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    criado_em: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW
+    }
   },
   {
     sequelize,
