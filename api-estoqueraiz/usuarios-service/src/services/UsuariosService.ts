@@ -33,7 +33,7 @@ export class UsuariosService {
           attributes: { exclude: ["senha"] },
         });
       },
-      { ttl: 300, namespace: "usuarios" }
+      { ttl: 10, namespace: "usuarios" }
     );
   }
 
@@ -96,7 +96,7 @@ export class UsuariosService {
       "usuarios-service"
     );
 
-    await cacheService.invalidarPorPadrao("*", "usuarios");
+    await cacheService.invalidar("todos", "usuarios");
 
     enviarEmail(
       novoUsuario.email,
@@ -123,7 +123,8 @@ export class UsuariosService {
       "usuarios-service"
     );
 
-    await cacheService.invalidarPorPadrao("*", "usuarios");
+    await cacheService.invalidar("todos", "usuarios");
+    await cacheService.invalidar(`id:${id}`, "usuarios");
     await cacheService.invalidar(`email:${usuario.email}`, "usuarios");
 
     logger.info(`Usuário atualizado: ID ${id}`);
@@ -145,7 +146,9 @@ export class UsuariosService {
       "usuarios-service"
     );
 
-    await cacheService.invalidarPorPadrao("*", "usuarios");
+    // Invalidação Explícita
+    await cacheService.invalidar("todos", "usuarios");
+    await cacheService.invalidar(`id:${id}`, "usuarios");
     await cacheService.invalidar(`email:${usuario.email}`, "usuarios");
 
     logger.info(`Usuário deletado: ID ${id}`);
@@ -180,7 +183,8 @@ export class UsuariosService {
       "usuarios-service"
     );
 
-    await cacheService.invalidarPorPadrao("*", "usuarios");
+    await cacheService.invalidar("todos", "usuarios");
+    await cacheService.invalidar(`id:${id}`, "usuarios");
 
     enviarEmail(
       usuario.email,
@@ -211,7 +215,8 @@ export class UsuariosService {
       "usuarios-service"
     );
 
-    await cacheService.invalidarPorPadrao("*", "usuarios");
+    await cacheService.invalidar("todos", "usuarios");
+    await cacheService.invalidar(`id:${id}`, "usuarios");
 
     enviarEmail(
       usuario.email,
@@ -260,7 +265,8 @@ export class UsuariosService {
       "usuarios-service"
     );
 
-    await cacheService.invalidarPorPadrao("*", "usuarios");
+    await cacheService.invalidar("todos", "usuarios");
+    await cacheService.invalidar(`id:${id}`, "usuarios");
 
     logger.info(
       `Cargo alterado: usuário ${id} de ${cargoAnterior} para ${dados.cargo}`
@@ -308,6 +314,9 @@ export class UsuariosService {
     await usuario.update({ senha: novaSenha });
 
     await cacheService.invalidar(`reset:${email}`, "usuarios");
+    
+    await cacheService.invalidar("todos", "usuarios");
+    await cacheService.invalidar(`id:${usuario.id}`, "usuarios");
 
     enviarEmail(
       email,

@@ -79,7 +79,6 @@ export function Dashboard() {
   };
 
   return (
-    // Container principal: Ocupa a tela inteira, trava a rolagem externa e usa Flexbox para dividir Sidebar e Main
     <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
       
       <aside 
@@ -239,7 +238,6 @@ export function Dashboard() {
                 </p>
               </div>
             )}
-
           </div>
         </main>
       </div>

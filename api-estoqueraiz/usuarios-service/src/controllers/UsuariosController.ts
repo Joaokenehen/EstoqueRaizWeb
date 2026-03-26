@@ -120,4 +120,3 @@ export const redefinirSenha = asyncHandler(async (req: Request, res: Response) =
   await usuariosService.redefinirSenha(req.body);
   res.json({ message: "Senha redefinida com sucesso"});
 });
-

@@ -6,4 +6,4 @@ export function Categorias() {
       </h1>
     </div>
   );
-}
+};

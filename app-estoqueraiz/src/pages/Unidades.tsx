@@ -6,4 +6,4 @@ export function Unidades() {
       </h1>
     </div>
   );
-}
+};

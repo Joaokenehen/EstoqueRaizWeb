@@ -4,6 +4,7 @@ import { Cadastro } from './pages/Cadastro';
 import { Dashboard } from './pages/Dashboard';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { EsqueciSenha } from './pages/EqueciSenha';
+import { Usuarios } from './pages/Usuarios';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           } 
         />
         <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+        <Route path="/usuarios" element={<Usuarios />} />
       </Routes>
     </BrowserRouter>
   );

@@ -101,6 +101,12 @@ export class AuthService {
       { ttl: 600, namespace: "usuarios" }
     );
   }
+
+  async invalidarCacheUsuario(email: string): Promise<void> {
+    const chaveCache = `usuario:email:${email}`;
+    await cacheService.invalidar(chaveCache, 'usuarios');
+    logger.info(`Cache invalidado para o usuário: ${email}`);
+  }
 }
 
 export const authService = new AuthService();
