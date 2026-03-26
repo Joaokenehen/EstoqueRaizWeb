@@ -130,11 +130,11 @@ A documentação da API está disponível de duas formas no diretório `api-esto
   </tr>
   <tr>
     <td align="center"><strong>Cadastro de Produtos</strong></td>
-    <td align="center"><strong>Relatórios de Estoque</strong></td>
+    <td align="center"><strong>Categorias</strong></td>
   </tr>
   <tr>
     <td><img src="https://github.com/user-attachments/assets/67f5842a-9930-414e-afa0-b00cdb710d95" alt="Tela de Cadastro de Produtos"></td>
-    <td><img src="docs/images/relatorio.png" alt="Tela de Relatórios"></td>
+    <td><img src="https://github.com/user-attachments/assets/19483981-16bf-4d24-9fab-83e79a85f87b" alt="Tela de Categorias"></td>
   </tr>
 </table>
 
