@@ -117,9 +117,16 @@ A documentação da API está disponível de duas formas no diretório `api-esto
 - **OpenAPI:** `openapi-spec.yaml`
 - **Postman:** `API Estoque Raiz - Microservices.postman_collection.json`
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/2ca4589d-bf72-4565-8a2e-398557e378da" alt="Visão Geral da Dashboard" width="600">
-</p>
+## 🖼️ Galeria do Sistema
+
+<table>
+  <tr>
+    <td align="center"><strong>Página de Login</strong></td>
+    <td align="center"><strong>Dashboard Principal</strong></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/2ca4589d-bf72-4565-8a2e-398557e378da" alt="Dashboard Principal"></td>
+  </tr>
 
 ## 🤝 Contribuição
 
