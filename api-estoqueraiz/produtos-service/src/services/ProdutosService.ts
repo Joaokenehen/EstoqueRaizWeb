@@ -108,7 +108,8 @@ export class ProdutosService {
     return await cacheService.buscarOuExecutar(
       cacheKey,
       async () => {
-        const where: any = { ativo: true, statusProduto: "aprovado" };
+        // const where: any = { ativo: true, statusProduto: "aprovado" };
+        const where: any = { ativo: true };
         if (unidade_id) {
           where.unidade_id = unidade_id;
         }
@@ -292,7 +293,8 @@ export class ProdutosService {
       async () => {
         const produtos = await ProdutosModel.findAll({
           where: { statusProduto: "pendente" },
-          order: [["criado_em", "ASC"]],
+          // order: [["criado_em", "ASC"]],
+          order: [["id", "ASC"]],
         });
 
         // Buscar dados relacionados para cada produto pendente

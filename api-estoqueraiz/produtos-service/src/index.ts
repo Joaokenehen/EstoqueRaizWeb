@@ -15,6 +15,7 @@ import {
 import { assinanteEventos } from "../../shared/eventos/assinante";
 import { EventosTipo } from "../../shared/eventos/publicador";
 import rotaProdutos from "./routes/rotaProdutos";
+import "./models/ProdutosModel";
 
 dotenv.config();
 
@@ -57,7 +58,7 @@ let servidor: any;
 async function iniciar() {
   try {
     await conectarBanco();
-
+    await sequelize.sync({ alter: true });
     await assinanteEventos.inscrever([
       EventosTipo.CATEGORIA_CRIADA,
       EventosTipo.UNIDADE_CRIADA,

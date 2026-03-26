@@ -117,9 +117,26 @@ A documentação da API está disponível de duas formas no diretório `api-esto
 - **OpenAPI:** `openapi-spec.yaml`
 - **Postman:** `API Estoque Raiz - Microservices.postman_collection.json`
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/2ca4589d-bf72-4565-8a2e-398557e378da" alt="Visão Geral da Dashboard" width="600">
-</p>
+## 🖼️ Galeria do Sistema
+
+<table>
+  <tr>
+    <td align="center"><strong>Página de Login</strong></td>
+    <td align="center"><strong>Dashboard Principal</strong></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/f22e5b54-3f04-410d-9376-f0510caa5018" alt="Tela de Login"></td>
+    <td><img src="https://github.com/user-attachments/assets/2ca4589d-bf72-4565-8a2e-398557e378da" alt="Dashboard Principal"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Cadastro de Produtos</strong></td>
+    <td align="center"><strong>Categorias</strong></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/67f5842a-9930-414e-afa0-b00cdb710d95" alt="Tela de Cadastro de Produtos"></td>
+    <td><img src="https://github.com/user-attachments/assets/19483981-16bf-4d24-9fab-83e79a85f87b" alt="Tela de Categorias"></td>
+  </tr>
+</table>
 
 ## 🤝 Contribuição
 
