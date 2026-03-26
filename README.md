@@ -125,7 +125,7 @@ A documentação da API está disponível de duas formas no diretório `api-esto
     <td align="center"><strong>Dashboard Principal</strong></td>
   </tr>
   <tr>
-    <td><img src="docs/images/login.png" alt="Tela de Login"></td>
+    <td><img src="https://github.com/user-attachments/assets/f22e5b54-3f04-410d-9376-f0510caa5018" alt="Tela de Login"></td>
     <td><img src="https://github.com/user-attachments/assets/2ca4589d-bf72-4565-8a2e-398557e378da" alt="Dashboard Principal"></td>
   </tr>
   <tr>
@@ -133,7 +133,7 @@ A documentação da API está disponível de duas formas no diretório `api-esto
     <td align="center"><strong>Relatórios de Estoque</strong></td>
   </tr>
   <tr>
-    <td><img src="docs/images/cadastro-produto.png" alt="Tela de Cadastro de Produtos"></td>
+    <td><img src="https://github.com/user-attachments/assets/67f5842a-9930-414e-afa0-b00cdb710d95" alt="Tela de Cadastro de Produtos"></td>
     <td><img src="docs/images/relatorio.png" alt="Tela de Relatórios"></td>
   </tr>
 </table>
