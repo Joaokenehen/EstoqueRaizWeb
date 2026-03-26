@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: 'http://localhost:8081', // <--- A mágica acontece aqui!
-  timeout: 10000,
+  baseURL: 'http://localhost:8081', 
 });
 
 api.interceptors.request.use(

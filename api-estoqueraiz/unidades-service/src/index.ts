@@ -14,6 +14,7 @@ import {
 import { assinanteEventos } from "../../shared/eventos/assinante";
 import { EventosTipo } from "../../shared/eventos/publicador";
 import rotaUnidades from "./routes/rotaUnidades";
+import "./models/UnidadesModel"; 
 
 dotenv.config();
 
@@ -80,6 +81,7 @@ process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 const iniciar = async () => {
   try {
     await conectarBanco();
+    await sequelize.sync({ alter: true });
     await redisClient.ping();
     await assinanteEventos.inscrever([EventosTipo.USUARIO_CRIADO]);
 
