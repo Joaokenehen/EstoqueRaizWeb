@@ -1,4 +1,27 @@
 /// <reference types="cypress" />
+
+export {};
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /**
+       * Comando personalizado para realizar login no sistema
+       * @example cy.login('admin@email.com', '123456')
+       */
+      login(email: string, senha: string): Chainable<void>;
+    }
+  }
+}
+
+Cypress.Commands.add('login', (email: string, senha: string) => {
+  cy.visit('/login');
+  cy.get('input[type="email"]').type(email);
+  cy.get('input[type="password"]').type(senha);
+  cy.get('button[type="submit"]').click();
+  cy.url().should('include', '/dashboard');
+});
+
 // ***********************************************
 // This example commands.ts shows you how to
 // create various custom commands and overwrite
