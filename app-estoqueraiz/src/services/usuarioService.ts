@@ -10,14 +10,23 @@ export interface Usuario {
 }
 
 export const usuarioService = {
-    // Corrigido para /api/usuarios
     listarTodos: async (): Promise<Usuario[]> => {
-        const response = await api.get('/api/usuarios');
+        const response = await api.get('/api/usuarios', {
+            headers: {
+                'Cache-Control': 'no-cache, no-store',
+                Pragma: 'no-cache',
+            },
+        });
         return response.data;
     },
 
     listarPendentes: async (): Promise<Usuario[]> => {
-        const response = await api.get('/api/usuarios/pendentes');
+        const response = await api.get('/api/usuarios/pendentes', {
+            headers: {
+                'Cache-Control': 'no-cache, no-store',
+                Pragma: 'no-cache',
+            },
+        });
         return response.data;
     },
 

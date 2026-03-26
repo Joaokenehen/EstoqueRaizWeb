@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { usuarioService, type Usuario } from '../services/usuarioService';
-import { Check, Trash2, AlertCircle, ShieldAlert, UserCheck, Filter } from 'lucide-react';
+import { Check, Trash2, AlertCircle, ShieldAlert, UserCheck, Filter, RefreshCw } from 'lucide-react';
 import { BarraFiltros } from '../components/BarraFiltro';
 
 export const Usuarios = () => {
@@ -80,28 +80,29 @@ export const Usuarios = () => {
     }
     const cargoParaEnviar = cargoSelecionado === 'nenhum' ? null : cargoSelecionado;
       try {
-        setProcessandoId(id);
-        await usuarioService.aprovar(id, cargoParaEnviar as any);
-        // REMOVA o carregarUsuarios() daqui
-      } catch (error) {
-        alert('Erro ao aprovar usuário. A tela será atualizada.');
-      } finally {
-        setProcessandoId(null);
-        await carregarUsuarios(); // ADICIONE AQUI! Assim ele atualiza a tela dando erro ou sucesso.
-      }
+      setProcessandoId(id);
+      await usuarioService.aprovar(id, cargoParaEnviar as any);
+      await carregarUsuarios();
+    } catch (error) {
+      alert('Erro ao aprovar usuário. A tela será atualizada.');
+      await carregarUsuarios(); // Fallback
+    } finally {
+      setProcessandoId(null);
+    }
     };
 
   const handleRejeitar = async (id: number) => {
     if (!window.confirm('Tem certeza que deseja rejeitar este acesso?')) return;
       try {
-        setProcessandoId(id);
-        await usuarioService.rejeitar(id);
-      } catch (error) {
-        alert('Erro ao rejeitar usuário. A tela será atualizada.');
-      } finally {
-        setProcessandoId(null);
-        await carregarUsuarios(); // ADICIONE AQUI!
-      }
+      setProcessandoId(id);
+      await usuarioService.rejeitar(id);
+      await carregarUsuarios();
+    } catch (error) {
+      alert('Erro ao rejeitar usuário. A tela será atualizada.');
+      await carregarUsuarios(); // Fallback
+    } finally {
+      setProcessandoId(null);
+    }
     };
 
   const handleAlterarCargo = async (id: number) => {
@@ -109,15 +110,16 @@ export const Usuarios = () => {
     if (cargoSelecionado === undefined || cargoSelecionado === '') return;
     const cargoParaEnviar = cargoSelecionado === 'nenhum' ? null : cargoSelecionado;
       try {
-        setProcessandoId(id);
-        await usuarioService.alterarCargo(id, cargoParaEnviar as any);
-        alert('Permissões atualizadas com sucesso!');
-      } catch (error) {
-        alert('Erro ao alterar permissões. A tela será atualizada.');
-      } finally {
-        setProcessandoId(null);
-        await carregarUsuarios(); // ADICIONE AQUI!
-      }
+      setProcessandoId(id);
+      await usuarioService.alterarCargo(id, cargoParaEnviar as any);
+      await carregarUsuarios();
+      alert('Permissões atualizadas com sucesso!');
+    } catch (error) {
+      alert('Erro ao alterar permissões. A tela será atualizada.');
+      await carregarUsuarios(); // Fallback
+    } finally {
+      setProcessandoId(null);
+    }
     };
     
   const handleDeletar = async (id: number) => {
@@ -127,7 +129,8 @@ export const Usuarios = () => {
       await usuarioService.deletar(id);
       await carregarUsuarios();
     } catch (error) {
-      alert('Erro ao deletar usuário.');
+      alert('Erro ao deletar usuário. A tela será atualizada em instantes.');
+      await carregarUsuarios(); // Fallback em caso de erro
     } finally {
       setProcessandoId(null);
     }

@@ -65,10 +65,39 @@ async function gracefulShutdown(signal: string) {
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
+import { authService } from "./services/AuthService";
+import { assinanteEventos, EventosTipo } from "../../shared/eventos/assinante";
+
 const iniciar = async () => {
   try {
     await conectarBanco();
     await redisClient.ping();
+
+    // Inscrição nos eventos
+    await assinanteEventos.inscrever([
+      EventosTipo.USUARIO_DELETADO,
+      EventosTipo.USUARIO_ATUALIZADO,
+    ]);
+
+    // Manipulador para invalidar cache quando usuário for deletado
+    assinanteEventos.registrarManipulador(
+      EventosTipo.USUARIO_DELETADO,
+      async (dados: { id: number; email: string }) => {
+        if (dados && dados.email) {
+          await authService.invalidarCacheUsuario(dados.email);
+        }
+      }
+    );
+
+    // Manipulador para invalidar cache quando usuário for atualizado
+    assinanteEventos.registrarManipulador(
+      EventosTipo.USUARIO_ATUALIZADO,
+      async (dados: { id: number; email: string }) => {
+        if (dados && dados.email) {
+          await authService.invalidarCacheUsuario(dados.email);
+        }
+      }
+    );
 
     server = app.listen(PORT, () => {
       logger.info(`${SERVICE_NAME} rodando na porta ${PORT}`);

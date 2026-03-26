@@ -33,7 +33,7 @@ export class UsuariosService {
           attributes: { exclude: ["senha"] },
         });
       },
-      { ttl: 300, namespace: "usuarios" }
+      { ttl: 10, namespace: "usuarios" }
     );
   }
 
@@ -315,7 +315,6 @@ export class UsuariosService {
 
     await cacheService.invalidar(`reset:${email}`, "usuarios");
     
-    // Como a senha foi alterada (mesmo não indo no JSON do frontend), é bom garantir:
     await cacheService.invalidar("todos", "usuarios");
     await cacheService.invalidar(`id:${usuario.id}`, "usuarios");
 
