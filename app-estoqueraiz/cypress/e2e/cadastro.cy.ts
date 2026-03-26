@@ -8,7 +8,7 @@ describe('Página de Cadastro - Estoque Raiz', () => {
     const emailDinamico = `teste_${Date.now()}@estoqueraiz.com`;  
     const senhaValida = 'Senha123!';
     
-    cy.get('[data-testid="nome-input"]').type('João Teste');
+    cy.get('[data-testid="nome-input"]').type('Teste');
     cy.get('[data-testid="email-input"]').type(emailDinamico);
     cy.get('[data-testid="senha-input"]').type(senhaValida);
     cy.get('[data-testid="cpf-input"]').type(cpfDinamico); 

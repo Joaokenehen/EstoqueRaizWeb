@@ -125,12 +125,27 @@ A documentação da API está disponível de duas formas no diretório `api-esto
     <td align="center"><strong>Dashboard Principal</strong></td>
   </tr>
   <tr>
+    <td><img src="docs/images/login.png" alt="Tela de Login"></td>
     <td><img src="https://github.com/user-attachments/assets/2ca4589d-bf72-4565-8a2e-398557e378da" alt="Dashboard Principal"></td>
   </tr>
+  <tr>
+    <td align="center"><strong>Cadastro de Produtos</strong></td>
+    <td align="center"><strong>Relatórios de Estoque</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/cadastro-produto.png" alt="Tela de Cadastro de Produtos"></td>
+    <td><img src="docs/images/relatorio.png" alt="Tela de Relatórios"></td>
+  </tr>
+</table>
 
 ## 🤝 Contribuição
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
+
+## ✍️ Autores
+
+- João Gustavo Quennehen
+- Lucas da Silva Custodio
 
 ## 📄 Licença
 
