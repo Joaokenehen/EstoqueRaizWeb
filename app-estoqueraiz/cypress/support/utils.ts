@@ -1,5 +1,4 @@
-// Arquivo: cypress/support/utils.ts
-
+// Gerador de CPF valido: 
 export const gerarCpfValido = () => {
   const n = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10));
   let d1 = 11 - (n.reduce((acc, val, i) => acc + val * (10 - i), 0) % 11);

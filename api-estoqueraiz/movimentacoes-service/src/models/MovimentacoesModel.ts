@@ -42,7 +42,7 @@ MovimentacoesModel.init(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    documento: {
+documento: {
       type: DataTypes.STRING,
       allowNull: true,
     },

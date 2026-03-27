@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, KeyRound, Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import logoEstoque from '../assets/LogoEstoqueRaiz.png';
-import api from '../services/api';
+import { usuarioService } from '../services/usuarioService';
 
 export const EsqueciSenha = () => {
   const navigate = useNavigate();
@@ -20,7 +20,8 @@ export const EsqueciSenha = () => {
     setMensagem({ texto: "", tipo: "" });
 
     try {
-      await api.post('/api/usuarios/solicitar-recuperacao-senha', { email });
+      await usuarioService.solicitarRecuperacaoSenha(email);
+      
       setMensagem({ texto: "Código de verificação enviado para o seu e-mail!", tipo: "sucesso" });
       setEtapa(2);
     } catch (error) {
@@ -36,9 +37,13 @@ export const EsqueciSenha = () => {
     setMensagem({ texto: "", tipo: "" });
 
     try {
-      await api.post('/api/usuarios/redefinir-senha', { email, codigoRecuperacao: codigo, novaSenha });
+      await usuarioService.redefinirSenha({
+        email,
+        codigoRecuperacao: codigo,
+        novaSenha
+      })
+
       setMensagem({ texto: "Senha redefinida com sucesso! Redirecionando...", tipo: "sucesso" });
-      
       setTimeout(() => navigate('/login'), 3000);
     } catch (error: any) {
       setMensagem({ 

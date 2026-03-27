@@ -142,6 +142,8 @@ A documentação da API está disponível de duas formas no diretório `api-esto
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
 
-## 📄 Licença
+## ✍️ Autores
 
-Este projeto é distribuído sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+- João Gustavo Quennehen
+- Lucas da Silva Custodio
+

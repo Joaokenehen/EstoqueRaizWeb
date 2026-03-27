@@ -1,25 +1,21 @@
 import { useState, useEffect } from 'react';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { Trash2, Edit, AlertCircle, Plus, X, MapPin } from 'lucide-react';
+import { AlertCircle, Plus, X, MapPin } from 'lucide-react';
+import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
+
 
 export const Unidades = () => {
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
-
-  // Estados dos Filtros e Paginação
   const [buscaTexto, setBuscaTexto] = useState('');
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
-
-  // Estados do Modal de Criação/Edição
   const [modalAberto, setModalAberto] = useState(false);
   const [unidadeEditando, setUnidadeEditando] = useState<Unidade | null>(null);
   const [processandoAcao, setProcessandoAcao] = useState(false);
-  
-  // Estado do Formulário
-  const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState({
     nome: '', descricao: '', cep: '', rua: '', numero: '', bairro: '', cidade: '', estado: ''
   });
 
@@ -44,7 +40,6 @@ export const Unidades = () => {
     setPaginaAtual(1);
   }, [buscaTexto, itensPorPagina]);
 
-  // Lógica de Filtros e Paginação
   const unidadesFiltradas = unidades.filter((u) => {
     const termo = buscaTexto.toLowerCase();
     return u.nome.toLowerCase().includes(termo) || u.cidade.toLowerCase().includes(termo);
@@ -55,7 +50,6 @@ export const Unidades = () => {
   const indicePrimeiroItem = indiceUltimoItem - itensPorPagina;
   const unidadesPaginadas = unidadesFiltradas.slice(indicePrimeiroItem, indiceUltimoItem);
 
-  // Lógica de procura automática do CEP
   const handleBuscaCep = async (cepBuscado: string) => {
     const cepLimpo = cepBuscado.replace(/\D/g, '');
     setFormData(prev => ({ ...prev, cep: cepBuscado }));
@@ -178,6 +172,7 @@ export const Unidades = () => {
                 <tbody className="divide-y divide-gray-200">
                   {unidadesPaginadas.map((unidade) => (
                     <tr key={unidade.id} className="hover:bg-gray-50 transition-colors">
+                      
                       <td className="p-4">
                         <div className="flex flex-col">
                           <span className="font-semibold text-gray-900">{unidade.nome}</span>
@@ -193,22 +188,20 @@ export const Unidades = () => {
                           </div>
                         </div>
                       </td>
+
+                      {/* COLUNA AÇÕES */}
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button 
+                          
+                          <BotaoEditar 
                             onClick={() => abrirModal(unidade)}
-                            className="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors"
                             title="Editar Unidade"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button 
+                          />
+                        
+                          <BotaoDeletar 
                             onClick={() => handleDeletar(unidade.id)}
-                            className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors ml-2"
                             title="Excluir Unidade"
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                          />
                         </div>
                       </td>
                     </tr>
@@ -261,53 +254,60 @@ export const Unidades = () => {
             </div>
             
             <form onSubmit={handleSubmit} className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                
+                {/* LINHA 1: NOME DA UNIDADE */}
+                <div className="col-span-1 md:col-span-12">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Unidade *</label>
                   <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.nome} onChange={e => setFormData({...formData, nome: e.target.value})} placeholder="Ex: Matriz São Paulo" />
                 </div>
                 
-                <div className="md:col-span-2">
+                {/* LINHA 2: DESCRIÇÃO */}
+                <div className="col-span-1 md:col-span-12">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
                   <input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.descricao} onChange={e => setFormData({...formData, descricao: e.target.value})} placeholder="Ex: Armazém principal de distribuição" />
                 </div>
 
-                <div>
+                {/* LINHA 3: CEP E RUA */}
+                <div className="col-span-1 md:col-span-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">CEP *</label>
                   <input required type="text" maxLength={9} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.cep} onChange={e => handleBuscaCep(e.target.value)} placeholder="00000-000" />
                 </div>
 
-                <div className="md:col-span-2">
+                <div className="col-span-1 md:col-span-8">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Rua *</label>
-                  <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.rua} onChange={e => setFormData({...formData, rua: e.target.value})} />
+                  <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.rua} onChange={e => setFormData({...formData, rua: e.target.value})} />
                 </div>
 
-                <div>
+                {/* LINHA 4: NÚMERO, BAIRRO, CIDADE E ESTADO */}
+                <div className="col-span-1 md:col-span-3">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Número *</label>
                   <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.numero} onChange={e => setFormData({...formData, numero: e.target.value})} />
                 </div>
 
-                <div>
+                <div className="col-span-1 md:col-span-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Bairro *</label>
-                  <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.bairro} onChange={e => setFormData({...formData, bairro: e.target.value})} />
+                  <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.bairro} onChange={e => setFormData({...formData, bairro: e.target.value})} />
                 </div>
 
-                <div>
+                <div className="col-span-1 md:col-span-3">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Cidade *</label>
-                  <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.cidade} onChange={e => setFormData({...formData, cidade: e.target.value})} />
+                  <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.cidade} onChange={e => setFormData({...formData, cidade: e.target.value})} />
                 </div>
 
-                <div>
+                <div className="col-span-1 md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
-                  <input required type="text" maxLength={2} className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none uppercase" value={formData.estado} onChange={e => setFormData({...formData, estado: e.target.value})} placeholder="UF" />
+                  <input required type="text" maxLength={2} className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none uppercase text-center" value={formData.estado} onChange={e => setFormData({...formData, estado: e.target.value})} placeholder="UF" />
                 </div>
               </div>
 
+              {/* BOTÕES DE AÇÃO DO FORMULÁRIO */}
               <div className="mt-8 flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
                 <button type="button" onClick={fecharModal} className="px-5 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium">
                   Cancelar
                 </button>
-                <button type="submit" disabled={processandoAcao} className="px-5 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50">
+                <button type="submit" disabled={processandoAcao} className="px-5 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 flex items-center gap-2">
+                  {processandoAcao && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
                   {processandoAcao ? 'A guardar...' : 'Guardar Unidade'}
                 </button>
               </div>

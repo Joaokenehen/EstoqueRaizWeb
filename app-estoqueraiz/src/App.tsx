@@ -8,6 +8,8 @@ import { Usuarios } from './pages/Usuarios';
 import { Unidades } from './pages/Unidades'
 import { Categorias } from './pages/Categorias';
 import { Produtos } from './pages/Produtos';
+import { Movimentacoes } from './pages/Movimentacoes';
+import { Relatorios } from './pages/Relatorios'
 
 function App() {
   return (
@@ -59,6 +61,24 @@ function App() {
           element={
             <ProtectedRoute cargosPermitidos={['gerente', 'estoquista', 'financeiro']}>
               <Produtos />
+            </ProtectedRoute>
+          } 
+        />
+
+          <Route 
+          path="/movimentacoes" 
+          element={
+            <ProtectedRoute cargosPermitidos={['gerente', 'estoquista']}>
+              <Movimentacoes />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/relatorios" 
+          element={
+            <ProtectedRoute cargosPermitidos={['gerente', 'financeiro']}>
+              <Relatorios />
             </ProtectedRoute>
           } 
         />

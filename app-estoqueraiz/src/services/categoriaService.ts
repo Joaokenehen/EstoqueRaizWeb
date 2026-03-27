@@ -1,12 +1,22 @@
 import api from './api';
 
-export interface Categoria {
-  id: number;
+export interface CriarCategoriaDTO {
   nome: string;
   descricao?: string;
 }
 
-export type CriarCategoriaDTO = Omit<Categoria, 'id'>;
+export interface AtualizarCategoriaDTO {
+  nome?: string;
+  descricao?: string;
+}
+
+export interface Categoria {
+  id: number;
+  nome: string;
+  descricao?: string;
+  criadoEm?: string;
+  atualizadoEm?: string;
+}
 
 export const categoriaService = {
   listarTodas: async (): Promise<Categoria[]> => {
@@ -21,12 +31,12 @@ export const categoriaService = {
 
   criar: async (dados: CriarCategoriaDTO): Promise<Categoria> => {
     const response = await api.post('/api/categorias', dados);
-    return response.data.categoria; 
+    return response.data.categoria || response.data;  
   },
 
-  atualizar: async (id: number, dados: Partial<CriarCategoriaDTO>): Promise<Categoria> => {
+  atualizar: async (id: number, dados: AtualizarCategoriaDTO): Promise<Categoria> => {
     const response = await api.put(`/api/categorias/${id}`, dados);
-    return response.data.categoria; 
+    return response.data.categoria || response.data; 
   },
 
   deletar: async (id: number): Promise<void> => {

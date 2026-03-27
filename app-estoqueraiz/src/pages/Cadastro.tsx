@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react'; 
 import logoEstoque from '../assets/LogoEstoqueRaiz.png';
-import api from '../services/api'; 
+import { usuarioService } from '../services/usuarioService';
 
 export const Cadastro = () => {
   const navigate = useNavigate();
@@ -17,11 +17,11 @@ export const Cadastro = () => {
     e.preventDefault();
 
     try {
-      const response = await api.post('/api/usuarios', {
+      const response = await usuarioService.cadastrar({
         nome,
         email,
         senha,
-        cpf, 
+        cpf,
       });
 
       if (response.status === 201) {

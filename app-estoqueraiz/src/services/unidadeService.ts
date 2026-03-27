@@ -12,7 +12,28 @@ export interface Unidade {
   cep: string;
 }
 
-export type CriarUnidadeDTO = Omit<Unidade, 'id'>;
+
+export interface CriarUnidadeDTO {
+  nome: string;
+  descricao?: string;
+  rua: string;
+  numero: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+  cep: string;
+}
+
+export interface AtualizarUnidadeDTO {
+  nome?: string;
+  descricao?: string;
+  rua?: string;
+  numero?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+}
 
 export const unidadeService = {
   listarTodas: async (): Promise<Unidade[]> => {
@@ -27,12 +48,12 @@ export const unidadeService = {
 
   criar: async (dados: CriarUnidadeDTO): Promise<Unidade> => {
     const response = await api.post('/api/unidades', dados);
-    return response.data.unidade;
+    return response.data.unidade || response.data; 
   },
 
-  atualizar: async (id: number, dados: Partial<CriarUnidadeDTO>): Promise<Unidade> => {
+  atualizar: async (id: number, dados: AtualizarUnidadeDTO): Promise<Unidade> => {
     const response = await api.put(`/api/unidades/${id}`, dados);
-    return response.data.unidade;
+    return response.data.unidade || response.data;
   },
 
   deletar: async (id: number): Promise<void> => {
