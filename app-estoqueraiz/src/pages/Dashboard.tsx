@@ -2,19 +2,19 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Package, Settings, X, User, ChevronDown, Edit2, Check, XCircle, Menu, Lock } from 'lucide-react';
 import { modulos } from '../data/modulos';
-import api from '../services/api'; 
+import { usuarioService } from '../services/usuarioService';
+import { authService } from '../services/authService';
 
 export function Dashboard() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState<any>(null);
   const [menuAberto, setMenuAberto] = useState(false);
   const [modalConfigAberto, setModalConfigAberto] = useState(false);
-  const [sidebarAberta, setSidebarAberta] = useState(false); // <-- Controle do menu lateral no celular
+  const [sidebarAberta, setSidebarAberta] = useState(false); 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ nome: '' });
   const [loadingConfig, setLoadingConfig] = useState(false);
   const [mensagemConfig, setMensagemConfig] = useState({ texto: '', tipo: '' });
-
 
   useEffect(() => {
     const dadosSalvos = localStorage.getItem('@EstoqueRaiz:usuario');
@@ -30,8 +30,7 @@ export function Dashboard() {
   });
 
   const handleLogout = () => {
-    localStorage.removeItem('@EstoqueRaiz:token');
-    localStorage.removeItem('@EstoqueRaiz:usuario');
+    authService.logOut();
     navigate('/login');
   };
 
@@ -53,7 +52,7 @@ export function Dashboard() {
     setMensagemConfig({ texto: '', tipo: '' });
 
     try {
-      await api.put(`/api/usuarios/${usuario.id}`, { nome: editForm.nome });
+      await usuarioService.atualizar(usuario.id, { nome: editForm.nome });
 
       const usuarioAtualizado = { ...usuario, nome: editForm.nome };
       setUsuario(usuarioAtualizado);

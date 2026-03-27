@@ -147,6 +147,3 @@ Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull re
 - João Gustavo Quennehen
 - Lucas da Silva Custodio
 
-## 📄 Licença
-
-Este projeto é distribuído sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.

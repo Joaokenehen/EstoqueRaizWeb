@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { usuarioService, type Usuario } from '../services/usuarioService';
-import { Check, Trash2, AlertCircle, ShieldAlert, UserCheck, Filter, RefreshCw } from 'lucide-react';
+import { Check, Trash2, AlertCircle, ShieldAlert, UserCheck, Filter } from 'lucide-react';
 import { BarraFiltros } from '../components/BarraFiltro';
+import { unidadeService, type Unidade } from '../services/unidadeService';
 
 export const Usuarios = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -14,18 +15,31 @@ export const Usuarios = () => {
   const [filtroCargo, setFiltroCargo] = useState('todos');
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [unidades, setUnidades] = useState<Unidade[]>([])
+  const [unidadesSelecionadas, setUnidadesSelecionadas] = useState<Record<number, string>>({});
 
-  const carregarUsuarios = async () => {
+  const carregarDados = async () => {
     try {
       setCarregando(true);
-      const dados = await usuarioService.listarTodos();
-      setUsuarios(dados);
+
+      const [dadosUsuarios, dadosUnidades] = await Promise.all([
+        usuarioService.listarTodos(),
+        unidadeService.listarTodas()
+      ]);
+
+      setUsuarios(dadosUsuarios);
+      setUnidades(dadosUnidades);
 
       const cargosIniciais: Record<number, string> = {};
-      dados.forEach(u => {
-        cargosIniciais[u.id] = u.cargo ? u.cargo : 'nenhum';
+      const unidadesIniciais: Record<number, string> = {};
+      
+      dadosUsuarios.forEach(u => {
+        cargosIniciais[u.id] = u.cargo ? u.cargo : '';
+        unidadesIniciais[u.id] = u.unidade_id ? String(u.unidade_id) : '';
       });
+      
       setCargosSelecionados(cargosIniciais);
+      setUnidadesSelecionadas(unidadesIniciais);
 
     } catch (error) {
       setErro('Não foi possível carregar a lista de usuários.');
@@ -40,7 +54,7 @@ export const Usuarios = () => {
   }, [buscaTexto, filtroStatus, filtroCargo, itensPorPagina]);
 
   useEffect(() => {
-    carregarUsuarios();
+    carregarDados();
   }, []);
 
   const usuariosFiltrados = usuarios.filter((usuario) => {
@@ -72,65 +86,88 @@ export const Usuarios = () => {
     setCargosSelecionados(prev => ({ ...prev, [id]: novoCargo }));
   };
 
-  const handleAprovar = async (id: number) => {
+const handleAprovar = async (id: number) => {
     const cargoSelecionado = cargosSelecionados[id];
-    if (cargoSelecionado === undefined || cargoSelecionado === '') {
-      alert('Por favor, selecione uma opção de cargo antes de aprovar.');
+    const unidadeSelecionada = unidadesSelecionadas[id];
+
+    if (!cargoSelecionado || cargoSelecionado === 'nenhum') {
+      alert('Por favor, selecione o CARGO antes de aprovar.');
       return;
     }
-    const cargoParaEnviar = cargoSelecionado === 'nenhum' ? null : cargoSelecionado;
-      try {
+    
+    if (!unidadeSelecionada) {
+      alert('Por favor, selecione a UNIDADE (Filial) do usuário antes de aprovar.');
+      return;
+    }
+
+    try {
       setProcessandoId(id);
-      await usuarioService.aprovar(id, cargoParaEnviar as any);
-      await carregarUsuarios();
+      
+      await usuarioService.aprovar(id, { 
+        cargo: cargoSelecionado, 
+        unidade_id: Number(unidadeSelecionada) 
+      });
+      
+      alert('Usuário aprovado e vinculado à unidade com sucesso!');
     } catch (error) {
-      alert('Erro ao aprovar usuário. A tela será atualizada.');
-      await carregarUsuarios(); // Fallback
+      alert('Erro ao aprovar usuário. Verifique sua conexão.');
     } finally {
       setProcessandoId(null);
+      await carregarDados();
     }
-    };
+  };
 
   const handleRejeitar = async (id: number) => {
     if (!window.confirm('Tem certeza que deseja rejeitar este acesso?')) return;
       try {
-      setProcessandoId(id);
-      await usuarioService.rejeitar(id);
-      await carregarUsuarios();
-    } catch (error) {
-      alert('Erro ao rejeitar usuário. A tela será atualizada.');
-      await carregarUsuarios(); // Fallback
-    } finally {
-      setProcessandoId(null);
-    }
+        setProcessandoId(id);
+        await usuarioService.rejeitar(id);
+      } catch (error) {
+        alert('Erro ao rejeitar usuário. A tela será atualizada.');
+      } finally {
+        setProcessandoId(null);
+        await carregarDados(); 
+      }
     };
 
-  const handleAlterarCargo = async (id: number) => {
+  const handleSalvarAlteracoes = async (id: number) => {
     const cargoSelecionado = cargosSelecionados[id];
+    const unidadeSelecionada = unidadesSelecionadas[id];
+
     if (cargoSelecionado === undefined || cargoSelecionado === '') return;
+    
     const cargoParaEnviar = cargoSelecionado === 'nenhum' ? null : cargoSelecionado;
-      try {
+    
+    const unidadeParaEnviar = (cargoParaEnviar === null || !unidadeSelecionada) 
+      ? null 
+      : Number(unidadeSelecionada);
+
+    try {
       setProcessandoId(id);
-      await usuarioService.alterarCargo(id, cargoParaEnviar as any);
-      await carregarUsuarios();
-      alert('Permissões atualizadas com sucesso!');
+      
+      await usuarioService.atualizar(id, { 
+        cargo: cargoParaEnviar as any,
+        unidade_id: unidadeParaEnviar as any
+      });
+      
+      alert('Permissões e unidade atualizadas com sucesso!');
     } catch (error) {
-      alert('Erro ao alterar permissões. A tela será atualizada.');
-      await carregarUsuarios(); // Fallback
+      alert('Erro ao guardar as alterações. A tela será atualizada.');
+      console.error(error);
     } finally {
       setProcessandoId(null);
+      await carregarDados(); 
     }
-    };
-    
+  };
+
   const handleDeletar = async (id: number) => {
     if (!window.confirm('Atenção: Esta ação é irreversível. Deseja excluir este usuário do sistema?')) return;
     try {
       setProcessandoId(id);
       await usuarioService.deletar(id);
-      await carregarUsuarios();
+      await carregarDados();
     } catch (error) {
-      alert('Erro ao deletar usuário. A tela será atualizada em instantes.');
-      await carregarUsuarios(); // Fallback em caso de erro
+      alert('Erro ao deletar usuário.');
     } finally {
       setProcessandoId(null);
     }
@@ -217,92 +254,117 @@ export const Usuarios = () => {
                     <th className="p-4 font-semibold text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
-      
-                  {usuariosPaginados.map((usuario) => (
-                    <tr key={usuario.id} className="hover:bg-gray-50 transition-colors">
+          <tbody className="divide-y divide-gray-200">
+            {usuariosPaginados.map((usuario) => (
+              <tr key={usuario.id} className="hover:bg-gray-50 transition-colors">
 
-                      <td className="p-4">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-gray-900">{usuario.nome}</span>
-                          <span className="text-sm text-gray-500">{usuario.email}</span>
-                        </div>
-                      </td>
+                {/* 1. COLUNA: USUÁRIO E E-MAIL */}
+                <td className="p-4">
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-gray-900">{usuario.nome}</span>
+                    <span className="text-sm text-gray-500">{usuario.email}</span>
+                  </div>
+                </td>
 
-                      <td className="p-4">
-                        {getStatusBadge(usuario.status)}
-                      </td>
+                {/* 2. COLUNA: STATUS */}
+                <td className="p-4">
+                  {getStatusBadge(usuario.status)}
+                </td>
 
-                      <td className="p-4">
-                        <select
-                          className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full max-w-[220px]"
-                          value={cargosSelecionados[usuario.id] || ''}
-                          onChange={(e) => handleMudancaSelect(usuario.id, e.target.value)}
-                          disabled={processandoId === usuario.id || usuario.status === 'rejeitado'}
+                {/* 3. COLUNA: SELECTS DE CARGO E UNIDADE */}
+                <td className="p-4">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {/* Select de Cargo */}
+                    <select
+                      className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-[150px]"
+                      value={cargosSelecionados[usuario.id] || ''}
+                      onChange={(e) => handleMudancaSelect(usuario.id, e.target.value)}
+                      disabled={processandoId === usuario.id || usuario.status === 'rejeitado'}
+                    >
+                      <option value="" disabled>Cargo...</option>
+                      <option value="nenhum" className="text-gray-500 font-semibold">Sem Cargo</option>
+                      <option value="gerente">Gerente</option>
+                      <option value="estoquista">Estoquista</option>
+                      <option value="financeiro">Financeiro</option>
+                    </select>
+
+                    {/* Select de Unidade */}
+                    <select
+                      className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-[150px]"
+                      value={unidadesSelecionadas[usuario.id] || ''}
+                      onChange={(e) => setUnidadesSelecionadas(prev => ({ ...prev, [usuario.id]: e.target.value }))}
+                      disabled={processandoId === usuario.id || usuario.status === 'rejeitado'}
+                    >
+                      <option value="" disabled>Unidade...</option>
+                      {unidades.map(u => (
+                        <option key={u.id} value={u.id}>{u.nome}</option>
+                      ))}
+                    </select>
+                  </div>
+                </td>
+
+                {/* 4. COLUNA: AÇÕES */}
+                <td className="p-4">
+                  <div className="flex items-center justify-end gap-2">   
+                    {usuario.status === 'aprovado' && (
+                      <button
+                        onClick={() => handleSalvarAlteracoes(usuario.id)}
+                        disabled={
+                          processandoId === usuario.id ||
+                          (
+                            // O botão fica BLOQUEADO se: O cargo for igual ao atual E a unidade for igual a atual
+                            cargosSelecionados[usuario.id] === (usuario.cargo || 'nenhum') &&
+                            unidadesSelecionadas[usuario.id] === (usuario.unidade_id ? String(usuario.unidade_id) : '')
+                          )
+                        }
+                        className={`p-2 rounded-lg transition-colors ${
+                          // O botão fica AZUL se: Houver alteração no cargo OU alteração na unidade
+                          (cargosSelecionados[usuario.id] !== (usuario.cargo || 'nenhum')) ||
+                          (unidadesSelecionadas[usuario.id] !== (usuario.unidade_id ? String(usuario.unidade_id) : ''))
+                            ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                        title="Salvar alterações"
+                      >
+                        <UserCheck size={18} />
+                      </button>
+                    )}
+
+                    {usuario.status === 'pendente' && (
+                      <>
+                        <button
+                          onClick={() => handleAprovar(usuario.id)}
+                          disabled={processandoId === usuario.id}
+                          className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
+                          title="Aprovar Usuário"
                         >
-                          <option value="" disabled>Selecione...</option>
-                          <option value="nenhum" className="text-gray-500 font-semibold">Sem Cargo (Acesso Restrito)</option>
-                          <option value="gerente">Gerente</option>
-                          <option value="estoquista">Estoquista</option>
-                          <option value="financeiro">Financeiro</option>
-                        </select>
-                      </td>
+                          <Check size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleRejeitar(usuario.id)}
+                          disabled={processandoId === usuario.id}
+                          className="p-2 bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors"
+                          title="Rejeitar Usuário"
+                        >
+                          <AlertCircle size={18} />
+                        </button>
+                      </>
+                    )}
 
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                    {/* LIXEIRA MOVIDA PARA DENTRO DA DIV FLEX! */}
+                    <button
+                      onClick={() => handleDeletar(usuario.id)}
+                      disabled={processandoId === usuario.id}
+                      className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                      title="Excluir Usuário"
+                    >
+                      <Trash2 size={18} />
+                    </button>
 
-                          {usuario.status === 'pendente' && (
-                            <>
-                              <button
-                                onClick={() => handleAprovar(usuario.id)}
-                                disabled={processandoId === usuario.id}
-                                className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                                title="Aprovar Usuário"
-                              >
-                                <Check size={18} />
-                              </button>
-                              <button
-                                onClick={() => handleRejeitar(usuario.id)}
-                                disabled={processandoId === usuario.id}
-                                className="p-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
-                                title="Rejeitar Acesso"
-                              >
-                                <ShieldAlert size={18} />
-                              </button>
-                            </>
-                          )}
-
-                          {usuario.status === 'aprovado' && (
-                            <button
-                              onClick={() => handleAlterarCargo(usuario.id)}
-                              disabled={
-                                processandoId === usuario.id ||
-                                cargosSelecionados[usuario.id] === (usuario.cargo || 'nenhum')
-                              }
-                              className={`p-2 rounded-lg transition-colors ${
-                                cargosSelecionados[usuario.id] !== (usuario.cargo || 'nenhum')
-                                  ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
-                                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              }`}
-                              title="Salvar novo cargo"
-                            >
-                              <UserCheck size={18} />
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => handleDeletar(usuario.id)}
-                            disabled={processandoId === usuario.id}
-                            className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors ml-2"
-                            title="Excluir Usuário"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  </div> 
+                </td>
+              </tr>
+            ))}
 
                   {usuariosFiltrados.length === 0 && !carregando && (
                     <tr>

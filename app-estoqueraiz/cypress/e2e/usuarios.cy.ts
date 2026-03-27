@@ -1,4 +1,4 @@
-import { gerarCpfValido } from '../support/utils'; // Certifique-se de que o caminho está correto
+import { gerarCpfValido } from '../support/utils'; 
 
 describe('Módulo de Usuários - Maker/Checker', () => {
   let emailGerente: string;

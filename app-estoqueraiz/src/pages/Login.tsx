@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
+import { authService } from '../services/authService';
 import logoEstoque from '../assets/LogoEstoqueRaiz.png';
-import api from '../services/api'; 
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -18,15 +18,13 @@ export const Login = () => {
     setCarregando(true);
 
     try {
-      const response = await api.post('/api/auth/login', { email, senha });
+      const resposta = await authService.login({ email, senha });
 
-      const { token, usuario } = response.data;
+      localStorage.setItem('@EstoqueRaiz:token', resposta.token);
+      localStorage.setItem('@EstoqueRaiz:usuario', JSON.stringify(resposta.usuario));
 
-      localStorage.setItem('@EstoqueRaiz:token', token);
-      localStorage.setItem('@EstoqueRaiz:usuario', JSON.stringify(usuario));
-
-      navigate('/dashboard'); 
-
+      navigate('/dashboard');
+      
    } catch (error: any) {
       if (error.response && error.response.data && error.response.data.message) {
         const mensagemBackend = error.response.data.message;

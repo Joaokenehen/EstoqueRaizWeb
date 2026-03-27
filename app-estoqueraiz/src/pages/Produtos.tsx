@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { produtoService, type Produto } from '../services/produtosService';
+import { produtoService, type Produto } from '../services/produtoService';
 import { categoriaService, type Categoria } from '../services/categoriaService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BarraFiltros } from '../components/BarraFiltro';
