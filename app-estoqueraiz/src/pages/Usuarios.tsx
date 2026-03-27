@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { usuarioService, type Usuario } from '../services/usuarioService';
-import { Check, AlertCircle, ShieldAlert, UserCheck, Filter } from 'lucide-react';
+import { AlertCircle, ShieldAlert, Filter } from 'lucide-react';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BotaoAprovar, BotaoRejeitar, BotaoDeletar, BotaoSalvarPermissao } from '../components/BotoesAcao';
@@ -251,7 +251,7 @@ const handleAprovar = async (id: number) => {
                   <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
                     <th className="p-4 font-semibold">Usuário</th>
                     <th className="p-4 font-semibold">Status</th>
-                    <th className="p-4 font-semibold">Atribuir Cargo</th>
+                    <th className="p-4 font-semibold">Atribuir Cargo / Unidade</th>
                     <th className="p-4 font-semibold text-right">Ações</th>
                   </tr>
                 </thead>

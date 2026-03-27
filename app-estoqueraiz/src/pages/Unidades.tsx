@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { Trash2, Edit, AlertCircle, Plus, X, MapPin } from 'lucide-react';
+import { AlertCircle, Plus, X, MapPin } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
 
 

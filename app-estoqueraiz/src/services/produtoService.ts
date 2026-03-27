@@ -1,5 +1,10 @@
 import api from './api';
 
+export interface AprovarProdutoDTO {
+  preco_custo: number;
+  preco_venda: number;
+}
+
 export interface Produto {
   id: number;
   nome: string;
@@ -13,11 +18,13 @@ export interface Produto {
   imagem_url?: string;
   preco_custo?: number;
   preco_venda?: number;
-  statusProduto: 'pendente' | 'aprovado' | 'rejeitado'; // Nome exato vindo do seu back-end
+  statusProduto: 'pendente' | 'aprovado' | 'rejeitado';
   ativo: boolean;
   categoria_id: number;
   unidade_id: number;
   usuario_id: number;
+  criado_em?: string;    
+  atualizado_em?: string; 
 }
 
 export const produtoService = {
@@ -37,32 +44,31 @@ export const produtoService = {
     return response.data;
   },
 
-  // FormData é necessário por causa do upload de imagem (Multer)
   criar: async (formData: FormData): Promise<Produto> => {
     const response = await api.post('/api/produtos', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return response.data.produto;
+    return response.data.produto || response.data; 
   },
 
   atualizar: async (id: number, formData: FormData): Promise<Produto> => {
-    const response = await api.post(`/api/produtos/${id}`, formData, { // O Multer prefere POST para arquivos em alguns casos, ou PUT se configurado
+    const response = await api.put(`/api/produtos/${id}`, formData, { 
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return response.data.produto;
+    return response.data.produto || response.data; 
   },
 
   deletar: async (id: number): Promise<void> => {
     await api.delete(`/api/produtos/${id}`);
   },
 
-  aprovar: async (id: number, precos: { preco_custo: number, preco_venda: number }): Promise<Produto> => {
+  aprovar: async (id: number, precos: AprovarProdutoDTO): Promise<Produto> => {
     const response = await api.patch(`/api/produtos/${id}/aprovar`, precos);
-    return response.data.produto;
+    return response.data.produto || response.data; 
   },
 
   rejeitar: async (id: number): Promise<Produto> => {
     const response = await api.patch(`/api/produtos/${id}/rejeitar`);
-    return response.data.produto;
+    return response.data.produto || response.data; 
   }
 };

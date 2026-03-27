@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { produtoService, type Produto } from '../services/produtoService';
 import { categoriaService, type Categoria } from '../services/categoriaService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
+import { api } from '../services/api';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { Trash2, Edit, Plus, X, CheckCircle, XCircle, DollarSign, Image as ImageIcon, Filter } from 'lucide-react';
+import { Plus, X,DollarSign, Image as ImageIcon, Filter } from 'lucide-react';
 import { BotaoAprovar, BotaoRejeitar, BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
 
 export const Produtos = () => {
@@ -28,6 +29,9 @@ export const Produtos = () => {
   const [processandoAcao, setProcessandoAcao] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const [precosAprovacao, setPrecosAprovacao] = useState({ preco_custo: '', preco_venda: '' });
+  const [imagemPreview, setImagemPreview] = useState<string | null>(null);
+  const [produtoZoom, setProdutoZoom] = useState<Produto | null>(null);
+
 
   const carregarDados = async () => {
     try {
@@ -133,6 +137,54 @@ export const Produtos = () => {
     return <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium animate-pulse">Pendente</span>;
   };
 
+  const handleAlterarImagem = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const arquivo = e.target.files?.[0];
+    if (arquivo) {
+      // Validar tipo de arquivo
+      if (!arquivo.type.startsWith('image/')) {
+        alert('Por favor, selecione apenas arquivos de imagem.');
+        e.target.value = '';
+        return;
+      }
+
+      // Validar tamanho (5MB máximo)
+      if (arquivo.size > 5 * 1024 * 1024) {
+        alert('A imagem deve ter no máximo 5MB.');
+        e.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagemPreview(reader.result as string);
+      };
+      reader.readAsDataURL(arquivo);
+    } else {
+      setImagemPreview(null);
+    }
+  };
+
+  // Nova função para abrir o modal controlando a imagem
+  const abrirModal = (produto?: Produto) => {
+    if (produto) {
+      setProdutoAtivo(produto);
+      if (produto.imagem_url) {
+        setImagemPreview(`${api.defaults.baseURL}${produto.imagem_url}`);
+      } else {
+        setImagemPreview(null);
+      }
+    } else {
+      // É um novo produto, limpa a imagem e os dados
+      setProdutoAtivo(null);
+      setImagemPreview(null);
+      if (formRef.current) {
+        const inputFile = formRef.current.querySelector('input[type="file"]') as HTMLInputElement;
+        if (inputFile) inputFile.value = '';
+      }
+    }
+    setModalAberto(true);
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-full">
       <div className="max-w-7xl mx-auto">
@@ -142,9 +194,11 @@ export const Produtos = () => {
             <h1 className="text-3xl font-bold text-gray-900">Catálogo de Produtos</h1>
             <p className="text-gray-500 mt-2">Gestão centralizada de itens, preços e aprovações.</p>
           </div>
+
+          {/* Botão Novo Produto no Header */}
           {podeCriar && (
             <button 
-              onClick={() => { setProdutoAtivo(null); setModalAberto(true); }}
+              onClick={() => abrirModal()} // Simplificado, não precisa setar null aqui
               className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all shadow-md"
             >
               <Plus size={20} /> Novo Produto
@@ -194,14 +248,25 @@ export const Produtos = () => {
                 <tbody className="divide-y divide-gray-200">
                   {produtosPaginados.map((prod) => (
                     <tr key={prod.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="p-4 flex items-center gap-4">
-                        {prod.imagem_url ? (
-                          <img src={`http://localhost:8081${prod.imagem_url}`} alt={prod.nome} className="w-12 h-12 rounded-lg object-cover border" />
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
-                            <ImageIcon size={24} />
+                     <td className="p-4 flex items-center gap-4">
+                      {prod.imagem_url ? (
+                       
+                        <button 
+                          onClick={() => setProdutoZoom(prod)}
+                          className="group relative flex shrink-0"
+                          title="Clique para ampliar"
+                        >
+                          <img src={`${api.defaults.baseURL}${prod.imagem_url}`} alt={prod.nome} className="w-14 h-14 rounded-lg object-cover border group-hover:opacity-75 transition-opacity" />
+                          {/* Ícone de zoom que aparece no hover */}
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 rounded-lg text-white">
+                            <Plus size={20} />
                           </div>
-                        )}
+                        </button>
+                      ) : (
+                        <div className="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0">
+                          <ImageIcon size={28} />
+                        </div>
+                      )}
                         <div>
                           <p className="font-semibold text-gray-900">{prod.nome}</p>
                           <p className="text-xs text-gray-500">SKU: {prod.codigo_barras || 'Sem código'}</p>
@@ -308,8 +373,36 @@ export const Produtos = () => {
                 <input name="quantidade_minima" defaultValue={produtoAtivo?.quantidade_minima} type="number" className="w-full px-4 py-2 border rounded-lg outline-none" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Imagem</label>
-                <input name="imagem" type="file" accept="image/*" className="w-full px-4 py-2 border border-dashed rounded-lg bg-gray-50" />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Imagem do Produto</label>
+                
+                <div className="flex flex-col sm:flex-row items-center gap-4 p-4 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:border-indigo-400 transition-colors">
+                  
+                  {/* Área de Preview */}
+                  {(imagemPreview || (produtoAtivo && produtoAtivo.imagem_url)) ? (
+                    <img 
+                      src={imagemPreview || `${api.defaults.baseURL}${produtoAtivo?.imagem_url}`} 
+                      alt="Preview" 
+                      className="w-28 h-28 rounded-lg object-cover border-2 border-white shadow-md shrink-0" 
+                    />
+                  ) : (
+                    <div className="w-28 h-28 rounded-lg bg-gray-200 flex flex-col items-center justify-center text-gray-500 shrink-0 border border-gray-300">
+                      <ImageIcon size={40} className="mb-1" />
+                      <span className="text-xs">Sem foto</span>
+                    </div>
+                  )}
+
+                  {/* Input File Real */}
+                  <div className="flex-1 w-full space-y-2">
+                    <p className="text-xs text-gray-600">Selecione uma imagem (JPG, PNG) de até 5MB.</p>
+                    <input 
+                      name="imagem" 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleAlterarImagem} // Chama a nossa função de preview
+                      className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer" 
+                    />
+                  </div>
+                </div>
               </div>
               <div className="md:col-span-2 mt-4 flex justify-end gap-3 pt-4 border-t">
                 <button type="button" onClick={() => setModalAberto(false)} className="px-5 py-2 border rounded-lg font-medium">Cancelar</button>
@@ -344,6 +437,45 @@ export const Produtos = () => {
                 {processandoAcao ? 'Aprovando...' : 'Finalizar e Aprovar'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {produtoZoom && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm" 
+          onClick={() => setProdutoZoom(null)}
+        >
+          {/* Botão de Fechar Solto na Tela */}
+          <button 
+            type="button" 
+            onClick={() => setProdutoZoom(null)} 
+            className="absolute top-6 right-6 text-white bg-white/20 p-2 rounded-full hover:bg-white/40 transition-colors z-10"
+          >
+            <X size={28} />
+          </button>
+          
+          {/* Container para imagem com fallback */}
+          <div className="relative max-w-full max-h-[90vh] flex items-center justify-center">
+            <img 
+              key={produtoZoom.id}
+              src={`${api.defaults.baseURL}${produtoZoom.imagem_url}`} 
+              alt="Zoom Produto" 
+              onClick={e => e.stopPropagation()} 
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }}
+              className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl" 
+            />
+            {/* Fallback placeholder */}
+            <div className="hidden flex-col items-center justify-center bg-gray-100 rounded-xl text-gray-500 p-8 max-w-md">
+              <ImageIcon size={64} className="mb-4" />
+              <p className="text-lg font-medium">Imagem não disponível</p>
+              <p className="text-sm text-gray-400 text-center mt-2">O arquivo pode ter sido removido ou corrompido</p>
+            </div>
           </div>
         </div>
       )}
