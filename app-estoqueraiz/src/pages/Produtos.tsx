@@ -4,42 +4,34 @@ import { categoriaService, type Categoria } from '../services/categoriaService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { Trash2, Edit, Plus, X, CheckCircle, XCircle, DollarSign, Image as ImageIcon, Filter } from 'lucide-react';
+import { BotaoAprovar, BotaoRejeitar, BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
 
 export const Produtos = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [carregando, setCarregando] = useState(true);
-
-  // Cargos
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
   const isGerente = usuarioLogado?.cargo === 'gerente';
   const isEstoquista = usuarioLogado?.cargo === 'estoquista';
   const isFinanceiro = usuarioLogado?.cargo === 'financeiro';
-
   const podeCriar = isGerente || isEstoquista;
   const podeAprovar = isGerente || isFinanceiro;
-
-  // Filtros
   const [buscaTexto, setBuscaTexto] = useState('');
   const [statusFiltro, setStatusFiltro] = useState(isFinanceiro ? 'pendente' : 'todos'); // Inicia focado no trabalho do cargo
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
-
-  // Modais
   const [modalAberto, setModalAberto] = useState(false);
   const [modalAprovacaoAberto, setModalAprovacaoAberto] = useState(false);
   const [produtoAtivo, setProdutoAtivo] = useState<Produto | null>(null);
   const [processandoAcao, setProcessandoAcao] = useState(false);
-  
   const formRef = useRef<HTMLFormElement>(null);
   const [precosAprovacao, setPrecosAprovacao] = useState({ preco_custo: '', preco_venda: '' });
 
   const carregarDados = async () => {
     try {
       setCarregando(true);
-      // Agora todos buscam a lista completa, o filtro React faz o trabalho visual
       const [dadosProdutos, dadosCategorias, dadosUnidades] = await Promise.all([
         produtoService.listarTodos(), 
         categoriaService.listarTodas(),
@@ -65,7 +57,6 @@ export const Produtos = () => {
     setPaginaAtual(1);
   }, [buscaTexto, statusFiltro, itensPorPagina]);
 
-  // Lógica de Filtro Duplo: Nome + Status
   const produtosFiltrados = produtos.filter(p => {
     const matchesNome = p.nome?.toLowerCase().includes(buscaTexto.toLowerCase());
     const matchesStatus = statusFiltro === 'todos' || p.statusProduto === statusFiltro;
@@ -227,28 +218,36 @@ export const Produtos = () => {
                         {prod.preco_venda ? `R$ ${Number(prod.preco_venda).toFixed(2)}` : '---'}
                       </td>
                       
+                      {/* COLUNA AÇÕES REATORADA COM OS COMPONENTES */}
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          
                           {podeAprovar && prod.statusProduto === 'pendente' && (
                             <>
-                              <button onClick={() => { setProdutoAtivo(prod); setModalAprovacaoAberto(true); }} className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors" title="Aprovar"><CheckCircle size={18} /></button>
-                              <button onClick={() => handleRejeitar(prod.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors" title="Rejeitar"><XCircle size={18} /></button>
+                              <BotaoAprovar 
+                                onClick={() => { setProdutoAtivo(prod); setModalAprovacaoAberto(true); }} 
+                                title="Aprovar e Precificar" 
+                              />
+                              <BotaoRejeitar 
+                                onClick={() => handleRejeitar(prod.id)} 
+                                title="Rejeitar Produto" 
+                              />
                             </>
                           )}
                           
                           {/* Botão de Edição visível para Gerente sempre, ou Financeiro/Estoquista conforme sua regra */}
                           {(isGerente || isEstoquista || (isFinanceiro && prod.statusProduto === 'aprovado')) && (
-                            <button 
+                            <BotaoEditar 
                               onClick={() => { setProdutoAtivo(prod); setModalAberto(true); }} 
-                              className="p-2 bg-indigo-50 text-indigo-600 rounded-lg ml-2 hover:bg-indigo-100 transition-colors"
-                              title="Editar Informações"
-                            >
-                              <Edit size={18} />
-                            </button>
+                              title="Editar Informações" 
+                            />
                           )}
 
                           {isGerente && (
-                            <button onClick={() => handleDeletar(prod.id)} className="p-2 bg-gray-100 text-gray-600 rounded-lg ml-2 hover:bg-gray-200 transition-colors"><Trash2 size={18} /></button>
+                            <BotaoDeletar 
+                              onClick={() => handleDeletar(prod.id)} 
+                              title="Excluir Produto" 
+                            />
                           )}
                         </div>
                       </td>

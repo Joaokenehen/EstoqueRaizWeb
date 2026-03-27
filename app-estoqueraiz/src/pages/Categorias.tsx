@@ -1,27 +1,23 @@
 import { useState, useEffect } from 'react';
 import { categoriaService, type Categoria } from '../services/categoriaService';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { Trash2, Edit, AlertCircle, Plus, X, Tags } from 'lucide-react';
+import { AlertCircle, Plus, X, Tags } from 'lucide-react';
+import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
 
 export const Categorias = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
-
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
   const isGerente = usuarioLogado?.cargo === 'gerente';
-
   const [buscaTexto, setBuscaTexto] = useState('');
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
-
   const [modalAberto, setModalAberto] = useState(false);
   const [categoriaEditando, setCategoriaEditando] = useState<Categoria | null>(null);
   const [processandoAcao, setProcessandoAcao] = useState(false);
-  
   const [formData, setFormData] = useState({ nome: '', descricao: '' });
-
   const carregarCategorias = async () => {
     try {
       setCarregando(true);
@@ -166,20 +162,14 @@ export const Categorias = () => {
                       {isGerente && (
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <button 
+                            <BotaoEditar 
                               onClick={() => abrirModal(categoria)}
-                              className="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors"
                               title="Editar Categoria"
-                            >
-                              <Edit size={18} />
-                            </button>
-                            <button 
+                            />
+                            <BotaoDeletar 
                               onClick={() => handleDeletar(categoria.id)}
-                              className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors ml-2"
                               title="Excluir Categoria"
-                            >
-                              <Trash2 size={18} />
-                            </button>
+                            />
                           </div>
                         </td>
                       )}
@@ -216,6 +206,7 @@ export const Categorias = () => {
 
       </div>
       
+      {/* Modal de Criação/Edição */}
       {modalAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -245,8 +236,9 @@ export const Categorias = () => {
                 <button type="button" onClick={fecharModal} className="px-5 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium">
                   Cancelar
                 </button>
-                <button type="submit" disabled={processandoAcao} className="px-5 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50">
-                  {processandoAcao ? 'A guardar...' : 'Guardar'}
+                <button type="submit" disabled={processandoAcao} className="px-5 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 flex items-center gap-2">
+                  {processandoAcao && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+                  {processandoAcao ? 'A guardar...' : 'Guardar Categoria'}
                 </button>
               </div>
             </form>

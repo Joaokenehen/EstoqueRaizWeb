@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { Trash2, Edit, AlertCircle, Plus, X, MapPin } from 'lucide-react';
+import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
+
 
 export const Unidades = () => {
   const [unidades, setUnidades] = useState<Unidade[]>([]);
@@ -170,6 +172,7 @@ export const Unidades = () => {
                 <tbody className="divide-y divide-gray-200">
                   {unidadesPaginadas.map((unidade) => (
                     <tr key={unidade.id} className="hover:bg-gray-50 transition-colors">
+                      
                       <td className="p-4">
                         <div className="flex flex-col">
                           <span className="font-semibold text-gray-900">{unidade.nome}</span>
@@ -185,22 +188,20 @@ export const Unidades = () => {
                           </div>
                         </div>
                       </td>
+
+                      {/* COLUNA AÇÕES */}
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button 
+                          
+                          <BotaoEditar 
                             onClick={() => abrirModal(unidade)}
-                            className="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors"
                             title="Editar Unidade"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button 
+                          />
+                        
+                          <BotaoDeletar 
                             onClick={() => handleDeletar(unidade.id)}
-                            className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors ml-2"
                             title="Excluir Unidade"
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                          />
                         </div>
                       </td>
                     </tr>

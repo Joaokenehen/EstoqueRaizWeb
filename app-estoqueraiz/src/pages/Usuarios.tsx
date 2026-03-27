@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { usuarioService, type Usuario } from '../services/usuarioService';
-import { Check, Trash2, AlertCircle, ShieldAlert, UserCheck, Filter } from 'lucide-react';
+import { Check, AlertCircle, ShieldAlert, UserCheck, Filter } from 'lucide-react';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { unidadeService, type Unidade } from '../services/unidadeService';
+import { BotaoAprovar, BotaoRejeitar, BotaoDeletar, BotaoSalvarPermissao } from '../components/BotoesAcao';
 
 export const Usuarios = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -305,61 +306,42 @@ const handleAprovar = async (id: number) => {
 
                 {/* 4. COLUNA: AÇÕES */}
                 <td className="p-4">
-                  <div className="flex items-center justify-end gap-2">   
+                  <div className="flex items-center justify-end gap-2">
+                    
+                    {/* Botão de Salvar Cargo/Unidade (Apenas Aprovados) */}
                     {usuario.status === 'aprovado' && (
-                      <button
+                      <BotaoSalvarPermissao
                         onClick={() => handleSalvarAlteracoes(usuario.id)}
                         disabled={
                           processandoId === usuario.id ||
                           (
-                            // O botão fica BLOQUEADO se: O cargo for igual ao atual E a unidade for igual a atual
                             cargosSelecionados[usuario.id] === (usuario.cargo || 'nenhum') &&
                             unidadesSelecionadas[usuario.id] === (usuario.unidade_id ? String(usuario.unidade_id) : '')
                           )
                         }
-                        className={`p-2 rounded-lg transition-colors ${
-                          // O botão fica AZUL se: Houver alteração no cargo OU alteração na unidade
-                          (cargosSelecionados[usuario.id] !== (usuario.cargo || 'nenhum')) ||
-                          (unidadesSelecionadas[usuario.id] !== (usuario.unidade_id ? String(usuario.unidade_id) : ''))
-                            ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
-                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        }`}
-                        title="Salvar alterações"
-                      >
-                        <UserCheck size={18} />
-                      </button>
+                      />
                     )}
 
+                    {/* Botões de Aprovar e Rejeitar (Apenas Pendentes) */}
                     {usuario.status === 'pendente' && (
                       <>
-                        <button
+                        <BotaoAprovar
                           onClick={() => handleAprovar(usuario.id)}
                           disabled={processandoId === usuario.id}
-                          className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
-                          title="Aprovar Usuário"
-                        >
-                          <Check size={18} />
-                        </button>
-                        <button
+                        />
+                        <BotaoRejeitar
                           onClick={() => handleRejeitar(usuario.id)}
                           disabled={processandoId === usuario.id}
-                          className="p-2 bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors"
-                          title="Rejeitar Usuário"
-                        >
-                          <AlertCircle size={18} />
-                        </button>
+                        />
                       </>
                     )}
 
-                    {/* LIXEIRA MOVIDA PARA DENTRO DA DIV FLEX! */}
-                    <button
+                    {/* Botão de Deletar (Sempre Visível) */}
+                    <BotaoDeletar 
                       onClick={() => handleDeletar(usuario.id)}
                       disabled={processandoId === usuario.id}
-                      className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
                       title="Excluir Usuário"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    />
 
                   </div> 
                 </td>
@@ -410,10 +392,8 @@ const handleAprovar = async (id: number) => {
                 </div>
               </div>
             )}
-
           </div>
         )}
-
       </div>
     </div>
   );
