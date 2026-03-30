@@ -3,6 +3,7 @@ import { movimentacaoService, type Movimentacao } from '../services/movimentacao
 import { produtoService, type Produto } from '../services/produtoService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Settings, Plus, X, FileText } from 'lucide-react';
+import Layout from '../components/Layout';
 
 export const Movimentacoes = () => {
   const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
@@ -88,7 +89,7 @@ export const Movimentacoes = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-full">
+  <Layout>
       <div className="max-w-7xl mx-auto">
         <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -240,6 +241,6 @@ export const Movimentacoes = () => {
           </div>
         </div>
       )}
-    </div>
+    </Layout>
   );
 };

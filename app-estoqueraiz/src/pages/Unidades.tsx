@@ -3,6 +3,7 @@ import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { AlertCircle, Plus, X, MapPin } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
+import Layout from '../components/Layout';
 
 
 export const Unidades = () => {
@@ -126,7 +127,7 @@ export const Unidades = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-full">
+    <Layout>
       <div className="max-w-7xl mx-auto">
 
         <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -315,7 +316,6 @@ export const Unidades = () => {
           </div>
         </div>
       )}
-
-    </div>
+    </Layout>
   );
 };

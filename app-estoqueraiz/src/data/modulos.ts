@@ -4,7 +4,7 @@ import {
   Tags, 
   Building2, 
   Users, 
-  BarChart3 
+  BarChart3
 } from 'lucide-react';
 
 export type CargoPermitido = 'gerente' | 'estoquista' | 'financeiro';
@@ -20,6 +20,7 @@ export interface ModuloProps{
 }
 
 export const modulos: ModuloProps[] = [
+  
   { 
     nome: 'Produtos', 
     descricao: 'Gerencie o catálogo de itens',

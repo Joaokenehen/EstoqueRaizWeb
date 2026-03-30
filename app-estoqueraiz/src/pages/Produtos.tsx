@@ -6,6 +6,7 @@ import { api } from '../services/api';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { Plus, X,DollarSign, Image as ImageIcon, Filter } from 'lucide-react';
 import { BotaoAprovar, BotaoRejeitar, BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
+import Layout from '../components/Layout';
 
 export const Produtos = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -186,7 +187,7 @@ export const Produtos = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-full">
+    <Layout>
       <div className="max-w-7xl mx-auto">
         
         <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -479,6 +480,6 @@ export const Produtos = () => {
           </div>
         </div>
       )}
-    </div>
+    </Layout>
   );
 };

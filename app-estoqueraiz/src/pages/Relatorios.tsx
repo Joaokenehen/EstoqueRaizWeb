@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { relatorioService, type ResultadoCurvaABC } from '../services/relatorioService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { TrendingUp, Filter, AlertCircle, FileSpreadsheet } from 'lucide-react';
+import Layout from '../components/Layout';
 
 export const Relatorios = () => {
   const [dados, setDados] = useState<ResultadoCurvaABC | null>(null);
@@ -54,7 +55,7 @@ export const Relatorios = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-full">
+  <Layout>
       <div className="max-w-7xl mx-auto">
         
         <header className="mb-8">
@@ -93,7 +94,7 @@ export const Relatorios = () => {
         )}
 
         {/* RESUMO DA CURVA ABC (Cards) */}
-{!carregando && dados && dados.resumo && dados.resumo.length > 0 && (
+          {!carregando && dados && dados.resumo && dados.resumo.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {dados.resumo.map((res) => (
               <div key={res.classe} className={`p-4 rounded-xl border ${res.classe === 'A' ? 'bg-green-50 border-green-200' : res.classe === 'B' ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'}`}>
@@ -117,7 +118,7 @@ export const Relatorios = () => {
               <p>Nenhuma venda registrada para os filtros aplicados.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+            <div className="overflow-x-auto max-h-600px overflow-y-auto">
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
                   <tr className="text-xs text-gray-600 uppercase tracking-wider">
@@ -161,8 +162,7 @@ export const Relatorios = () => {
             </div>
           )}
         </div>
-
       </div>
-    </div>
+    </Layout>
   );
 };

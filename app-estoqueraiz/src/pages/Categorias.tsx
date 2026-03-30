@@ -3,6 +3,7 @@ import { categoriaService, type Categoria } from '../services/categoriaService';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { AlertCircle, Plus, X, Tags } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
+import Layout from '../components/Layout';
 
 export const Categorias = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -99,7 +100,7 @@ export const Categorias = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-full">
+    <Layout>
       <div className="max-w-7xl mx-auto">
 
         <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -245,7 +246,6 @@ export const Categorias = () => {
           </div>
         </div>
       )}
-
-    </div>
+    </Layout>
   );
 };
