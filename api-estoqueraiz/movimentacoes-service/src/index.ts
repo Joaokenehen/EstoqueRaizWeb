@@ -13,6 +13,7 @@ import { assinanteEventos } from "../../shared/eventos/assinante";
 import { EventosTipo } from "../../shared/eventos/publicador";
 import { manipuladorErros } from "../../shared/utils/tratamentoErros";
 import rotaMovimentacoes from "./routes/rotaMovimentacoes";
+import MovimentacoesModel from "./models/MovimentacoesModel";
 
 const app = express();
 const PORT = process.env.PORT || 3006;
@@ -71,6 +72,9 @@ async function iniciarServidor() {
   try {
     await sequelize.authenticate();
     logger.info("Conectado ao banco de dados");
+
+    await MovimentacoesModel.sync({ alter: true });
+    logger.info("Tabela de movimentações sincronizada com sucesso!");
 
     logger.info("Conectado ao Redis (Cache)");
 

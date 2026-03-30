@@ -4,6 +4,7 @@ import { AlertCircle, ShieldAlert, Filter } from 'lucide-react';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BotaoAprovar, BotaoRejeitar, BotaoDeletar, BotaoSalvarPermissao } from '../components/BotoesAcao';
+import Layout from '../components/Layout';
 
 export const Usuarios = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -188,7 +189,7 @@ const handleAprovar = async (id: number) => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-full">
+    <Layout>
       <div className="max-w-7xl mx-auto">
 
         <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -277,7 +278,7 @@ const handleAprovar = async (id: number) => {
                   <div className="flex flex-col sm:flex-row gap-2">
                     {/* Select de Cargo */}
                     <select
-                      className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-[150px]"
+                      className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px"
                       value={cargosSelecionados[usuario.id] || ''}
                       onChange={(e) => handleMudancaSelect(usuario.id, e.target.value)}
                       disabled={processandoId === usuario.id || usuario.status === 'rejeitado'}
@@ -291,7 +292,7 @@ const handleAprovar = async (id: number) => {
 
                     {/* Select de Unidade */}
                     <select
-                      className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-[150px]"
+                      className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px"
                       value={unidadesSelecionadas[usuario.id] || ''}
                       onChange={(e) => setUnidadesSelecionadas(prev => ({ ...prev, [usuario.id]: e.target.value }))}
                       disabled={processandoId === usuario.id || usuario.status === 'rejeitado'}
@@ -395,6 +396,6 @@ const handleAprovar = async (id: number) => {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   );
 };
