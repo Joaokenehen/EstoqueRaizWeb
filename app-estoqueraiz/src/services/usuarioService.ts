@@ -32,25 +32,18 @@ export interface Usuario {
 }
 
 export const usuarioService = {
+
     listarTodos: async (): Promise<Usuario[]> => {
-        const response = await api.get('/api/usuarios', {
-            headers: {
-                'Cache-Control': 'no-cache, no-store',
-                Pragma: 'no-cache',
-            },
-        });
-        return response.data;
-    },
+            // Removido os headers problemáticos
+            const response = await api.get('/api/usuarios');
+            return response.data;
+        },
 
     listarPendentes: async (): Promise<Usuario[]> => {
-        const response = await api.get('/api/usuarios/pendentes', {
-            headers: {
-                'Cache-Control': 'no-cache, no-store',
-                Pragma: 'no-cache',
-            },
-        });
-        return response.data;
-    },
+            // Removido os headers problemáticos
+            const response = await api.get('/api/usuarios/pendentes');
+            return response.data;
+        },
 
     aprovar: async(id: number, dados: { cargo: string, unidade_id: number }) => {
         const response = await api.patch(`/api/usuarios/${id}/aprovar`, { dados });
