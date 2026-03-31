@@ -42,7 +42,7 @@ describe('Página de Cadastro', () => {
         const cpf1 = gerarCpfValido();
         const cpf2 = gerarCpfValido();
 
-        cy.get('[input-testid="nome-input"]').type('Primeiro Usuario');
+        cy.get('[input-testid="nome-input"]').type('Primeiro Usuario Teste');
         cy.get('[input-testid="email-input"]').type(emailDuplicado);
         cy.get('[input-testid="cpf-input"]').type(cpf1);
         cy.get('[input-testid="senha-input"]').type('Senha123!');

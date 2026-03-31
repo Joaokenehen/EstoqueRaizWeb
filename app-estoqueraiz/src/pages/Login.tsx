@@ -48,7 +48,7 @@ export const Login = () => {
 
 return (
     <div className="min-h-screen w-full flex items-center justify-center bg-raiz-bege font-sans">
-      <div className="w-full max-w-360px p-6 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom">
+      <div className="w-full max-w-[360px] p-6 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom">
         
         <header className="text-center mb-10">
           <img 
