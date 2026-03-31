@@ -74,6 +74,7 @@ return (
               placeholder="seu@email.com"
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
               value={email}
+              maxLength={100}
               onChange={(e) => setEmail(e.target.value)}
               required
               input-testid="email-input"
@@ -101,6 +102,7 @@ return (
                 placeholder="••••••••"
                 className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
                 value={senha}
+                maxLength={32}
                 onChange={(e) => setSenha(e.target.value)}
                 required
                 input-testid="senha-input"
