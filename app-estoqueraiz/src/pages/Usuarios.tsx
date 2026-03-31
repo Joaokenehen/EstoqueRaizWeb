@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { usuarioService, type Usuario } from '../services/usuarioService';
-import { AlertCircle, ShieldAlert, Filter } from 'lucide-react';
+import { ShieldAlert, Filter } from 'lucide-react';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BotaoAprovar, BotaoRejeitar, BotaoDeletar, BotaoSalvarPermissao } from '../components/BotoesAcao';
 import Layout from '../components/Layout';
+import { useSelecaoLote } from '../hooks/useSelecaoLote';
+import { BarraAcoesLote } from '../components/BarraAcoesLote';
+import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
 
 export const Usuarios = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -17,8 +20,16 @@ export const Usuarios = () => {
   const [filtroCargo, setFiltroCargo] = useState('todos');
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
-  const [unidades, setUnidades] = useState<Unidade[]>([])
+  const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [unidadesSelecionadas, setUnidadesSelecionadas] = useState<Record<number, string>>({});
+  const [usuarioLogado, setUsuarioLogado] = useState<any>(null);
+  
+  const { 
+    selecionados, 
+    alternarSelecao, 
+    selecionarTodos, 
+    limparSelecao 
+  } = useSelecaoLote<number>();
 
   const carregarDados = async () => {
     try {
@@ -53,9 +64,14 @@ export const Usuarios = () => {
 
   useEffect(() => {
     setPaginaAtual(1);
-  }, [buscaTexto, filtroStatus, filtroCargo, itensPorPagina]);
+    limparSelecao(); // Limpa a seleção ao trocar de página/filtro
+  }, [buscaTexto, filtroStatus, filtroCargo, itensPorPagina, limparSelecao]);
 
   useEffect(() => {
+    const dadosSalvos = localStorage.getItem('@EstoqueRaiz:usuario');
+    if (dadosSalvos) {
+      setUsuarioLogado(JSON.parse(dadosSalvos));
+    }
     carregarDados();
   }, []);
 
@@ -88,7 +104,34 @@ export const Usuarios = () => {
     setCargosSelecionados(prev => ({ ...prev, [id]: novoCargo }));
   };
 
-const handleAprovar = async (id: number) => {
+  const handleDeletarLote = async () => {
+    if (selecionados.length === 0) return;
+
+    if (usuarioLogado && selecionados.includes(usuarioLogado.id)) {
+      alert('Você não pode excluir a sua própria conta! Desmarque o seu usuário e tente novamente.');
+      return;
+    }
+
+    if (!window.confirm(`Atenção: Você está prestes a excluir ${selecionados.length} usuário(s). Esta ação é irreversível. Deseja continuar?`)) {
+      return;
+    }
+
+    try {
+      setCarregando(true);
+      await Promise.all(selecionados.map(id => usuarioService.deletar(id)));
+      
+      alert(`${selecionados.length} usuário(s) excluído(s) com sucesso!`);
+      limparSelecao(); 
+      await carregarDados();
+    } catch (error) {
+      alert('Erro ao excluir alguns usuários. A tela será atualizada para exibir o estado atual.');
+      await carregarDados();
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  const handleAprovar = async (id: number) => {
     const cargoSelecionado = cargosSelecionados[id];
     const unidadeSelecionada = unidadesSelecionadas[id];
 
@@ -152,6 +195,12 @@ const handleAprovar = async (id: number) => {
         unidade_id: unidadeParaEnviar as any
       });
       
+      if (usuarioLogado && id === usuarioLogado.id) {
+        const usuarioAtualizado = { ...usuarioLogado, unidade_id: unidadeParaEnviar };
+        setUsuarioLogado(usuarioAtualizado);
+        localStorage.setItem('@EstoqueRaiz:usuario', JSON.stringify(usuarioAtualizado));
+      }
+
       alert('Permissões e unidade atualizadas com sucesso!');
     } catch (error) {
       alert('Erro ao guardar as alterações. A tela será atualizada.');
@@ -163,6 +212,11 @@ const handleAprovar = async (id: number) => {
   };
 
   const handleDeletar = async (id: number) => {
+    if (usuarioLogado && id === usuarioLogado.id) {
+      alert('Você não pode excluir sua própria conta. É necessário que outro administrador realize esta ação.');
+      return;
+    }
+
     if (!window.confirm('Atenção: Esta ação é irreversível. Deseja excluir este usuário do sistema?')) return;
     try {
       setProcessandoId(id);
@@ -236,122 +290,150 @@ const handleAprovar = async (id: number) => {
           </div>
         </BarraFiltros>
 
+        <BarraAcoesLote 
+          quantidadeSelecionada={selecionados.length}
+          onExcluir={handleDeletarLote}
+          carregando={carregando}
+          textoItem="usuário(s)"
+        />
+
         {carregando ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          </div>
+          <LoadingSpinner />
         ) : erro ? (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-3">
-            <AlertCircle size={24} /> {erro}
-          </div>
+          <MensagemErro mensagem={erro} />
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
+                    <th className="p-4 w-12 text-center">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 rounded border-gray-300 text-raiz-verde focus:ring-raiz-verde cursor-pointer"
+                        checked={
+                          usuariosPaginados.length > 0 && 
+                          selecionados.length === usuariosPaginados.filter(u => u.id !== usuarioLogado?.id).length
+                        }
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            const idsPermitidos = usuariosPaginados.filter(u => u.id !== usuarioLogado?.id).map(u => u.id);
+                            selecionarTodos(idsPermitidos);
+                          } else {
+                            limparSelecao();
+                          }
+                        }}
+                      />
+                    </th>
                     <th className="p-4 font-semibold">Usuário</th>
                     <th className="p-4 font-semibold">Status</th>
                     <th className="p-4 font-semibold">Atribuir Cargo / Unidade</th>
                     <th className="p-4 font-semibold text-right">Ações</th>
                   </tr>
                 </thead>
-          <tbody className="divide-y divide-gray-200">
-            {usuariosPaginados.map((usuario) => (
-              <tr key={usuario.id} className="hover:bg-gray-50 transition-colors">
-
-                {/* 1. COLUNA: USUÁRIO E E-MAIL */}
-                <td className="p-4">
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-gray-900">{usuario.nome}</span>
-                    <span className="text-sm text-gray-500">{usuario.email}</span>
-                  </div>
-                </td>
-
-                {/* 2. COLUNA: STATUS */}
-                <td className="p-4">
-                  {getStatusBadge(usuario.status)}
-                </td>
-
-                {/* 3. COLUNA: SELECTS DE CARGO E UNIDADE */}
-                <td className="p-4">
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    {/* Select de Cargo */}
-                    <select
-                      className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px"
-                      value={cargosSelecionados[usuario.id] || ''}
-                      onChange={(e) => handleMudancaSelect(usuario.id, e.target.value)}
-                      disabled={processandoId === usuario.id || usuario.status === 'rejeitado'}
+                <tbody className="divide-y divide-gray-200">
+                  {usuariosPaginados.map((usuario) => (
+                    <tr 
+                      key={usuario.id} 
+                      className={`transition-colors ${selecionados.includes(usuario.id) ? 'bg-red-50' : 'hover:bg-gray-50'}`}
                     >
-                      <option value="" disabled>Cargo...</option>
-                      <option value="nenhum" className="text-gray-500 font-semibold">Sem Cargo</option>
-                      <option value="gerente">Gerente</option>
-                      <option value="estoquista">Estoquista</option>
-                      <option value="financeiro">Financeiro</option>
-                    </select>
-
-                    {/* Select de Unidade */}
-                    <select
-                      className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px"
-                      value={unidadesSelecionadas[usuario.id] || ''}
-                      onChange={(e) => setUnidadesSelecionadas(prev => ({ ...prev, [usuario.id]: e.target.value }))}
-                      disabled={processandoId === usuario.id || usuario.status === 'rejeitado'}
-                    >
-                      <option value="" disabled>Unidade...</option>
-                      {unidades.map(u => (
-                        <option key={u.id} value={u.id}>{u.nome}</option>
-                      ))}
-                    </select>
-                  </div>
-                </td>
-
-                {/* 4. COLUNA: AÇÕES */}
-                <td className="p-4">
-                  <div className="flex items-center justify-end gap-2">
-                    
-                    {/* Botão de Salvar Cargo/Unidade (Apenas Aprovados) */}
-                    {usuario.status === 'aprovado' && (
-                      <BotaoSalvarPermissao
-                        onClick={() => handleSalvarAlteracoes(usuario.id)}
-                        disabled={
-                          processandoId === usuario.id ||
-                          (
-                            cargosSelecionados[usuario.id] === (usuario.cargo || 'nenhum') &&
-                            unidadesSelecionadas[usuario.id] === (usuario.unidade_id ? String(usuario.unidade_id) : '')
-                          )
-                        }
-                      />
-                    )}
-
-                    {/* Botões de Aprovar e Rejeitar (Apenas Pendentes) */}
-                    {usuario.status === 'pendente' && (
-                      <>
-                        <BotaoAprovar
-                          onClick={() => handleAprovar(usuario.id)}
-                          disabled={processandoId === usuario.id}
+                      <td className="p-4 text-center">
+                        <input 
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-gray-300 text-raiz-verde focus:ring-raiz-verde cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                          checked={selecionados.includes(usuario.id)}
+                          onChange={() => alternarSelecao(usuario.id)}
+                          disabled={usuarioLogado?.id === usuario.id} 
+                          title={usuarioLogado?.id === usuario.id ? "Você não pode excluir sua própria conta" : ""}
                         />
-                        <BotaoRejeitar
-                          onClick={() => handleRejeitar(usuario.id)}
-                          disabled={processandoId === usuario.id}
-                        />
-                      </>
-                    )}
+                      </td>
 
-                    {/* Botão de Deletar (Sempre Visível) */}
-                    <BotaoDeletar 
-                      onClick={() => handleDeletar(usuario.id)}
-                      disabled={processandoId === usuario.id}
-                      title="Excluir Usuário"
-                    />
+                      <td className="p-4">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-gray-900">
+                            {usuario.nome} {usuarioLogado?.id === usuario.id && <span className="text-xs text-raiz-verde font-bold ml-1">(Você)</span>}
+                          </span>
+                          <span className="text-sm text-gray-500">{usuario.email}</span>
+                        </div>
+                      </td>
 
-                  </div> 
-                </td>
-              </tr>
-            ))}
+                      <td className="p-4">
+                        {getStatusBadge(usuario.status)}
+                      </td>
+
+                      <td className="p-4">
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <select
+                            className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px disabled:opacity-50"
+                            value={cargosSelecionados[usuario.id] || ''}
+                            onChange={(e) => handleMudancaSelect(usuario.id, e.target.value)}
+                            disabled={processandoId === usuario.id || usuario.status === 'rejeitado' || usuarioLogado?.id === usuario.id}
+                            title={usuarioLogado?.id === usuario.id ? "Você não pode alterar seu próprio cargo" : ""}
+                          >
+                            <option value="" disabled>Cargo...</option>
+                            <option value="nenhum" className="text-gray-500 font-semibold">Sem Cargo</option>
+                            <option value="gerente">Gerente</option>
+                            <option value="estoquista">Estoquista</option>
+                            <option value="financeiro">Financeiro</option>
+                          </select>
+
+                          <select
+                            className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px disabled:opacity-50"
+                            value={unidadesSelecionadas[usuario.id] || ''}
+                            onChange={(e) => setUnidadesSelecionadas(prev => ({ ...prev, [usuario.id]: e.target.value }))}
+                            disabled={processandoId === usuario.id || usuario.status === 'rejeitado'}
+                          >
+                            <option value="" disabled>Unidade...</option>
+                            {unidades.map(u => (
+                              <option key={u.id} value={u.id}>{u.nome}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </td>
+
+                      <td className="p-4">
+                        <div className="flex items-center justify-end gap-2">
+                          
+                          {usuario.status === 'aprovado' && (
+                            <BotaoSalvarPermissao
+                              onClick={() => handleSalvarAlteracoes(usuario.id)}
+                              disabled={
+                                processandoId === usuario.id ||
+                                (
+                                  cargosSelecionados[usuario.id] === (usuario.cargo || 'nenhum') &&
+                                  unidadesSelecionadas[usuario.id] === (usuario.unidade_id ? String(usuario.unidade_id) : '')
+                                )
+                              }
+                            />
+                          )}
+
+                          {usuario.status === 'pendente' && (
+                            <>
+                              <BotaoAprovar
+                                onClick={() => handleAprovar(usuario.id)}
+                                disabled={processandoId === usuario.id}
+                              />
+                              <BotaoRejeitar
+                                onClick={() => handleRejeitar(usuario.id)}
+                                disabled={processandoId === usuario.id}
+                              />
+                            </>
+                          )}
+
+                          <BotaoDeletar 
+                            onClick={() => handleDeletar(usuario.id)}
+                            disabled={processandoId === usuario.id || usuarioLogado?.id === usuario.id} 
+                            title={usuarioLogado?.id === usuario.id ? "Apenas outro administrador pode excluir sua conta" : "Excluir Usuário"}
+                          />
+
+                        </div> 
+                      </td>
+                    </tr>
+                  ))}
 
                   {usuariosFiltrados.length === 0 && !carregando && (
                     <tr>
-                      <td colSpan={4} className="p-8 text-center text-gray-500">
+                      <td colSpan={5} className="p-8 text-center text-gray-500">
                         Nenhum usuário encontrado com esses filtros.
                       </td>
                     </tr>
@@ -360,7 +442,6 @@ const handleAprovar = async (id: number) => {
               </table>
             </div>
 
-            {/* CONTROLES DE PAGINAÇÃO NO RODAPÉ */}
             {usuariosFiltrados.length > 0 && (
               <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
                 <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
