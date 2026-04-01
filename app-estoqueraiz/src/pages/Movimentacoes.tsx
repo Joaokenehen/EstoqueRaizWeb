@@ -3,6 +3,7 @@ import { movimentacaoService, type Movimentacao } from '../services/movimentacao
 import { produtoService, type Produto } from '../services/produtoService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Settings, Plus, X, FileText } from 'lucide-react';
+import { LoadingSpinner } from '../components/Feedbacks';
 import Layout from '../components/Layout';
 
 export const Movimentacoes = () => {
@@ -13,7 +14,6 @@ export const Movimentacoes = () => {
   const [modalAberto, setModalAberto] = useState(false);
   const [processando, setProcessando] = useState(false);
   
-  // Estado do formulário
   const [form, setForm] = useState({
     tipo: 'ENTRADA' as 'ENTRADA' | 'SAIDA' | 'TRANSFERENCIA' | 'AJUSTE',
     produto_id: '',
@@ -105,9 +105,7 @@ export const Movimentacoes = () => {
         </header>
 
         {carregando ? (
-           <div className="flex justify-center items-center py-20">
-             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-           </div>
+           <LoadingSpinner />
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">

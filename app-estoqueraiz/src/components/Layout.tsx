@@ -110,7 +110,7 @@ export default function Layout({ children }: LayoutProps) {
         <div 
           className="fixed inset-0 bg-black/40 z-30 md:hidden backdrop-blur-sm transition-opacity" 
           onClick={() => setSidebarAberta(false)}
-          input-testid="backdrop-sidebar" 
+          data-testid="backdrop-sidebar" 
         />
       )}
 
@@ -125,7 +125,7 @@ export default function Layout({ children }: LayoutProps) {
             <button 
               onClick={() => setMenuAberto(!menuAberto)} 
               className="flex items-center space-x-2 text-gray-600 hover:text-raiz-verde transition-colors focus:outline-none"
-              input-testid="menu-usuario-btn"
+              data-testid="menu-usuario-btn"
             >
               <div className="bg-gray-100 p-2 rounded-full"><User size={18} /></div>
               <span className="font-medium hidden sm:block">{usuario?.nome?.split(' ')[0] || 'Usuário'}</span>

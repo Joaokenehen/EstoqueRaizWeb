@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { categoriaService, type Categoria } from '../services/categoriaService';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { AlertCircle, Plus, X, Tags } from 'lucide-react';
+import { Plus, X, Tags } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
+import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
+import { BarraAcoesLote } from '../components/BarraAcoesLote';
+import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import Layout from '../components/Layout';
 
 export const Categorias = () => {
@@ -18,6 +21,12 @@ export const Categorias = () => {
   const [modalAberto, setModalAberto] = useState(false);
   const [categoriaEditando, setCategoriaEditando] = useState<Categoria | null>(null);
   const [processandoAcao, setProcessandoAcao] = useState(false);
+  const { 
+    selecionados, 
+    alternarSelecao, 
+    selecionarTodos, 
+    limparSelecao 
+  } = useSelecaoLote<number>();
   const [formData, setFormData] = useState({ nome: '', descricao: '' });
   const carregarCategorias = async () => {
     try {
@@ -38,7 +47,8 @@ export const Categorias = () => {
 
   useEffect(() => {
     setPaginaAtual(1);
-  }, [buscaTexto, itensPorPagina]);
+    limparSelecao();
+  }, [buscaTexto, itensPorPagina, limparSelecao]);
 
   const categoriasFiltradas = categorias.filter((c) => {
     const termo = buscaTexto.toLowerCase();
@@ -99,6 +109,33 @@ export const Categorias = () => {
     }
   };
 
+  const handleDeletarLote = async () => {
+    if (selecionados.length === 0) return;
+
+    if (!isGerente) {
+      alert('Apenas gerentes podem excluir categorias em lote.');
+      return;
+    }
+
+    if (!window.confirm(`Atenção: Você está prestes a excluir ${selecionados.length} categoria(s). Esta ação é irreversível. Deseja continuar?`)) {
+      return;
+    }
+
+    try {
+      setCarregando(true);
+      await Promise.all(selecionados.map(id => categoriaService.deletar(id)));
+      
+      alert(`${selecionados.length} categoria(s) excluída(s) com sucesso!`);
+      limparSelecao();
+      await carregarCategorias();
+    } catch (error) {
+      alert('Erro ao excluir algumas categorias. A tela será atualizada para exibir o estado atual.');
+      await carregarCategorias();
+    } finally {
+      setCarregando(false);
+    }
+  };
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">
@@ -126,20 +163,44 @@ export const Categorias = () => {
           onItensPorPaginaChange={setItensPorPagina}
         />
 
+        {isGerente && (
+          <BarraAcoesLote 
+            quantidadeSelecionada={selecionados.length}
+            onExcluir={handleDeletarLote}
+            carregando={carregando}
+            textoItem="categoria(s)"
+          />
+        )}
+
         {carregando ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          </div>
+          <LoadingSpinner />
         ) : erro ? (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-3">
-            <AlertCircle size={24} /> {erro}
-          </div>
+          <MensagemErro mensagem={erro} />
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
+                    {isGerente && (
+                      <th className="p-4 w-12 text-center">
+                        <input 
+                          type="checkbox" 
+                          className="w-4 h-4 rounded border-gray-300 text-raiz-verde focus:ring-raiz-verde cursor-pointer"
+                          checked={
+                            categoriasPaginadas.length > 0 && 
+                            selecionados.length === categoriasPaginadas.length
+                          }
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              selecionarTodos(categoriasPaginadas.map(c => c.id));
+                            } else {
+                              limparSelecao();
+                            }
+                          }}
+                        />
+                      </th>
+                    )}
                     <th className="p-4 font-semibold w-1/3">Categoria</th>
                     <th className="p-4 font-semibold">Descrição</th>
                     {isGerente && <th className="p-4 font-semibold text-right">Ações</th>}
@@ -147,7 +208,17 @@ export const Categorias = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {categoriasPaginadas.map((categoria) => (
-                    <tr key={categoria.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={categoria.id} className={`transition-colors ${isGerente && selecionados.includes(categoria.id) ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
+                      {isGerente && (
+                        <td className="p-4 text-center">
+                          <input 
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-raiz-verde focus:ring-raiz-verde cursor-pointer"
+                            checked={selecionados.includes(categoria.id)}
+                            onChange={() => alternarSelecao(categoria.id)}
+                          />
+                        </td>
+                      )}
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-yellow-100 text-yellow-600 rounded-lg">
@@ -178,7 +249,7 @@ export const Categorias = () => {
                   ))}
                   {categoriasFiltradas.length === 0 && (
                     <tr>
-                      <td colSpan={isGerente ? 3 : 2} className="p-8 text-center text-gray-500">
+                      <td colSpan={isGerente ? 4 : 3} className="p-8 text-center text-gray-500">
                         Nenhuma categoria encontrada.
                       </td>
                     </tr>

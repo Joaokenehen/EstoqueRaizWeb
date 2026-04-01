@@ -73,7 +73,7 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
             onClick={onClose}
             className="text-white/70 hover:text-white transition-colors"
             disabled={loadingConfig}
-            input-testid="btn-fechar-modal"
+            data-testid="btn-fechar-modal"
           >
             <X size={24} />
           </button>
@@ -94,7 +94,7 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
               <button 
                 onClick={() => setIsEditing(true)}
                 className="text-sm flex items-center space-x-1 text-raiz-verde hover:text-green-700 font-semibold transition-colors"
-                input-testid="btn-editar-nome"
+                data-testid="btn-editar-nome"
               >
                 <Edit2 size={14} />
                 <span>Editar Nome</span>
@@ -113,7 +113,7 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
                   placeholder="Seu nome"
                   maxLength={100}
-                  input-testid="input-nome-perfil"
+                  data-testid="input-nome-perfil"
                 />
               ) : (
                 <p className="text-lg font-medium text-gray-900">{usuario?.nome || 'Não informado'}</p>
@@ -137,7 +137,7 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
                 onClick={salvarPerfil}
                 disabled={loadingConfig}
                 className="flex-1 bg-raiz-verde text-white py-2 rounded-lg font-bold hover:bg-opacity-90 transition-all disabled:opacity-70 flex justify-center items-center"
-                input-testid="btn-salvar-perfil"
+                data-testid="btn-salvar-perfil"
               >
                 {loadingConfig ? 'Salvando...' : 'Salvar Nome'}
               </button>
@@ -148,7 +148,7 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
                 }}
                 disabled={loadingConfig}
                 className="px-4 py-2 bg-gray-100 text-gray-600 font-semibold rounded-lg hover:bg-gray-200 transition-all"
-                input-testid="btn-cancelar-perfil"
+                data-testid="btn-cancelar-perfil"
               >
                 Cancelar
               </button>
