@@ -3,6 +3,7 @@ import { movimentacaoService, type Movimentacao } from '../services/movimentacao
 import { produtoService, type Produto } from '../services/produtoService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Settings, Plus, X, FileText } from 'lucide-react';
+import { LoadingSpinner } from '../components/Feedbacks';
 import Layout from '../components/Layout';
 
 export const Movimentacoes = () => {
@@ -13,7 +14,11 @@ export const Movimentacoes = () => {
   const [modalAberto, setModalAberto] = useState(false);
   const [processando, setProcessando] = useState(false);
   
-  // Estado do formulário
+  // Variáveis do Usuário Logado
+  const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
+  const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
+  const isEstoquista = usuarioLogado?.cargo === 'estoquista';
+  
   const [form, setForm] = useState({
     tipo: 'ENTRADA' as 'ENTRADA' | 'SAIDA' | 'TRANSFERENCIA' | 'AJUSTE',
     produto_id: '',
@@ -34,7 +39,11 @@ export const Movimentacoes = () => {
       ]);
 
       setMovimentacoes(Array.isArray(dadosMov) ? dadosMov : []);
-      setProdutos(Array.isArray(dadosProd) ? dadosProd.filter(p => p.statusProduto === 'aprovado') : []);
+      
+      // Filtra para o estoquista só ver os produtos aprovados da própria unidade no select
+      const prodsAtivos = Array.isArray(dadosProd) ? dadosProd.filter(p => p.statusProduto === 'aprovado') : [];
+      setProdutos(isEstoquista ? prodsAtivos.filter(p => p.unidade_id === usuarioLogado?.unidade_id) : prodsAtivos);
+      
       setUnidades(Array.isArray(dadosUnid) ? dadosUnid : []);
     } catch (error) {
       console.error("Erro ao carregar movimentações:", error);
@@ -88,6 +97,15 @@ export const Movimentacoes = () => {
     }
   };
 
+  // Filtra os produtos com base na unidade selecionada e no tipo de operação
+  const produtosDisponiveis = produtos.filter(p => {
+    if (form.tipo === 'ENTRADA') {
+      return form.unidade_destino_id ? p.unidade_id === Number(form.unidade_destino_id) : true;
+    } else {
+      return form.unidade_origem_id ? p.unidade_id === Number(form.unidade_origem_id) : true;
+    }
+  });
+
   return (
   <Layout>
       <div className="max-w-7xl mx-auto">
@@ -105,9 +123,7 @@ export const Movimentacoes = () => {
         </header>
 
         {carregando ? (
-           <div className="flex justify-center items-center py-20">
-             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-           </div>
+           <LoadingSpinner />
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
@@ -187,9 +203,9 @@ export const Movimentacoes = () => {
                 {(form.tipo === 'SAIDA' || form.tipo === 'TRANSFERENCIA' || form.tipo === 'AJUSTE') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Unidade de Origem *</label>
-                    <select required value={form.unidade_origem_id} onChange={e => setForm({...form, unidade_origem_id: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <select required value={form.unidade_origem_id} onChange={e => setForm({...form, unidade_origem_id: e.target.value, produto_id: ''})} className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${isEstoquista ? 'bg-gray-100 text-gray-600' : 'bg-white'}`}>
                       <option value="">Retirar de...</option>
-                      {unidades.map(u => <option key={u.id} value={u.id}>{u.nome}</option>)}
+                      {unidades.filter(u => !isEstoquista || u.id === usuarioLogado?.unidade_id).map(u => <option key={u.id} value={u.id}>{u.nome}</option>)}
                     </select>
                   </div>
                 )}
@@ -197,9 +213,9 @@ export const Movimentacoes = () => {
                 {(form.tipo === 'ENTRADA' || form.tipo === 'TRANSFERENCIA') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Unidade de Destino *</label>
-                    <select required value={form.unidade_destino_id} onChange={e => setForm({...form, unidade_destino_id: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <select required value={form.unidade_destino_id} onChange={e => setForm({...form, unidade_destino_id: e.target.value, produto_id: form.tipo === 'ENTRADA' ? '' : form.produto_id})} className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${(isEstoquista && form.tipo === 'ENTRADA') ? 'bg-gray-100 text-gray-600' : 'bg-white'}`}>
                       <option value="">Enviar para...</option>
-                      {unidades.map(u => <option key={u.id} value={u.id}>{u.nome}</option>)}
+                      {unidades.filter(u => !(isEstoquista && form.tipo === 'ENTRADA') || u.id === usuarioLogado?.unidade_id).map(u => <option key={u.id} value={u.id}>{u.nome}</option>)}
                     </select>
                   </div>
                 )}
@@ -209,9 +225,19 @@ export const Movimentacoes = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Produto (Aprovados) *</label>
-                  <select required value={form.produto_id} onChange={e => setForm({...form, produto_id: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                    <option value="">Selecione o Item...</option>
-                    {produtos.map(p => <option key={p.id} value={p.id}>{p.nome} (Estoque: {p.quantidade_estoque})</option>)}
+                  <select 
+                    required 
+                    value={form.produto_id} 
+                    onChange={e => setForm({...form, produto_id: e.target.value})} 
+                    className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={(form.tipo === 'ENTRADA' && !form.unidade_destino_id) || (form.tipo !== 'ENTRADA' && !form.unidade_origem_id)}
+                  >
+                    <option value="">
+                      {(form.tipo === 'ENTRADA' && !form.unidade_destino_id) || (form.tipo !== 'ENTRADA' && !form.unidade_origem_id)
+                        ? 'Selecione uma unidade primeiro...' 
+                        : 'Selecione o Item...'}
+                    </option>
+                    {produtosDisponiveis.map(p => <option key={p.id} value={p.id}>{p.nome} (Estoque: {p.quantidade_estoque})</option>)}
                   </select>
                 </div>
                 <div>

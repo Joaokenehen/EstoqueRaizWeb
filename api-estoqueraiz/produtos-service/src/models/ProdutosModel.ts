@@ -43,7 +43,7 @@ ProdutosModel.init(
     codigo_barras: {
       type: DataTypes.STRING,
       allowNull: true,
-      unique: true,
+      // unique: true,
     },
     preco_custo: {
       type: DataTypes.DECIMAL(10, 2),

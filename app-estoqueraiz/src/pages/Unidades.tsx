@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { AlertCircle, Plus, X, MapPin } from 'lucide-react';
+import { Plus, X, MapPin } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
+import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
+import { BarraAcoesLote } from '../components/BarraAcoesLote';
+import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import Layout from '../components/Layout';
 
 
@@ -10,13 +13,22 @@ export const Unidades = () => {
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
+  const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
+  const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
+  const isGerente = usuarioLogado?.cargo === 'gerente';
   const [buscaTexto, setBuscaTexto] = useState('');
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [modalAberto, setModalAberto] = useState(false);
   const [unidadeEditando, setUnidadeEditando] = useState<Unidade | null>(null);
   const [processandoAcao, setProcessandoAcao] = useState(false);
-    const [formData, setFormData] = useState({
+  const { 
+    selecionados, 
+    alternarSelecao, 
+    selecionarTodos, 
+    limparSelecao 
+  } = useSelecaoLote<number>();
+  const [formData, setFormData] = useState({
     nome: '', descricao: '', cep: '', rua: '', numero: '', bairro: '', cidade: '', estado: ''
   });
 
@@ -39,7 +51,8 @@ export const Unidades = () => {
 
   useEffect(() => {
     setPaginaAtual(1);
-  }, [buscaTexto, itensPorPagina]);
+    limparSelecao();
+  }, [buscaTexto, itensPorPagina, limparSelecao]);
 
   const unidadesFiltradas = unidades.filter((u) => {
     const termo = buscaTexto.toLowerCase();
@@ -121,8 +134,30 @@ export const Unidades = () => {
     try {
       await unidadeService.deletar(id);
       await carregarUnidades();
-    } catch (error) {
-      alert('Erro ao excluir unidade.');
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Erro ao excluir unidade.');
+    }
+  };
+
+  const handleDeletarLote = async () => {
+    if (selecionados.length === 0) return;
+
+    if (!window.confirm(`Atenção: Você está prestes a excluir ${selecionados.length} unidade(s). Esta ação é irreversível. Deseja continuar?`)) {
+      return;
+    }
+
+    try {
+      setCarregando(true);
+      await Promise.all(selecionados.map(id => unidadeService.deletar(id)));
+      
+      alert(`${selecionados.length} unidade(s) excluída(s) com sucesso!`);
+      limparSelecao();
+      await carregarUnidades();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Erro ao excluir algumas unidades. A tela será atualizada para exibir o estado atual.');
+      await carregarUnidades();
+    } finally {
+      setCarregando(false);
     }
   };
 
@@ -151,20 +186,44 @@ export const Unidades = () => {
           onItensPorPaginaChange={setItensPorPagina}
         />
 
+        {isGerente && (
+          <BarraAcoesLote 
+            quantidadeSelecionada={selecionados.length}
+            onExcluir={handleDeletarLote}
+            carregando={carregando}
+            textoItem="unidade(s)"
+          />
+        )}
+
         {carregando ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          </div>
+          <LoadingSpinner />
         ) : erro ? (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-3">
-            <AlertCircle size={24} /> {erro}
-          </div>
+          <MensagemErro mensagem={erro} />
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
+                    {isGerente && (
+                      <th className="p-4 w-12 text-center">
+                        <input 
+                          type="checkbox" 
+                          className="w-4 h-4 rounded border-gray-300 text-raiz-verde focus:ring-raiz-verde cursor-pointer"
+                          checked={
+                            unidadesPaginadas.length > 0 && 
+                            selecionados.length === unidadesPaginadas.length
+                          }
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              selecionarTodos(unidadesPaginadas.map(u => u.id));
+                            } else {
+                              limparSelecao();
+                            }
+                          }}
+                        />
+                      </th>
+                    )}
                     <th className="p-4 font-semibold">Unidade</th>
                     <th className="p-4 font-semibold">Localização</th>
                     <th className="p-4 font-semibold text-right">Ações</th>
@@ -172,8 +231,17 @@ export const Unidades = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {unidadesPaginadas.map((unidade) => (
-                    <tr key={unidade.id} className="hover:bg-gray-50 transition-colors">
-                      
+                    <tr key={unidade.id} className={`transition-colors ${isGerente && selecionados.includes(unidade.id) ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
+                      {isGerente && (
+                        <td className="p-4 text-center">
+                          <input 
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-raiz-verde focus:ring-raiz-verde cursor-pointer"
+                            checked={selecionados.includes(unidade.id)}
+                            onChange={() => alternarSelecao(unidade.id)}
+                          />
+                        </td>
+                      )}
                       <td className="p-4">
                         <div className="flex flex-col">
                           <span className="font-semibold text-gray-900">{unidade.nome}</span>
@@ -209,7 +277,7 @@ export const Unidades = () => {
                   ))}
                   {unidadesFiltradas.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="p-8 text-center text-gray-500">
+                      <td colSpan={isGerente ? 4 : 3} className="p-8 text-center text-gray-500">
                         Nenhuma unidade encontrada.
                       </td>
                     </tr>

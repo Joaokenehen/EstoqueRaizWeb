@@ -165,7 +165,7 @@ describe('Dashboard e Controle de Acesso (RBAC)', () => {
       cy.get('header').find('button').first().click();
       cy.contains('Estoque Raiz').should('be.visible');
       
-      cy.get('[input-testid="backdrop-sidebar"]').click({ force: true });
+      cy.get('[data-testid="backdrop-sidebar"]').click({ force: true });
       
       cy.contains('Estoque Raiz').should('not.be.visible');
     });
@@ -176,7 +176,7 @@ describe('Dashboard e Controle de Acesso (RBAC)', () => {
       cy.get('header').find('button').first().click();
       cy.contains('Estoque Raiz').should('be.visible');
 
-      cy.get('[input-testid="backdrop-sidebar"]').click({ force: true });      
+      cy.get('[data-testid="backdrop-sidebar"]').click({ force: true });      
 
       cy.contains('Estoque Raiz').should('not.be.visible');
     });
@@ -194,31 +194,31 @@ describe('Dashboard e Controle de Acesso (RBAC)', () => {
     beforeEach(() => fazerLoginMock('gerente'));
 
     it('Deve abrir o modal de perfil ao clicar em "Meu Perfil"', () => {
-      cy.get('[input-testid="menu-usuario-btn"]').click();
+      cy.get('[data-testid="menu-usuario-btn"]').click();
       cy.contains('Meu Perfil').click();
       cy.contains('Dados Pessoais').should('be.visible');
       cy.contains('teste@teste.com').should('be.visible');
     });
 
     it('Deve fechar o modal ao clicar no botão X', () => {
-      cy.get('[input-testid="menu-usuario-btn"]').click();
+      cy.get('[data-testid="menu-usuario-btn"]').click();
       cy.contains('Meu Perfil').click();
       cy.contains('Dados Pessoais').should('be.visible');
       
-      cy.get('[input-testid="btn-fechar-modal"]').click();
+      cy.get('[data-testid="btn-fechar-modal"]').click();
       
       cy.contains('Dados Pessoais').should('not.exist');
     });
 
     it('Deve habilitar edição do nome ao clicar em "Editar Nome"', () => {
-      cy.get('[input-testid="menu-usuario-btn"]').click();
+      cy.get('[data-testid="menu-usuario-btn"]').click();
       cy.contains('Meu Perfil').click();
       cy.contains('Editar Nome').click();
       cy.get('input[placeholder="Seu nome"]').should('be.visible').and('have.value', 'Usuário Teste');
     });
 
     it('Deve impedir salvar com nome vazio', () => {
-      cy.get('[input-testid="menu-usuario-btn"]').click();
+      cy.get('[data-testid="menu-usuario-btn"]').click();
       cy.contains('Meu Perfil').click();
       cy.contains('Editar Nome').click();
       cy.get('input[placeholder="Seu nome"]').clear();
@@ -227,7 +227,7 @@ describe('Dashboard e Controle de Acesso (RBAC)', () => {
     });
 
     it('Deve cancelar edição e restaurar o nome original', () => {
-      cy.get('[input-testid="menu-usuario-btn"]').click();
+      cy.get('[data-testid="menu-usuario-btn"]').click();
       cy.contains('Meu Perfil').click();
       cy.contains('Editar Nome').click();
       cy.get('input[placeholder="Seu nome"]').clear().type('Nome Alterado');

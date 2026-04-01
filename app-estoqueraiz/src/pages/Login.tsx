@@ -77,7 +77,7 @@ return (
               maxLength={100}
               onChange={(e) => setEmail(e.target.value)}
               required
-              input-testid="email-input"
+              data-testid="email-input"
             />
           </div>
 
@@ -105,7 +105,7 @@ return (
                 maxLength={32}
                 onChange={(e) => setSenha(e.target.value)}
                 required
-                input-testid="senha-input"
+                data-testid="senha-input"
               />
               <button
                 type="button"

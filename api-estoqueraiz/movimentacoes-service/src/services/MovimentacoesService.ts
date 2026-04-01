@@ -131,6 +131,27 @@ export class MovimentacoesService {
         "Unidade de origem deve ser diferente da de destino"
       );
     }
+    
+    // VERIFICAÇÃO DE ESTOQUE REAL ANTES DA MOVIMENTAÇÃO
+    if (tipo === "SAIDA" || tipo === "TRANSFERENCIA") {
+      const [produtoStock]: any = await sequelize.query(
+        "SELECT quantidade_estoque FROM produtos WHERE id = :produto_id LIMIT 1",
+        {
+          replacements: { produto_id },
+          type: QueryTypes.SELECT,
+        }
+      );
+
+      if (!produtoStock) {
+        throw new ErroNaoEncontrado("Produto não encontrado no banco de dados.");
+      }
+
+      if (produtoStock.quantidade_estoque < quantidade) {
+        throw new ErroValidacao(
+          `Estoque insuficiente! Você só possui ${produtoStock.quantidade_estoque} unidade(s) deste produto para movimentar.`
+        );
+      }
+    }
 
     let novaMovimentacao;
 
@@ -181,6 +202,7 @@ export class MovimentacoesService {
       logger.info(`Movimentação ${tipo} criada para produto ${produto_id}`);
     }
 
+    // Garantindo que Origem e Destino viajam para o ProdutosService
     await publicadorEventos.publicar(
       EventosTipo.MOVIMENTACAO_CRIADA,
       {
@@ -188,6 +210,8 @@ export class MovimentacoesService {
         tipo: novaMovimentacao.tipo,
         produto_id: novaMovimentacao.produto_id,
         quantidade: novaMovimentacao.quantidade,
+        unidade_origem_id: novaMovimentacao.unidade_origem_id,
+        unidade_destino_id: novaMovimentacao.unidade_destino_id,
       },
       "movimentacoes-service"
     );

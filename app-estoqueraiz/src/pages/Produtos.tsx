@@ -6,6 +6,9 @@ import { api } from '../services/api';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { Plus, X,DollarSign, Image as ImageIcon, Filter } from 'lucide-react';
 import { BotaoAprovar, BotaoRejeitar, BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
+import { LoadingSpinner } from '../components/Feedbacks';
+import { BarraAcoesLote } from '../components/BarraAcoesLote';
+import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import Layout from '../components/Layout';
 
 export const Produtos = () => {
@@ -32,6 +35,12 @@ export const Produtos = () => {
   const [precosAprovacao, setPrecosAprovacao] = useState({ preco_custo: '', preco_venda: '' });
   const [imagemPreview, setImagemPreview] = useState<string | null>(null);
   const [produtoZoom, setProdutoZoom] = useState<Produto | null>(null);
+  const { 
+    selecionados, 
+    alternarSelecao, 
+    selecionarTodos, 
+    limparSelecao 
+  } = useSelecaoLote<number>();
 
 
   const carregarDados = async () => {
@@ -60,7 +69,8 @@ export const Produtos = () => {
 
   useEffect(() => {
     setPaginaAtual(1);
-  }, [buscaTexto, statusFiltro, itensPorPagina]);
+    limparSelecao();
+  }, [buscaTexto, statusFiltro, itensPorPagina, limparSelecao]);
 
   const produtosFiltrados = produtos.filter(p => {
     const matchesNome = p.nome?.toLowerCase().includes(buscaTexto.toLowerCase());
@@ -129,6 +139,33 @@ export const Produtos = () => {
       await carregarDados();
     } catch (error) {
       alert('Erro ao excluir.');
+    }
+  };
+
+  const handleDeletarLote = async () => {
+    if (selecionados.length === 0) return;
+
+    if (!isGerente) {
+      alert('Apenas gerentes podem excluir produtos em lote.');
+      return;
+    }
+
+    if (!window.confirm(`Atenção: Você está prestes a excluir ${selecionados.length} produto(s). Esta ação é irreversível. Deseja continuar?`)) {
+      return;
+    }
+
+    try {
+      setCarregando(true);
+      await Promise.all(selecionados.map(id => produtoService.deletar(id)));
+      
+      alert(`${selecionados.length} produto(s) excluído(s) com sucesso!`);
+      limparSelecao();
+      await carregarDados();
+    } catch (error) {
+      alert('Erro ao excluir alguns produtos. A tela será atualizada para exibir o estado atual.');
+      await carregarDados();
+    } finally {
+      setCarregando(false);
     }
   };
 
@@ -231,14 +268,42 @@ export const Produtos = () => {
           </div>
         </BarraFiltros>
 
+        {isGerente && (
+          <BarraAcoesLote 
+            quantidadeSelecionada={selecionados.length}
+            onExcluir={handleDeletarLote}
+            carregando={carregando}
+            textoItem="produto(s)"
+          />
+        )}
+
         {carregando ? (
-           <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div></div>
+          <LoadingSpinner />
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
+                    {isGerente && (
+                      <th className="p-4 w-12 text-center">
+                        <input 
+                          type="checkbox" 
+                          className="w-4 h-4 rounded border-gray-300 text-raiz-verde focus:ring-raiz-verde cursor-pointer"
+                          checked={
+                            produtosPaginados.length > 0 && 
+                            selecionados.length === produtosPaginados.length
+                          }
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              selecionarTodos(produtosPaginados.map(p => p.id));
+                            } else {
+                              limparSelecao();
+                            }
+                          }}
+                        />
+                      </th>
+                    )}
                     <th className="p-4 font-semibold">Produto</th>
                     <th className="p-4 font-semibold">Estoque</th>
                     <th className="p-4 font-semibold">Status</th>
@@ -248,7 +313,17 @@ export const Produtos = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {produtosPaginados.map((prod) => (
-                    <tr key={prod.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={prod.id} className={`transition-colors ${selecionados.includes(prod.id) ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
+                      {isGerente && (
+                        <td className="p-4 text-center">
+                          <input 
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-raiz-verde focus:ring-raiz-verde cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            checked={selecionados.includes(prod.id)}
+                            onChange={() => alternarSelecao(prod.id)}
+                          />
+                        </td>
+                      )}
                      <td className="p-4 flex items-center gap-4">
                       {prod.imagem_url ? (
                        
@@ -320,7 +395,7 @@ export const Produtos = () => {
                     </tr>
                   ))}
                   {produtosFiltrados.length === 0 && (
-                    <tr><td colSpan={5} className="p-12 text-center text-gray-400 italic">Nenhum produto corresponde aos filtros aplicados.</td></tr>
+                    <tr><td colSpan={isGerente ? 6 : 5} className="p-12 text-center text-gray-400 italic">Nenhum produto corresponde aos filtros aplicados.</td></tr>
                   )}
                 </tbody>
               </table>

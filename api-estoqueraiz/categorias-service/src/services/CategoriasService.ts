@@ -10,6 +10,7 @@ import {
 } from "../../../shared/utils/tratamentoErros";
 import CategoriasModel from "../models/CategoriasModel";
 import { CriarCategoriaDTO, AtualizarCategoriaDTO } from "../dto/CategoriaDTO";
+import { sequelize } from "../../../shared/config/database";
 
 export class CategoriasService {
   async listarTodas(): Promise<any[]> {
@@ -85,10 +86,23 @@ export class CategoriasService {
     return categoria.toJSON();
   }
 
-  async deletar(id: number): Promise<void> {
+async deletar(id: number): Promise<void> {
     const categoria = await CategoriasModel.findByPk(id);
     if (!categoria) {
       throw new ErroNaoEncontrado("Categoria não encontrada");
+    }
+
+    // TRAVA DE SEGURANÇA: Verifica se existem produtos usando esta categoria
+    const [produtosVinculados]: any = await sequelize.query(
+      `SELECT COUNT(*) as total FROM produtos WHERE categoria_id = :id`,
+      { replacements: { id } }
+    );
+
+    if (parseInt(produtosVinculados[0].total) > 0) {
+      const total = produtosVinculados[0].total;
+      throw new ErroValidacao(
+        `Não é possível excluir esta categoria pois existem ${total} produtos vinculados a ela.`
+      );
     }
 
     await categoria.destroy();

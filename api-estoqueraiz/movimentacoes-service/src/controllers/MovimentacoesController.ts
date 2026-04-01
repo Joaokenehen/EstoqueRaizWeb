@@ -33,11 +33,25 @@ export const buscarMovimentacao = asyncHandler(
 export const criarMovimentacao = asyncHandler(
   async (req: Request, res: Response) => {
     const { tipo, produto_id } = req.body;
+    
+    const unidade_origem_id = req.body.unidade_origem_id || req.usuario?.unidade_id;
+    const unidade_destino_id = req.body.unidade_destino_id;
+
+    // REGRA DE NEGÓCIO: Estoquista só movimenta na sua unidade
+    if (req.usuario?.cargo === 'estoquista') {
+      if (tipo === 'ENTRADA' && unidade_destino_id !== req.usuario.unidade_id) {
+        return res.status(403).json({ message: "Acesso negado: Você só pode dar entrada de estoque na sua unidade." });
+      }
+      if ((tipo === 'SAIDA' || tipo === 'AJUSTE' || tipo === 'TRANSFERENCIA') && unidade_origem_id !== req.usuario.unidade_id) {
+        return res.status(403).json({ message: "Acesso negado: Você só pode retirar estoque da sua unidade." });
+      }
+    }
+
     logger.info(`Criando movimentação ${tipo} para produto ${produto_id}`);
     const movimentacao = await movimentacoesService.criar({
       ...req.body,
       usuario_id: req.usuario?.id,
-      unidade_origem_id: req.body.unidade_origem_id || req.usuario?.unidade_id,
+      unidade_origem_id, 
     });
     res.status(201).json({
       message: "Movimentação criada com sucesso",

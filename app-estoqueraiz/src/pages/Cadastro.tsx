@@ -51,7 +51,7 @@ export const Cadastro = () => {
             alt="Estoque Raiz" 
             className="w-48 md:w-56 mx-auto mb-4 drop-shadow-md cursor-pointer"
             onClick={() => navigate('/')}
-            input-testid="logo-estoque"
+            data-testid="logo-estoque"
           />
           <h1 className="text-2xl font-bold text-raiz-marrom tracking-tight">
             Criar Nova Conta
@@ -62,7 +62,7 @@ export const Cadastro = () => {
         {mensagem.texto && (
           <div 
             className={`p-3 mb-4 text-center rounded-lg font-semibold text-white ${mensagem.cor === 'green' ? 'bg-green-500' : 'bg-red-500'}`}
-            input-testid="mensagem-feedback"
+            data-testid="mensagem-feedback"
           >
             {mensagem.texto}
           </div>
@@ -83,7 +83,7 @@ export const Cadastro = () => {
               onChange={(e) => setNome(e.target.value)}
               maxLength={100} 
               required
-              input-testid="nome-input" 
+              data-testid="nome-input" 
             />
             <p className="text-[10px] text-right text-gray-400 mt-1">{nome.length}/100</p>
           </div>
@@ -101,7 +101,7 @@ export const Cadastro = () => {
               onChange={(e) => setEmail(e.target.value)}
               maxLength={100}
               required
-              input-testid="email-input"
+              data-testid="email-input"
             />
           </div>
 
@@ -118,7 +118,7 @@ export const Cadastro = () => {
               onChange={(e) => setCpf(e.target.value.replace(/\D/g, ''))} 
               maxLength={11} 
               required
-              input-testid="cpf-input"
+              data-testid="cpf-input"
             />
           </div>
 
@@ -136,13 +136,13 @@ export const Cadastro = () => {
                 onChange={(e) => setSenha(e.target.value)}
                 maxLength={32}
                 required
-                input-testid="senha-input"
+                data-testid="senha-input"
               />
               <button
                 type="button"
                 onClick={() => setMostrarSenha(!mostrarSenha)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-raiz-verde transition-colors"
-                input-testid="toggle-password-visibility"
+                data-testid="toggle-password-visibility"
               >
                 {mostrarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -167,20 +167,20 @@ export const Cadastro = () => {
                 onChange={(e) => setConfirmarSenha(e.target.value)}
                 maxLength={32}
                 required
-                input-testid="confirmar-senha-input"
+                data-testid="confirmar-senha-input"
               />
               <button
                 type="button"
                 onClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-raiz-verde transition-colors"
-                input-testid="toggle-confirm-password-visibility"
+                data-testid="toggle-confirm-password-visibility"
               >
                 {mostrarConfirmarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             
             {confirmarSenha && senha !== confirmarSenha && (
-              <p className="text-red-500 text-xs mt-1 font-medium" input-testid="senha-error-msg">
+              <p className="text-red-500 text-xs mt-1 font-medium" data-testid="senha-error-msg">
                 As senhas não conferem.
               </p>
             )}
@@ -189,7 +189,7 @@ export const Cadastro = () => {
           <button
             type="submit"
             className="w-full bg-raiz-verde hover:bg-opacity-90 text-white font-bold py-3 rounded-lg shadow-md transform active:scale-[0.98] transition-all duration-150 mt-4"
-            input-testid="btn-finalizar-cadastro"
+            data-testid="btn-finalizar-cadastro"
           >
             Finalizar Cadastro
           </button>
@@ -201,7 +201,7 @@ export const Cadastro = () => {
             <span 
               onClick={() => navigate('/')}
               className="text-raiz-verde font-bold cursor-pointer hover:underline"
-              input-testid="link-login"
+              data-testid="link-login"
             >
               Fazer Login
             </span>

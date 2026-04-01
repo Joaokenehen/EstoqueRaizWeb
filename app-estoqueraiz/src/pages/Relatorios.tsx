@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { relatorioService, type ResultadoCurvaABC } from '../services/relatorioService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
-import { TrendingUp, Filter, AlertCircle, FileSpreadsheet } from 'lucide-react';
+import { TrendingUp, Filter, FileSpreadsheet } from 'lucide-react';
+import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
 import Layout from '../components/Layout';
 
 export const Relatorios = () => {
@@ -88,9 +89,7 @@ export const Relatorios = () => {
         </form>
 
         {erro && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-3 mb-6">
-            <AlertCircle size={24} /> {erro}
-          </div>
+          <MensagemErro mensagem={erro} />
         )}
 
         {/* RESUMO DA CURVA ABC (Cards) */}
@@ -109,9 +108,7 @@ export const Relatorios = () => {
         {/* TABELA DE RESULTADOS */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {carregando ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            </div>
+            <LoadingSpinner />
           ) : !dados || dados.produtos.length === 0 ? (
             <div className="p-12 text-center flex flex-col items-center justify-center text-gray-500">
               <FileSpreadsheet size={48} className="text-gray-300 mb-3" />
