@@ -104,8 +104,9 @@ export const Categorias = () => {
     try {
       await categoriaService.deletar(id);
       await carregarCategorias();
-    } catch (error) {
-      alert('Erro ao excluir categoria. Ela pode estar a ser usada por produtos.');
+    } catch (error: any) {
+      // Captura a mensagem do backend ou mostra uma genérica
+      alert(error.response?.data?.message || 'Erro ao excluir categoria.');
     }
   };
 
@@ -128,8 +129,9 @@ export const Categorias = () => {
       alert(`${selecionados.length} categoria(s) excluída(s) com sucesso!`);
       limparSelecao();
       await carregarCategorias();
-    } catch (error) {
-      alert('Erro ao excluir algumas categorias. A tela será atualizada para exibir o estado atual.');
+    } catch (error: any) {
+      // Captura a mensagem do backend para o lote também
+      alert(error.response?.data?.message || 'Erro ao excluir algumas categorias.');
       await carregarCategorias();
     } finally {
       setCarregando(false);

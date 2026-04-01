@@ -10,6 +10,7 @@ import {
 } from "../../../shared/utils/tratamentoErros";
 import UnidadesModel from "../models/UnidadesModel";
 import { CriarUnidadeDTO, AtualizarUnidadeDTO } from "../dto/UnidadeDTO";
+import { sequelize } from "../../../shared/config/database";
 
 export class UnidadesService {
   async listarTodas(): Promise<any[]> {
@@ -95,6 +96,19 @@ export class UnidadesService {
     const unidade = await UnidadesModel.findByPk(id);
     if (!unidade) {
       throw new ErroNaoEncontrado("Unidade não encontrada");
+    }
+
+    // TRAVA DE SEGURANÇA: Verifica se existem produtos usando esta unidade
+    const [produtosVinculados]: any = await sequelize.query(
+      `SELECT COUNT(*) as total FROM produtos WHERE unidade_id = :id`,
+      { replacements: { id } }
+    );
+
+    if (parseInt(produtosVinculados[0].total) > 0) {
+      const total = produtosVinculados[0].total;
+      throw new ErroValidacao(
+        `Não é possível excluir esta unidade (filial) pois existem ${total} produtos vinculados a ela.`
+      );
     }
 
     await unidade.destroy();

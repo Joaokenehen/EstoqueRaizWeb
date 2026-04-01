@@ -134,8 +134,8 @@ export const Unidades = () => {
     try {
       await unidadeService.deletar(id);
       await carregarUnidades();
-    } catch (error) {
-      alert('Erro ao excluir unidade.');
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Erro ao excluir unidade.');
     }
   };
 
@@ -153,8 +153,8 @@ export const Unidades = () => {
       alert(`${selecionados.length} unidade(s) excluída(s) com sucesso!`);
       limparSelecao();
       await carregarUnidades();
-    } catch (error) {
-      alert('Erro ao excluir algumas unidades. A tela será atualizada para exibir o estado atual.');
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Erro ao excluir algumas unidades. A tela será atualizada para exibir o estado atual.');
       await carregarUnidades();
     } finally {
       setCarregando(false);

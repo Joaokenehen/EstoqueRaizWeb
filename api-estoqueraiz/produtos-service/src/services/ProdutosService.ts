@@ -102,6 +102,79 @@ export class ProdutosService {
     return produtoJson;
   }
 
+  async processarMovimentacao(dados: any): Promise<void> {
+    try {
+      const { tipo, produto_id, quantidade, unidade_destino_id } = dados;
+
+      const produtoOrigem = await ProdutosModel.findByPk(produto_id);
+      if (!produtoOrigem) {
+        logger.warn(`Produto origem não encontrado para movimentação: ${produto_id}`);
+        return;
+      }
+
+      if (tipo === 'ENTRADA') {
+        await produtoOrigem.increment('quantidade_estoque', { by: quantidade });
+      } else if (tipo === 'SAIDA') {
+        await produtoOrigem.decrement('quantidade_estoque', { by: quantidade });
+      } else if (tipo === 'AJUSTE') {
+        produtoOrigem.quantidade_estoque = quantidade; 
+        await produtoOrigem.save();
+      } else if (tipo === 'TRANSFERENCIA') {
+        // 1. Retira do estoque da unidade de origem
+        await produtoOrigem.decrement('quantidade_estoque', { by: quantidade });
+        
+        // 2. Adiciona na unidade de destino
+        if (unidade_destino_id) {
+          let produtoDestino;
+          
+          if (produtoOrigem.codigo_barras) {
+             produtoDestino = await ProdutosModel.findOne({
+               where: { codigo_barras: produtoOrigem.codigo_barras, unidade_id: unidade_destino_id }
+             });
+          }
+
+          if (!produtoDestino) {
+             produtoDestino = await ProdutosModel.findOne({
+               where: { nome: produtoOrigem.nome, unidade_id: unidade_destino_id }
+             });
+          }
+
+          if (produtoDestino) {
+             await produtoDestino.increment('quantidade_estoque', { by: quantidade });
+          } else {
+             // Clona o produto para a filial de destino
+             await ProdutosModel.create({
+                nome: produtoOrigem.nome,
+                descricao: produtoOrigem.descricao,
+                codigo_barras: produtoOrigem.codigo_barras,
+                preco_custo: produtoOrigem.preco_custo,
+                preco_venda: produtoOrigem.preco_venda,
+                quantidade_estoque: quantidade,
+                quantidade_minima: produtoOrigem.quantidade_minima,
+                data_validade: produtoOrigem.data_validade,
+                lote: produtoOrigem.lote,
+                localizacao: produtoOrigem.localizacao,
+                imagem_url: produtoOrigem.imagem_url,
+                ativo: true,
+                statusProduto: produtoOrigem.statusProduto,
+                categoria_id: produtoOrigem.categoria_id,
+                unidade_id: unidade_destino_id,
+                usuario_id: produtoOrigem.usuario_id
+             });
+          }
+        }
+      }
+
+      await cacheService.invalidarPorPadrao("*", "produtos");
+      await cacheService.invalidar(`id:${produto_id}`, "produtos");
+      logger.info(`Estoque atualizado após movimentação ${tipo} para produto ${produto_id}`);
+      
+    } catch (error) {
+      
+      logger.error(`Erro crítico ao processar movimentação no ProdutosService:`, error);
+    }
+  }
+
   async listarTodos(unidade_id?: number): Promise<any[]> {
     const cacheKey = unidade_id ? `unidade:${unidade_id}` : "todos";
 

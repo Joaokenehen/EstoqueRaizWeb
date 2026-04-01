@@ -6,7 +6,7 @@ import { api } from '../services/api';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { Plus, X,DollarSign, Image as ImageIcon, Filter } from 'lucide-react';
 import { BotaoAprovar, BotaoRejeitar, BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
-import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
+import { LoadingSpinner } from '../components/Feedbacks';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
 import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import Layout from '../components/Layout';

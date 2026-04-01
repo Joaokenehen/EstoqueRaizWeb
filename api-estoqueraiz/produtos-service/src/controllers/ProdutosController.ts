@@ -6,9 +6,14 @@ import { logger } from "../../../shared/utils/logger";
 export const listarProdutos = asyncHandler(
   async (req: Request, res: Response) => {
     const { unidade_id } = req.query;
-    const unidadeIdNum = unidade_id
+    let unidadeIdNum = unidade_id
       ? parseInt(unidade_id as string)
       : undefined;
+
+    // REGRA DE NEGÓCIO: Estoquista só vê produtos da sua própria unidade
+    if (req.usuario?.cargo === "estoquista") {
+      unidadeIdNum = req.usuario.unidade_id;
+    }
 
     logger.info("Listando todos os produtos");
     const produtos = await produtosService.listarTodos(unidadeIdNum);
@@ -53,6 +58,14 @@ export const atualizarProduto = asyncHandler(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     logger.info(`Atualizando produto ID: ${id}`);
+
+    // REGRA DE NEGÓCIO: Estoquista só edita se o produto for da sua unidade
+    if (req.usuario?.cargo === "estoquista") {
+      const produtoAtual = await produtosService.buscarPorId(parseInt(id));
+      if (produtoAtual.unidade_id !== req.usuario.unidade_id) {
+        return res.status(403).json({ message: "Acesso negado: Você só pode editar produtos da sua unidade." });
+      }
+    }
 
     let dadosAtualizacao = { ...req.body };
 

@@ -16,6 +16,7 @@ import { assinanteEventos } from "../../shared/eventos/assinante";
 import { EventosTipo } from "../../shared/eventos/publicador";
 import rotaProdutos from "./routes/rotaProdutos";
 import "./models/ProdutosModel";
+import { produtosService } from "./services/ProdutosService";
 
 dotenv.config();
 
@@ -53,6 +54,14 @@ assinanteEventos.registrarManipulador(
   }
 );
 
+assinanteEventos.registrarManipulador(
+  EventosTipo.MOVIMENTACAO_CRIADA,
+  async (dados) => {
+    logger.info(`Processando movimentação criada:`, dados);
+    await produtosService.processarMovimentacao(dados);
+  }
+);
+
 let servidor: any;
 
 async function iniciar() {
@@ -62,6 +71,7 @@ async function iniciar() {
     await assinanteEventos.inscrever([
       EventosTipo.CATEGORIA_CRIADA,
       EventosTipo.UNIDADE_CRIADA,
+      EventosTipo.MOVIMENTACAO_CRIADA,
     ]);
 
     servidor = app.listen(PORT, () => {
