@@ -94,6 +94,8 @@ export const EsqueciSenha = () => {
                 <input
                   type="email"
                   required
+                  maxLength={100}
+                  data-testid="esqueci-input-email"
                   placeholder="exemplo@estoqueraiz.com"
                   className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
                   value={email}
@@ -121,6 +123,7 @@ export const EsqueciSenha = () => {
                   type="text"
                   required
                   maxLength={6}
+                  data-testid="esqueci-input-codigo"
                   placeholder="000000"
                   className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all tracking-[0.2em] font-bold text-center"
                   value={codigo}
@@ -138,6 +141,8 @@ export const EsqueciSenha = () => {
                 <input
                   type={mostrarSenha ? "text" : "password"}
                   required
+                  maxLength={32}
+                  data-testid="esqueci-input-nova-senha"
                   placeholder="••••••••"
                   className="w-full pl-10 pr-12 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
                   value={novaSenha}

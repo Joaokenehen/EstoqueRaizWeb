@@ -30,6 +30,19 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
     return cargo.charAt(0).toUpperCase() + cargo.slice(1);
   };
 
+  const getStatusBadge = (status?: string) => {
+      switch (status) {
+        case 'aprovado':
+          return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200 uppercase">Aprovado</span>;
+        case 'pendente':
+          return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-200 uppercase">Pendente</span>;
+        case 'rejeitado':
+          return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200 uppercase">Rejeitado</span>;
+        default:
+          return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-800 uppercase">Desconhecido</span>;
+      }
+    };
+
   const salvarPerfil = async () => {
     if (!editForm.nome.trim()) {
       setMensagemConfig({ texto: 'O nome não pode ficar vazio.', tipo: 'erro' });
@@ -165,12 +178,8 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
                 </p>
               </div>
               <div>
-                <label className="text-sm font-semibold text-gray-500">Status da Conta</label>
-                <p>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    {usuario?.status === 'aprovado' ? 'Aprovado' : 'Pendente'}
-                  </span>
-                </p>
+                <label className="text-sm font-semibold text-gray-500 mb-1 block">Status da Conta</label>
+                {getStatusBadge(usuario?.status)}
               </div>
             </div>
           </div>

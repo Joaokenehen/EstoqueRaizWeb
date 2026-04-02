@@ -365,6 +365,7 @@ export const Usuarios = () => {
                         <div className="flex flex-col sm:flex-row gap-2">
                           <select
                             className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px disabled:opacity-50"
+                            data-testid={`usuarios-select-cargo-${usuario.id}`}
                             value={cargosSelecionados[usuario.id] || ''}
                             onChange={(e) => handleMudancaSelect(usuario.id, e.target.value)}
                             disabled={processandoId === usuario.id || usuario.status === 'rejeitado' || usuarioLogado?.id === usuario.id}
@@ -379,6 +380,7 @@ export const Usuarios = () => {
 
                           <select
                             className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px disabled:opacity-50"
+                            data-testid={`usuarios-select-unidade-${usuario.id}`}
                             value={unidadesSelecionadas[usuario.id] || ''}
                             onChange={(e) => setUnidadesSelecionadas(prev => ({ ...prev, [usuario.id]: e.target.value }))}
                             disabled={processandoId === usuario.id || usuario.status === 'rejeitado'}

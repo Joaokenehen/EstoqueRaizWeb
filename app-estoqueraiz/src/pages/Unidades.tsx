@@ -328,45 +328,45 @@ export const Unidades = () => {
                 {/* LINHA 1: NOME DA UNIDADE */}
                 <div className="col-span-1 md:col-span-12">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Unidade *</label>
-                  <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.nome} onChange={e => setFormData({...formData, nome: e.target.value})} placeholder="Ex: Matriz São Paulo" />
+                  <input required type="text" maxLength={100} data-testid="unidades-input-nome" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.nome} onChange={e => setFormData({...formData, nome: e.target.value})} placeholder="Ex: Matriz São Paulo" />
                 </div>
                 
                 {/* LINHA 2: DESCRIÇÃO */}
                 <div className="col-span-1 md:col-span-12">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-                  <input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.descricao} onChange={e => setFormData({...formData, descricao: e.target.value})} placeholder="Ex: Armazém principal de distribuição" />
+                  <input type="text" maxLength={200} data-testid="unidades-input-descricao" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.descricao} onChange={e => setFormData({...formData, descricao: e.target.value})} placeholder="Ex: Armazém principal de distribuição" />
                 </div>
 
                 {/* LINHA 3: CEP E RUA */}
                 <div className="col-span-1 md:col-span-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">CEP *</label>
-                  <input required type="text" maxLength={9} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.cep} onChange={e => handleBuscaCep(e.target.value)} placeholder="00000-000" />
+                  <input required type="text" maxLength={9} data-testid="unidades-input-cep" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.cep} onChange={e => handleBuscaCep(e.target.value)} placeholder="00000-000" />
                 </div>
 
                 <div className="col-span-1 md:col-span-8">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Rua *</label>
-                  <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.rua} onChange={e => setFormData({...formData, rua: e.target.value})} />
+                  <input required type="text" maxLength={100} data-testid="unidades-input-rua" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.rua} onChange={e => setFormData({...formData, rua: e.target.value})} />
                 </div>
 
                 {/* LINHA 4: NÚMERO, BAIRRO, CIDADE E ESTADO */}
                 <div className="col-span-1 md:col-span-3">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Número *</label>
-                  <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.numero} onChange={e => setFormData({...formData, numero: e.target.value})} />
+                  <input required type="text" maxLength={10} data-testid="unidades-input-numero" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.numero} onChange={e => setFormData({...formData, numero: e.target.value})} />
                 </div>
 
                 <div className="col-span-1 md:col-span-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Bairro *</label>
-                  <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.bairro} onChange={e => setFormData({...formData, bairro: e.target.value})} />
+                  <input required type="text" maxLength={100} data-testid="unidades-input-bairro" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.bairro} onChange={e => setFormData({...formData, bairro: e.target.value})} />
                 </div>
 
                 <div className="col-span-1 md:col-span-3">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Cidade *</label>
-                  <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.cidade} onChange={e => setFormData({...formData, cidade: e.target.value})} />
+                  <input required type="text" maxLength={100} data-testid="unidades-input-cidade" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.cidade} onChange={e => setFormData({...formData, cidade: e.target.value})} />
                 </div>
 
                 <div className="col-span-1 md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
-                  <input required type="text" maxLength={2} className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none uppercase text-center" value={formData.estado} onChange={e => setFormData({...formData, estado: e.target.value})} placeholder="UF" />
+                  <input required type="text" maxLength={2} data-testid="unidades-input-estado" className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.estado} onChange={e => setFormData({...formData, estado: e.target.value.toUpperCase()})} placeholder="SP" />
                 </div>
               </div>
 

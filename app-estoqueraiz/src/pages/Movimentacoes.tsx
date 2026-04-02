@@ -242,7 +242,7 @@ export const Movimentacoes = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Quantidade *</label>
-                  <input required type="number" min="1" value={form.quantidade} onChange={e => setForm({...form, quantidade: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ex: 50" />
+                  <input required type="number" min="1" data-testid="movimentacoes-input-quantidade" value={form.quantidade} onChange={e => setForm({...form, quantidade: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ex: 50" />
                 </div>
               </div>
 
@@ -250,11 +250,11 @@ export const Movimentacoes = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Documento / NF</label>
-                  <input type="text" value={form.documento} onChange={e => setForm({...form, documento: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ex: NF-123456" />
+                  <input type="text" maxLength={50} data-testid="movimentacoes-input-documento" value={form.documento} onChange={e => setForm({...form, documento: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ex: NF-123456" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Observação</label>
-                  <input type="text" value={form.observacao} onChange={e => setForm({...form, observacao: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Motivo da movimentação" />
+                  <input type="text" maxLength={500} data-testid="movimentacoes-input-observacao" value={form.observacao} onChange={e => setForm({...form, observacao: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Motivo da movimentação" />
                 </div>
               </div>
 

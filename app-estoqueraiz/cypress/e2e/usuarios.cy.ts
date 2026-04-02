@@ -1,83 +1,163 @@
-import { gerarCpfValido } from '../support/utils'; 
+import { criarUsuarioSessao, visitarComSessao } from '../support/testHelpers';
+import { usuariosFixtures, type Usuario } from '../fixtures/usuarios';
+import { unidadesFixtures } from '../fixtures/unidades';
 
-describe('Módulo de Usuários - Maker/Checker', () => {
-  let emailGerente: string;
-  let emailEstoquista: string;
-  let emailFinanceiro: string;
-  const senhaPadrao = 'Senha123';
+describe('Modulo de Usuarios', () => {
+  const gerenteLogado = criarUsuarioSessao({
+    id: 10,
+    nome: 'Gerente Atual',
+    email: 'gerente@estoqueraiz.com',
+    cargo: 'gerente',
+    unidade_id: 1,
+  });
 
-  before(() => {
-    const timestamp = Date.now();
-    emailGerente = `gerente_${timestamp}@estoqueraiz.com`;
-    emailEstoquista = `estoquista_${timestamp}@estoqueraiz.com`;
-    emailFinanceiro = `financeiro_${timestamp}@estoqueraiz.com`;
+  let usuariosMock: Usuario[];
 
-    cy.request({
-      method: 'POST',
-      url: 'http://localhost:8081/api/usuarios',
-      failOnStatusCode: false,
-      body: { nome: 'Gerente Teste', email: emailGerente, senha: senhaPadrao, cpf: gerarCpfValido() }
-    }).then(() => {
-      cy.exec(`docker exec postgres-db psql -U admin -d estoque_raiz -c "UPDATE usuarios SET cargo = 'gerente', status = 'aprovado' WHERE email = '${emailGerente}';"`);
+  const resetarMocks = () => {
+    usuariosMock = [
+      {
+        id: gerenteLogado.id,
+        nome: gerenteLogado.nome,
+        email: gerenteLogado.email,
+        cargo: 'gerente',
+        status: 'aprovado',
+        unidade_id: 1,
+      },
+      ...usuariosFixtures.lista().filter((u) => u.id !== gerenteLogado.id),
+    ];
+
+    cy.intercept('GET', '**/api/usuarios', (req) => {
+      req.reply([...usuariosMock]);
+    }).as('listarUsuarios');
+
+    cy.intercept('GET', '**/api/unidades', unidadesFixtures.lista()).as('listarUnidades');
+  };
+
+  const abrirPagina = () => {
+    resetarMocks();
+    visitarComSessao('/usuarios', gerenteLogado);
+    cy.wait('@listarUsuarios');
+    cy.wait('@listarUnidades');
+  };
+
+  it('exige cargo e unidade antes de aprovar um cadastro pendente', () => {
+    abrirPagina();
+
+    cy.window().then((win) => {
+      cy.stub(win, 'alert').as('windowAlert');
     });
 
-    cy.request({
-      method: 'POST',
-      url: 'http://localhost:8081/api/usuarios',
-      failOnStatusCode: false,
-      body: { nome: 'Estoquista Teste', email: emailEstoquista, senha: senhaPadrao, cpf: gerarCpfValido() }
-    }).then(() => {
-      cy.exec(`docker exec postgres-db psql -U admin -d estoque_raiz -c "UPDATE usuarios SET cargo = 'estoquista', status = 'aprovado' WHERE email = '${emailEstoquista}';"`);
+    cy.contains('tr', 'Ana Pendente').within(() => {
+      cy.get('[title="Aprovar"]').click();
     });
 
-    cy.request({
-      method: 'POST',
-      url: 'http://localhost:8081/api/usuarios',
-      failOnStatusCode: false,
-      body: { nome: 'Financeiro Teste', email: emailFinanceiro, senha: senhaPadrao, cpf: gerarCpfValido() }
-    }).then(() => {
-      cy.exec(`docker exec postgres-db psql -U admin -d estoque_raiz -c "UPDATE usuarios SET cargo = 'financeiro', status = 'aprovado' WHERE email = '${emailFinanceiro}';"`);
+    cy.get('@windowAlert').should('have.been.calledWithMatch', /selecione o CARGO/i);
+
+    cy.get('[data-testid="usuarios-select-cargo-20"]').select('estoquista');
+
+    cy.contains('tr', 'Ana Pendente').within(() => {
+      cy.get('[title="Aprovar"]').click();
+    });
+
+    cy.get('@windowAlert').should('have.been.calledWithMatch', /selecione a UNIDADE/i);
+  });
+
+  it('aprova um usuario pendente e vincula a unidade selecionada', () => {
+    cy.intercept('PATCH', '**/api/usuarios/20/aprovar', (req) => {
+      expect(req.body).to.deep.equal({
+        dados: {
+          cargo: 'estoquista',
+          unidade_id: 1,
+        },
+      });
+
+      usuariosMock = usuariosMock.map((usuario) =>
+        usuario.id === 20
+          ? { ...usuario, cargo: 'estoquista', status: 'aprovado', unidade_id: 1 }
+          : usuario,
+      );
+
+      req.reply({ statusCode: 200, body: {} });
+    }).as('aprovarUsuario');
+
+    abrirPagina();
+
+    cy.window().then((win) => {
+      cy.stub(win, 'alert').as('windowAlert');
+    });
+
+    cy.get('[data-testid="usuarios-select-cargo-20"]').select('estoquista');
+    cy.get('[data-testid="usuarios-select-unidade-20"]').select('Matriz SP');
+
+    cy.contains('tr', 'Ana Pendente').within(() => {
+      cy.get('[title="Aprovar"]').click();
+    });
+
+    cy.wait('@aprovarUsuario');
+    cy.wait('@listarUsuarios');
+
+    cy.get('@windowAlert').should('have.been.calledWithMatch', /aprovado e vinculado/i);
+    cy.contains('tr', 'Ana Pendente').within(() => {
+      cy.contains('Aprovado').should('be.visible');
+    });
+    cy.get('[data-testid="usuarios-select-cargo-20"]').should('have.value', 'estoquista');
+    cy.get('[data-testid="usuarios-select-unidade-20"]').should('have.value', '1');
+  });
+
+  it('salva alteracoes de cargo e unidade em usuario aprovado', () => {
+    cy.intercept('PUT', '**/api/usuarios/30', (req) => {
+      expect(req.body).to.deep.equal({
+        cargo: 'financeiro',
+        unidade_id: 2,
+      });
+
+      usuariosMock = usuariosMock.map((usuario) =>
+        usuario.id === 30
+          ? { ...usuario, cargo: 'financeiro', unidade_id: 2 }
+          : usuario,
+      );
+
+      req.reply({ statusCode: 200, body: {} });
+    }).as('salvarPermissoes');
+
+    abrirPagina();
+
+    cy.window().then((win) => {
+      cy.stub(win, 'alert').as('windowAlert');
+    });
+
+    cy.get('[data-testid="usuarios-select-cargo-30"]').select('financeiro');
+    cy.get('[data-testid="usuarios-select-unidade-30"]').select('Filial Norte');
+
+    cy.contains('tr', 'Carlos Estoquista').within(() => {
+      cy.get('[title="Salvar novo cargo"]').click();
+    });
+
+    cy.wait('@salvarPermissoes');
+    cy.wait('@listarUsuarios');
+
+    cy.get('@windowAlert').should('have.been.calledWithMatch', /atualizadas com sucesso/i);
+    cy.get('[data-testid="usuarios-select-cargo-30"]').should('have.value', 'financeiro');
+    cy.get('[data-testid="usuarios-select-unidade-30"]').should('have.value', '2');
+  });
+
+  it('impede que o gerente exclua a propria conta', () => {
+    abrirPagina();
+
+    cy.contains('tr', 'Gerente Atual').within(() => {
+      cy.get('input[type="checkbox"]').should('be.disabled');
+      cy.get('[title*="Apenas outro administrador"]').should('be.disabled');
     });
   });
 
-  // ==============================================================
-  // GRUPO 1: Ações permitidas apenas para o GERENTE
-  // ==============================================================
-  context('Acesso como Gerente', () => {
-    beforeEach(() => {
-      cy.clearLocalStorage();
-      cy.login(emailGerente, senhaPadrao);
-      cy.visit('/usuarios');
+  it('bloqueia acesso direto para estoquista', () => {
+    visitarComSessao('/usuarios', {
+      cargo: 'estoquista',
+      nome: 'Estoquista Teste',
+      email: 'estoquista@estoqueraiz.com',
+      unidade_id: 1,
     });
 
-    it('Deve listar os usuários cadastrados', () => {
-      cy.get('h1').should('contain', 'Usuários'); 
-      
-      cy.get('table').should('contain', emailGerente);
-    });
-  });
-
-  // ==============================================================
-  // GRUPO 2: Bloqueios de Segurança (Estoquista / Financeiro)
-  // ==============================================================
-  context('Validação de Segurança de Rotas (RBAC)', () => {
-    
-    it('Não deve permitir que um Estoquista acesse a gestão de usuários', () => {
-      cy.clearLocalStorage();
-      cy.login(emailEstoquista, senhaPadrao);
-      
-      cy.visit('/usuarios');
-      
-      cy.url().should('not.include', '/usuarios');
-    });
-
-    it('Não deve permitir que o Financeiro acesse a gestão de usuários', () => {
-      cy.clearLocalStorage();
-      cy.login(emailFinanceiro, senhaPadrao);
-      
-      cy.visit('/usuarios');
-      
-      cy.url().should('not.include', '/usuarios');
-    });
+    cy.url().should('include', '/dashboard');
   });
 });
