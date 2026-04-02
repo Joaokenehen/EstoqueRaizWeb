@@ -1,8 +1,6 @@
 import { visitarComSessao } from '../support/testHelpers';
 import { produtosFixtures, type Produto } from '../fixtures/produtos';
-import { categoriasFixtures } from '../fixtures/categorias';
 import { unidadesFixtures } from '../fixtures/unidades';
-import { usuariosTesteSession } from '../fixtures/testData';
 
 describe('Modulo de Produtos', () => {
   let produtosMock: Produto[];
@@ -76,7 +74,11 @@ describe('Modulo de Produtos', () => {
     cy.wait('@listarProdutos');
 
     cy.get('@windowAlert').should('have.been.calledWithMatch', /Produto criado/);
-    cy.contains('Serra Copo 60mm').should('be.visible');
+    cy.get('[data-testid="produtos-input-nome"]').should('not.exist');
+    cy.contains('tbody tr', 'Serra Copo 60mm')
+      .should('exist')
+      .and('contain.text', 'Serra Copo 60mm')
+      .and('contain.text', '12 un');
   });
   });
 
@@ -158,8 +160,10 @@ describe('Modulo de Produtos', () => {
     cy.get('tbody input[type="checkbox"]').eq(0).check({ force: true });
     cy.get('tbody input[type="checkbox"]').eq(1).check({ force: true });
 
-    cy.contains('2 produto(s) selecionado(s)').should('be.visible');
-    cy.contains('button', 'Excluir Selecionados').click();
+    cy.get('[data-testid="barra-acoes-lote"]').should('be.visible');
+    cy.get('[data-testid="barra-acoes-lote-quantidade"]').should('have.text', '2');
+    cy.get('[data-testid="barra-acoes-lote-texto"]').should('contain', 'produto(s) selecionado(s)');
+    cy.get('[data-testid="barra-acoes-lote-excluir"]').click();
 
     cy.wait('@deletarProduto');
     cy.wait('@deletarProduto');

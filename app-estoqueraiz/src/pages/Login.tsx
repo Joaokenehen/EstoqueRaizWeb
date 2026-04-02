@@ -91,6 +91,7 @@ return (
                 onClick={() => navigate('/esqueci-senha')}
                 className="text-xs font-semibold text-raiz-verde hover:text-green-700 transition-colors hover:underline"
                 tabIndex={-1}
+                data-testid="login-link-esqueci-senha"
               >
                 Esqueceu a senha?
               </button>
@@ -143,6 +144,7 @@ return (
             <span 
               onClick={() => navigate('/cadastro')}
               className="text-raiz-verde font-bold cursor-pointer hover:underline"
+              data-testid="login-link-cadastro"
             >
               Cadastre-se aqui
             </span>

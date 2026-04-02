@@ -143,8 +143,10 @@ describe('Modulo de Unidades', () => {
     cy.get('tbody input[type="checkbox"]').eq(0).check({ force: true });
     cy.get('tbody input[type="checkbox"]').eq(1).check({ force: true });
 
-    cy.contains('2 unidade(s) selecionado(s)').should('be.visible');
-    cy.contains('button', 'Excluir Selecionados').click();
+    cy.get('[data-testid="barra-acoes-lote"]').should('be.visible');
+    cy.get('[data-testid="barra-acoes-lote-quantidade"]').should('have.text', '2');
+    cy.get('[data-testid="barra-acoes-lote-texto"]').should('contain', 'unidade(s) selecionado(s)');
+    cy.get('[data-testid="barra-acoes-lote-excluir"]').click();
 
     cy.wait('@deletarUnidade');
     cy.wait('@deletarUnidade');

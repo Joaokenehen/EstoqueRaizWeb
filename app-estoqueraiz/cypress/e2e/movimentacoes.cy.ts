@@ -1,15 +1,21 @@
 import { visitarComSessao } from '../support/testHelpers';
 import { movimentacoesFixtures, type Movimentacao } from '../fixtures/movimentacoes';
 import { unidadesFixtures } from '../fixtures/unidades';
-import { produtosFixtures } from '../fixtures/produtos';
-import { usuariosTesteSession } from '../fixtures/testData';
+import { produtosFixtures, type Produto } from '../fixtures/produtos';
 
 describe('Modulo de Movimentacoes', () => {
   let movimentacoesMock: Movimentacao[];
+  let produtosMock: Produto[];
+
+  const criarProdutosMock = (): Produto[] =>
+    produtosFixtures.lista().map((produto) =>
+      produto.id === 1
+        ? { ...produto, statusProduto: 'aprovado' }
+        : produto
+    );
 
   const resetarMocks = () => {
-    const produtosMock = produtosFixtures.lista().filter(p => p.statusProduto === 'aprovado' || p.statusProduto === 'pendente');
-
+    produtosMock = criarProdutosMock();
     movimentacoesMock = movimentacoesFixtures.lista();
 
     cy.intercept('GET', '**/api/movimentacoes*', (req) => {
@@ -58,21 +64,21 @@ describe('Modulo de Movimentacoes', () => {
 
         expect(textos).to.contain('Furadeira Industrial');
         expect(textos).not.to.contain('Parafuso 10mm');
-        expect(textos).not.to.contain('Produto Pendente');
+        expect(textos).not.to.contain('Luva Nitrilica');
       });
   });
 
   it('restringe o estoquista a operar somente na propria unidade e mostra erro amigavel para estoque insuficiente', () => {
     cy.intercept('POST', '**/api/movimentacoes', (req) => {
-      expect(req.body).to.deep.equal({
+      expect(req.body).to.include({
         tipo: 'SAIDA',
         produto_id: 1,
         quantidade: 999,
-        documento: undefined,
-        observacao: undefined,
         unidade_origem_id: 1,
-        unidade_destino_id: undefined,
       });
+      expect(req.body).not.to.have.property('documento');
+      expect(req.body).not.to.have.property('observacao');
+      expect(req.body).not.to.have.property('unidade_destino_id');
 
       req.reply({
         statusCode: 400,
@@ -114,7 +120,7 @@ describe('Modulo de Movimentacoes', () => {
     cy.contains('button', 'Confirmar e Gravar Movimento').click();
 
     cy.wait('@registrarMovimentacao');
-    cy.get('@windowAlert').should('have.been.calledWithMatch', /estoque suficiente/i);
+    cy.get('@windowAlert').should('have.been.calledWithMatch', /estoque insuficiente/i);
   });
   });
 
@@ -123,15 +129,15 @@ describe('Modulo de Movimentacoes', () => {
 
   it('registra uma entrada com sucesso e atualiza o historico', () => {
     cy.intercept('POST', '**/api/movimentacoes', (req) => {
-      expect(req.body).to.deep.equal({
+      expect(req.body).to.include({
         tipo: 'ENTRADA',
         produto_id: 2,
         quantidade: 15,
         documento: 'NF-999',
         observacao: 'Reposicao emergencial',
-        unidade_origem_id: undefined,
         unidade_destino_id: 2,
       });
+      expect(req.body).not.to.have.property('unidade_origem_id');
 
       const novaMovimentacao = {
         id: 2,
@@ -175,15 +181,15 @@ describe('Modulo de Movimentacoes', () => {
 
   it('envia a transferencia invalida para validacao do backend e exibe erro amigavel', () => {
     cy.intercept('POST', '**/api/movimentacoes', (req) => {
-      expect(req.body).to.deep.equal({
+      expect(req.body).to.include({
         tipo: 'TRANSFERENCIA',
         produto_id: 1,
         quantidade: 5,
-        documento: undefined,
-        observacao: undefined,
         unidade_origem_id: 1,
         unidade_destino_id: 1,
       });
+      expect(req.body).not.to.have.property('documento');
+      expect(req.body).not.to.have.property('observacao');
 
       req.reply({
         statusCode: 400,
@@ -206,7 +212,7 @@ describe('Modulo de Movimentacoes', () => {
     cy.contains('button', 'Confirmar e Gravar Movimento').click();
 
     cy.wait('@registrarMovimentacao');
-    cy.get('@windowAlert').should('have.been.calledWithMatch', /estoque suficiente/i);
+    cy.get('@windowAlert').should('have.been.calledWithMatch', /origem.*diferente.*destino/i);
   });
   });
 });

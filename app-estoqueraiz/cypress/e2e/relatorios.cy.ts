@@ -133,6 +133,11 @@ describe('Pagina de Relatorios', () => {
   const interceptarRelatorio = (respostaVazia = false) => {
     cy.intercept('GET', '**/api/unidades', unidadesMock).as('listarUnidades');
     cy.intercept('GET', '**/api/relatorios/curva-abc*', (req) => {
+      const url = new URL(req.url);
+      const unidadeId = url.searchParams.get('unidade_id');
+
+      req.alias = unidadeId === '2' ? 'gerarRelatorioFiltrado' : 'gerarRelatorio';
+
       if (respostaVazia) {
         req.reply({
           statusCode: 200,
@@ -150,7 +155,7 @@ describe('Pagina de Relatorios', () => {
         return;
       }
 
-      if (req.query.unidade_id === '2') {
+      if (unidadeId === '2') {
         req.reply({ statusCode: 200, body: relatorioFilial });
         return;
       }
@@ -178,17 +183,17 @@ describe('Pagina de Relatorios', () => {
     cy.contains('Furadeira Industrial').should('be.visible');
     cy.contains('Luva Nitrilica').should('be.visible');
 
-    cy.get('input[type="date"]').eq(0).type('2026-01-01');
-    cy.get('input[type="date"]').eq(1).type('2026-03-31');
-    cy.contains('label', 'Unidade').parent().find('select').select('Filial Norte');
+    cy.get('input[type="date"]').eq(0).clear().type('2026-01-01').should('have.value', '2026-01-01');
+    cy.get('input[type="date"]').eq(1).clear().type('2026-03-31').should('have.value', '2026-03-31');
+    cy.contains('label', 'Unidade').parent().find('select').select('Filial Norte').should('have.value', '2');
     cy.contains('button', 'Gerar').click();
 
-    cy.wait('@gerarRelatorio').then((interception) => {
-      expect(interception.request.query).to.deep.equal({
-        data_inicio: '2026-01-01',
-        data_fim: '2026-03-31',
-        unidade_id: '2',
-      });
+    cy.wait('@gerarRelatorioFiltrado').then((interception) => {
+      const url = new URL(interception.request.url);
+
+      expect(url.searchParams.get('data_inicio')).to.equal('2026-01-01');
+      expect(url.searchParams.get('data_fim')).to.equal('2026-03-31');
+      expect(url.searchParams.get('unidade_id')).to.equal('2');
     });
 
     cy.contains('Luva Nitrilica').should('be.visible');

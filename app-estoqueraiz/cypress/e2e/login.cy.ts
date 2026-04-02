@@ -1,19 +1,18 @@
 /**
- * Testes da Página de Login - Comportamento da Interface (UI)
- * 
- * ✅ Estes testes MOCKAM o backend e focam APENAS no comportamento da UI.
- * 
- * Para testar integração real com backend + database, veja:
- * - cypress/e2e/auth/login.integration.cy.ts
+ * Testes da pagina de login - comportamento da interface.
+ *
+ * Estes testes mockam o backend e focam apenas na UI.
+ * Para integracao real com backend + banco, veja:
+ * cypress/e2e/auth/login.integration.cy.ts
  */
 
-describe('Página de Login - Testes de UI (Comportamento da Interface)', () => {
+describe('Pagina de Login - Testes de UI', () => {
   beforeEach(() => {
     cy.visit('/login');
   });
 
-  context('Validação de Entrada', () => {
-    it('mostra erro generico para credenciais inválidas', () => {
+  context('Validacao de Entrada', () => {
+    it('mostra erro generico para credenciais invalidas', () => {
       cy.intercept('POST', '**/api/auth/login', {
         statusCode: 401,
         body: { message: 'Email ou senha incorretos' },
@@ -27,7 +26,7 @@ describe('Página de Login - Testes de UI (Comportamento da Interface)', () => {
       cy.contains('Email ou senha incorretos').should('be.visible');
     });
 
-    it('mostra aviso amigável para conta pendente (não aprovada)', () => {
+    it('mostra aviso amigavel para conta pendente', () => {
       cy.intercept('POST', '**/api/auth/login', {
         statusCode: 403,
         body: { message: 'Conta nao aprovada' },
@@ -41,10 +40,10 @@ describe('Página de Login - Testes de UI (Comportamento da Interface)', () => {
       cy.contains('Sua conta').should('be.visible');
     });
 
-    it('mostra erro para servidor indisponível', () => {
+    it('mostra erro para servidor indisponivel', () => {
       cy.intercept('POST', '**/api/auth/login', {
         statusCode: 503,
-        body: { message: 'Serviço indisponível' },
+        body: { message: 'Servico indisponivel' },
       }).as('servicoIndisponivel');
 
       cy.get('[data-testid="email-input"]').type('usuario@teste.com');
@@ -60,7 +59,7 @@ describe('Página de Login - Testes de UI (Comportamento da Interface)', () => {
     it('faz login com sucesso e redireciona para dashboard', () => {
       const usuarioMock = {
         id: 1,
-        nome: 'Usuário Teste',
+        nome: 'Usuario Teste',
         email: 'teste@estoqueraiz.com',
         cargo: 'gerente',
         unidade_id: 1,
@@ -81,17 +80,16 @@ describe('Página de Login - Testes de UI (Comportamento da Interface)', () => {
       cy.wait('@loginSucesso');
       cy.url().should('include', '/dashboard');
 
-      // Verifica se o token foi salvo
       cy.window().then((window) => {
         const token = window.localStorage.getItem('@EstoqueRaiz:token');
         expect(token).to.equal('jwt-token-mock-12345');
       });
     });
 
-    it('salva dados do usuário no localStorage após login', () => {
+    it('salva dados do usuario no localStorage apos login', () => {
       const usuarioMock = {
         id: 42,
-        nome: 'João Silva',
+        nome: 'Joao Silva',
         email: 'joao@estoqueraiz.com',
         cargo: 'estoquista',
         unidade_id: 2,
@@ -110,36 +108,36 @@ describe('Página de Login - Testes de UI (Comportamento da Interface)', () => {
 
       cy.window().then((window) => {
         const usuarioSalvo = JSON.parse(window.localStorage.getItem('@EstoqueRaiz:usuario') || '{}');
-        expect(usuarioSalvo.nome).to.equal('João Silva');
+        expect(usuarioSalvo.nome).to.equal('Joao Silva');
         expect(usuarioSalvo.cargo).to.equal('estoquista');
       });
     });
   });
 
-  context('Navegação e Links', () => {
-    it('abre a tela de recuperação de senha pelo link do formulário', () => {
-      cy.contains('a', /esqueci|recuper/i).click();
+  context('Navegacao e Links', () => {
+    it('abre a tela de recuperacao de senha pelo link do formulario', () => {
+      cy.get('[data-testid="login-link-esqueci-senha"]').click();
 
       cy.url().should('include', '/esqueci-senha');
       cy.get('[data-testid="esqueci-input-email"]').should('be.visible');
     });
 
     it('permite voltar para login a partir de esqueci-senha', () => {
-      cy.contains('a', /esqueci|recuper/i).click();
+      cy.get('[data-testid="login-link-esqueci-senha"]').click();
       cy.url().should('include', '/esqueci-senha');
 
-      cy.contains('a', /voltar|login/i).click();
+      cy.get('[data-testid="esqueci-btn-voltar-login"]').click();
       cy.url().should('include', '/login');
     });
 
-    it('abre página de cadastro', () => {
-      cy.contains('a', /cadastr|novo|crie/i).click();
+    it('abre pagina de cadastro', () => {
+      cy.get('[data-testid="login-link-cadastro"]').click();
 
       cy.url().should('include', '/cadastro');
     });
   });
 
-  context('Validação de Campos', () => {
+  context('Validacao de Campos', () => {
     it('limpa campo de email sem quebrar', () => {
       cy.get('[data-testid="email-input"]').type('teste@email.com');
       cy.get('[data-testid="email-input"]').clear();
@@ -152,7 +150,7 @@ describe('Página de Login - Testes de UI (Comportamento da Interface)', () => {
       cy.get('[data-testid="senha-input"]').should('have.value', '');
     });
 
-    it('mantém focus correto entre campos', () => {
+    it('mantem focus correto entre campos', () => {
       cy.get('[data-testid="email-input"]').focus().should('have.focus');
       cy.get('[data-testid="senha-input"]').focus().should('have.focus');
     });

@@ -3,6 +3,16 @@ import { usuariosFixtures, type Usuario } from '../fixtures/usuarios';
 import { unidadesFixtures } from '../fixtures/unidades';
 
 describe('Modulo de Usuarios', () => {
+  const usuarioPendente = {
+    id: 4,
+    nome: 'Ana Oliveira',
+  };
+
+  const usuarioAprovado = {
+    id: 2,
+    nome: 'Maria Santos',
+  };
+
   const gerenteLogado = criarUsuarioSessao({
     id: 10,
     nome: 'Gerente Atual',
@@ -23,7 +33,7 @@ describe('Modulo de Usuarios', () => {
         status: 'aprovado',
         unidade_id: 1,
       },
-      ...usuariosFixtures.lista().filter((u) => u.id !== gerenteLogado.id),
+      ...usuariosFixtures.lista().filter((usuario) => usuario.id !== gerenteLogado.id),
     ];
 
     cy.intercept('GET', '**/api/usuarios', (req) => {
@@ -40,136 +50,128 @@ describe('Modulo de Usuarios', () => {
     cy.wait('@listarUnidades');
   };
 
-  // ----------------------------------------------------------------
-  context('Aprovação de Usuários Pendentes', () => {
+  const linhaDoUsuario = (nome: string) => cy.contains('tbody tr', nome);
 
-  it('exige cargo e unidade antes de aprovar um cadastro pendente', () => {
-    abrirPagina();
+  context('Aprovacao de Usuarios Pendentes', () => {
+    it('exige cargo e unidade antes de aprovar um cadastro pendente', () => {
+      abrirPagina();
 
-    cy.window().then((win) => {
-      cy.stub(win, 'alert').as('windowAlert');
-    });
-
-    cy.contains('tr', 'Ana Pendente').within(() => {
-      cy.get('[title="Aprovar"]').click();
-    });
-
-    cy.get('@windowAlert').should('have.been.calledWithMatch', /selecione o CARGO/i);
-
-    cy.get('[data-testid="usuarios-select-cargo-20"]').select('estoquista');
-
-    cy.contains('tr', 'Ana Pendente').within(() => {
-      cy.get('[title="Aprovar"]').click();
-    });
-
-    cy.get('@windowAlert').should('have.been.calledWithMatch', /selecione a UNIDADE/i);
-  });
-
-  it('aprova um usuario pendente e vincula a unidade selecionada', () => {
-    cy.intercept('PATCH', '**/api/usuarios/20/aprovar', (req) => {
-      expect(req.body).to.deep.equal({
-        dados: {
-          cargo: 'estoquista',
-          unidade_id: 1,
-        },
+      cy.window().then((win) => {
+        cy.stub(win, 'alert').as('windowAlert');
       });
 
-      usuariosMock = usuariosMock.map((usuario) =>
-        usuario.id === 20
-          ? { ...usuario, cargo: 'estoquista', status: 'aprovado', unidade_id: 1 }
-          : usuario,
-      );
-
-      req.reply({ statusCode: 200, body: {} });
-    }).as('aprovarUsuario');
-
-    abrirPagina();
-
-    cy.window().then((win) => {
-      cy.stub(win, 'alert').as('windowAlert');
-    });
-
-    cy.get('[data-testid="usuarios-select-cargo-20"]').select('estoquista');
-    cy.get('[data-testid="usuarios-select-unidade-20"]').select('Matriz SP');
-
-    cy.contains('tr', 'Ana Pendente').within(() => {
-      cy.get('[title="Aprovar"]').click();
-    });
-
-    cy.wait('@aprovarUsuario');
-    cy.wait('@listarUsuarios');
-
-    cy.get('@windowAlert').should('have.been.calledWithMatch', /aprovado e vinculado/i);
-    cy.contains('tr', 'Ana Pendente').within(() => {
-      cy.contains('Aprovado').should('be.visible');
-    });
-    cy.get('[data-testid="usuarios-select-cargo-20"]').should('have.value', 'estoquista');
-    cy.get('[data-testid="usuarios-select-unidade-20"]').should('have.value', '1');
-  });
-  });
-
-  // ----------------------------------------------------------------
-  context('Gerenciamento de Permissões', () => {
-
-  it('salva alteracoes de cargo e unidade em usuario aprovado', () => {
-    cy.intercept('PUT', '**/api/usuarios/30', (req) => {
-      expect(req.body).to.deep.equal({
-        cargo: 'financeiro',
-        unidade_id: 2,
+      linhaDoUsuario(usuarioPendente.nome).within(() => {
+        cy.get('[title="Aprovar"]').click();
       });
 
-      usuariosMock = usuariosMock.map((usuario) =>
-        usuario.id === 30
-          ? { ...usuario, cargo: 'financeiro', unidade_id: 2 }
-          : usuario,
-      );
+      cy.get('@windowAlert').should('have.been.calledWithMatch', /selecione o CARGO/i);
 
-      req.reply({ statusCode: 200, body: {} });
-    }).as('salvarPermissoes');
+      cy.get(`[data-testid="usuarios-select-cargo-${usuarioPendente.id}"]`).select('estoquista');
 
-    abrirPagina();
+      linhaDoUsuario(usuarioPendente.nome).within(() => {
+        cy.get('[title="Aprovar"]').click();
+      });
 
-    cy.window().then((win) => {
-      cy.stub(win, 'alert').as('windowAlert');
+      cy.get('@windowAlert').should('have.been.calledWithMatch', /selecione a UNIDADE/i);
     });
 
-    cy.get('[data-testid="usuarios-select-cargo-30"]').select('financeiro');
-    cy.get('[data-testid="usuarios-select-unidade-30"]').select('Filial Norte');
+    it('aprova um usuario pendente e vincula a unidade selecionada', () => {
+      cy.intercept('PATCH', `**/api/usuarios/${usuarioPendente.id}/aprovar`, (req) => {
+        expect(req.body).to.deep.equal({
+          dados: {
+            cargo: 'estoquista',
+            unidade_id: 1,
+          },
+        });
 
-    cy.contains('tr', 'Carlos Estoquista').within(() => {
-      cy.get('[title="Salvar novo cargo"]').click();
+        usuariosMock = usuariosMock.map((usuario) =>
+          usuario.id === usuarioPendente.id
+            ? { ...usuario, cargo: 'estoquista', status: 'aprovado', unidade_id: 1 }
+            : usuario
+        );
+
+        req.reply({ statusCode: 200, body: {} });
+      }).as('aprovarUsuario');
+
+      abrirPagina();
+
+      cy.window().then((win) => {
+        cy.stub(win, 'alert').as('windowAlert');
+      });
+
+      cy.get(`[data-testid="usuarios-select-cargo-${usuarioPendente.id}"]`).select('estoquista');
+      cy.get(`[data-testid="usuarios-select-unidade-${usuarioPendente.id}"]`).select('Matriz SP');
+
+      linhaDoUsuario(usuarioPendente.nome).within(() => {
+        cy.get('[title="Aprovar"]').click();
+      });
+
+      cy.wait('@aprovarUsuario');
+
+      cy.get('@windowAlert').should('have.been.calledWithMatch', /aprovado e vinculado/i);
+      linhaDoUsuario(usuarioPendente.nome).should('contain.text', 'Aprovado');
+      cy.get(`[data-testid="usuarios-select-cargo-${usuarioPendente.id}"]`).should('have.value', 'estoquista');
+      cy.get(`[data-testid="usuarios-select-unidade-${usuarioPendente.id}"]`).should('have.value', '1');
+    });
+  });
+
+  context('Gerenciamento de Permissoes', () => {
+    it('salva alteracoes de cargo e unidade em usuario aprovado', () => {
+      cy.intercept('PUT', `**/api/usuarios/${usuarioAprovado.id}`, (req) => {
+        expect(req.body).to.deep.equal({
+          cargo: 'financeiro',
+          unidade_id: 2,
+        });
+
+        usuariosMock = usuariosMock.map((usuario) =>
+          usuario.id === usuarioAprovado.id
+            ? { ...usuario, cargo: 'financeiro', unidade_id: 2 }
+            : usuario
+        );
+
+        req.reply({ statusCode: 200, body: {} });
+      }).as('salvarPermissoes');
+
+      abrirPagina();
+
+      cy.window().then((win) => {
+        cy.stub(win, 'alert').as('windowAlert');
+      });
+
+      cy.get(`[data-testid="usuarios-select-cargo-${usuarioAprovado.id}"]`).select('financeiro');
+      cy.get(`[data-testid="usuarios-select-unidade-${usuarioAprovado.id}"]`).select('Filial Norte');
+
+      linhaDoUsuario(usuarioAprovado.nome).within(() => {
+        cy.get('[title="Salvar novo cargo"]').click();
+      });
+
+      cy.wait('@salvarPermissoes');
+
+      cy.get('@windowAlert').should('have.been.calledWithMatch', /atualizadas com sucesso/i);
+      cy.get(`[data-testid="usuarios-select-cargo-${usuarioAprovado.id}"]`).should('have.value', 'financeiro');
+      cy.get(`[data-testid="usuarios-select-unidade-${usuarioAprovado.id}"]`).should('have.value', '2');
     });
 
-    cy.wait('@salvarPermissoes');
-    cy.wait('@listarUsuarios');
+    it('impede que o gerente exclua a propria conta', () => {
+      abrirPagina();
 
-    cy.get('@windowAlert').should('have.been.calledWithMatch', /atualizadas com sucesso/i);
-    cy.get('[data-testid="usuarios-select-cargo-30"]').should('have.value', 'financeiro');
-    cy.get('[data-testid="usuarios-select-unidade-30"]').should('have.value', '2');
-  });
-
-  it('impede que o gerente exclua a propria conta', () => {
-    abrirPagina();
-
-    cy.contains('tr', 'Gerente Atual').within(() => {
-      cy.get('input[type="checkbox"]').should('be.disabled');
-      cy.get('[title*="Apenas outro administrador"]').should('be.disabled');
+      linhaDoUsuario('Gerente Atual').within(() => {
+        cy.get('input[type="checkbox"]').should('be.disabled');
+        cy.get('[title*="Apenas outro administrador"]').should('be.disabled');
+      });
     });
   });
-  });
 
-  // ----------------------------------------------------------------
   context('Controle de Acesso', () => {
+    it('bloqueia acesso direto para estoquista', () => {
+      visitarComSessao('/usuarios', {
+        cargo: 'estoquista',
+        nome: 'Estoquista Teste',
+        email: 'estoquista@estoqueraiz.com',
+        unidade_id: 1,
+      });
 
-  it('bloqueia acesso direto para estoquista', () => {
-    visitarComSessao('/usuarios', {
-      cargo: 'estoquista',
-      nome: 'Estoquista Teste',
-      email: 'estoquista@estoqueraiz.com',
-      unidade_id: 1,
+      cy.url().should('include', '/dashboard');
     });
-
-    cy.url().should('include', '/dashboard');
-  });
   });
 });

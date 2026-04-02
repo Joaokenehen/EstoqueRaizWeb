@@ -63,6 +63,7 @@ export const EsqueciSenha = () => {
           onClick={() => navigate('/login')}
           className="absolute top-4 left-4 text-gray-400 hover:text-raiz-verde transition-colors"
           title="Voltar para o Login"
+          data-testid="esqueci-btn-voltar-login"
         >
           <ArrowLeft size={24} />
         </button>
