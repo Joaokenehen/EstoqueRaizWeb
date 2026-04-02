@@ -57,7 +57,7 @@ export const EsqueciSenha = () => {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-raiz-bege font-sans p-4">
-      <div className="w-full max-w-400px p-8 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom relative">
+      <div className="w-full max-w-[400px] p-8 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom relative">
         
         <button 
           onClick={() => navigate('/login')}

@@ -3,7 +3,10 @@ describe('Pagina de Recuperacao de Senha', () => {
     cy.visit('/esqueci-senha');
   });
 
-  it('solicita o codigo e avanca para a segunda etapa', () => {
+  // ----------------------------------------------------------------
+  context('Solicitação de Código de Recuperação', () => {
+
+    it('solicita o codigo e avanca para a segunda etapa', () => {
     cy.intercept('POST', '**/api/usuarios/solicitar-recuperacao-senha', {
       statusCode: 200,
       body: {},
@@ -33,6 +36,10 @@ describe('Pagina de Recuperacao de Senha', () => {
     cy.wait('@solicitarCodigo');
     cy.contains('Erro ao solicitar').should('be.visible');
   });
+  });
+
+  // ----------------------------------------------------------------
+  context('Validação de Campos', () => {
 
   it('mantem o codigo somente numerico e com no maximo 6 digitos', () => {
     cy.intercept('POST', '**/api/usuarios/solicitar-recuperacao-senha', {
@@ -47,6 +54,10 @@ describe('Pagina de Recuperacao de Senha', () => {
     cy.get('[data-testid="esqueci-input-codigo"]').type('12ab345678');
     cy.get('[data-testid="esqueci-input-codigo"]').should('have.value', '123456');
   });
+  });
+
+  // ----------------------------------------------------------------
+  context('Redefinição de Senha', () => {
 
   it('redefine a senha com sucesso e redireciona para o login apos 3 segundos', () => {
     cy.clock();
@@ -102,5 +113,6 @@ describe('Pagina de Recuperacao de Senha', () => {
 
     cy.wait('@redefinirSenha');
     cy.contains('Codigo invalido ou expirado').should('be.visible');
+  });
   });
 });

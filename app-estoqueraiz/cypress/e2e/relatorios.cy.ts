@@ -159,6 +159,9 @@ describe('Pagina de Relatorios', () => {
     }).as('gerarRelatorio');
   };
 
+  // ----------------------------------------------------------------
+  context('Geração e Filtros de Relatório', () => {
+
   it('gera o relatorio ao carregar e permite refiltrar por periodo e unidade', () => {
     interceptarRelatorio();
     visitarComSessao('/relatorios', {
@@ -206,6 +209,10 @@ describe('Pagina de Relatorios', () => {
 
     cy.contains('Nenhuma venda registrada para os filtros aplicados.').should('be.visible');
   });
+  });
+
+  // ----------------------------------------------------------------
+  context('Controle de Acesso', () => {
 
   it('bloqueia acesso direto para estoquista', () => {
     visitarComSessao('/relatorios', {
@@ -216,5 +223,6 @@ describe('Pagina de Relatorios', () => {
     });
 
     cy.url().should('include', '/dashboard');
+  });
   });
 });

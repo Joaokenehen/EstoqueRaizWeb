@@ -39,6 +39,9 @@ describe('Modulo de Movimentacoes', () => {
   const selectPorLabel = (label: string) =>
     cy.contains('label', label).parent().find('select');
 
+  // ----------------------------------------------------------------
+  context('Validação de Formulário e Restrições', () => {
+
   it('bloqueia o seletor de produto ate a escolha da unidade e mostra apenas itens aprovados da unidade', () => {
     abrirPagina('gerente', 1);
 
@@ -113,6 +116,10 @@ describe('Modulo de Movimentacoes', () => {
     cy.wait('@registrarMovimentacao');
     cy.get('@windowAlert').should('have.been.calledWithMatch', /estoque suficiente/i);
   });
+  });
+
+  // ----------------------------------------------------------------
+  context('Registrar Movimentos', () => {
 
   it('registra uma entrada com sucesso e atualiza o historico', () => {
     cy.intercept('POST', '**/api/movimentacoes', (req) => {
@@ -200,5 +207,6 @@ describe('Modulo de Movimentacoes', () => {
 
     cy.wait('@registrarMovimentacao');
     cy.get('@windowAlert').should('have.been.calledWithMatch', /estoque suficiente/i);
+  });
   });
 });

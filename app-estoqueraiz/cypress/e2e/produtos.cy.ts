@@ -35,6 +35,9 @@ describe('Modulo de Produtos', () => {
     cy.wait('@listarUnidades');
   };
 
+  // ----------------------------------------------------------------
+  context('Criação de Produtos', () => {
+
   it('permite ao gerente criar um novo produto', () => {
     cy.intercept('POST', '**/api/produtos', (req) => {
       const novoProduto = {
@@ -75,6 +78,10 @@ describe('Modulo de Produtos', () => {
     cy.get('@windowAlert').should('have.been.calledWithMatch', /Produto criado/);
     cy.contains('Serra Copo 60mm').should('be.visible');
   });
+  });
+
+  // ----------------------------------------------------------------
+  context('Aprovação e Precificação', () => {
 
   it('permite ao financeiro aprovar um item pendente e mantem o filtro inicial em pendentes', () => {
     cy.intercept('PATCH', '**/api/produtos/1/aprovar', (req) => {
@@ -127,6 +134,10 @@ describe('Modulo de Produtos', () => {
     cy.get('@windowAlert').should('have.been.calledWith', 'Produto Aprovado!');
     cy.contains('Parafuso 10mm').should('not.exist');
   });
+  });
+
+  // ----------------------------------------------------------------
+  context('Exclusão em Lote e Permissões', () => {
 
   it('permite exclusao em lote para gerente', () => {
     cy.intercept('DELETE', '**/api/produtos/*', (req) => {
@@ -166,5 +177,6 @@ describe('Modulo de Produtos', () => {
     cy.contains('button', 'Novo Produto').should('be.visible');
     cy.get('[title="Aprovar e Precificar"]').should('not.exist');
     cy.get('[title="Rejeitar Produto"]').should('not.exist');
+  });
   });
 });

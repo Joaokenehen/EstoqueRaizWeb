@@ -40,6 +40,9 @@ describe('Modulo de Usuarios', () => {
     cy.wait('@listarUnidades');
   };
 
+  // ----------------------------------------------------------------
+  context('Aprovação de Usuários Pendentes', () => {
+
   it('exige cargo e unidade antes de aprovar um cadastro pendente', () => {
     abrirPagina();
 
@@ -103,6 +106,10 @@ describe('Modulo de Usuarios', () => {
     cy.get('[data-testid="usuarios-select-cargo-20"]').should('have.value', 'estoquista');
     cy.get('[data-testid="usuarios-select-unidade-20"]').should('have.value', '1');
   });
+  });
+
+  // ----------------------------------------------------------------
+  context('Gerenciamento de Permissões', () => {
 
   it('salva alteracoes de cargo e unidade em usuario aprovado', () => {
     cy.intercept('PUT', '**/api/usuarios/30', (req) => {
@@ -149,6 +156,10 @@ describe('Modulo de Usuarios', () => {
       cy.get('[title*="Apenas outro administrador"]').should('be.disabled');
     });
   });
+  });
+
+  // ----------------------------------------------------------------
+  context('Controle de Acesso', () => {
 
   it('bloqueia acesso direto para estoquista', () => {
     visitarComSessao('/usuarios', {
@@ -159,5 +170,6 @@ describe('Modulo de Usuarios', () => {
     });
 
     cy.url().should('include', '/dashboard');
+  });
   });
 });

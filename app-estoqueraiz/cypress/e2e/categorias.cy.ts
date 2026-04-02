@@ -24,6 +24,9 @@ describe('Modulo de Categorias', () => {
     cy.wait('@listarCategorias');
   };
 
+  // ----------------------------------------------------------------
+  context('Criação de Categorias', () => {
+
   it('permite ao gerente criar uma nova categoria', () => {
     cy.intercept('POST', '**/api/categorias', (req) => {
       expect(req.body).to.deep.equal({
@@ -58,6 +61,10 @@ describe('Modulo de Categorias', () => {
     cy.get('@windowAlert').should('have.been.calledWith', 'Categoria criada com sucesso!');
     cy.contains('td', 'Automacao').should('be.visible');
   });
+  });
+
+  // ----------------------------------------------------------------
+  context('Edição, Filtro e Restrições', () => {
 
   it('permite filtrar e editar uma categoria existente', () => {
     cy.intercept('PUT', '**/api/categorias/2', (req) => {
@@ -176,5 +183,6 @@ describe('Modulo de Categorias', () => {
     cy.get('[data-testid="barra-filtro-input-busca"]').type('Limpeza');
     cy.contains('Material de Limpeza').should('be.visible');
     cy.contains('Ferragens').should('not.exist');
+  });
   });
 });

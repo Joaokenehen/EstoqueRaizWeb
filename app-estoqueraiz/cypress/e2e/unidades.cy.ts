@@ -27,6 +27,9 @@ describe('Modulo de Unidades', () => {
     }
   };
 
+  // ----------------------------------------------------------------
+  context('Criação de Unidades', () => {
+
   it('permite ao gerente criar unidade com preenchimento automatico via CEP', () => {
     const cepTeste = '01001000';
     const enderecoCEP = unidadesFixtures.enderecoParaCEP['01001000'];
@@ -91,6 +94,10 @@ describe('Modulo de Unidades', () => {
     cy.get('@windowAlert').should('have.been.calledWith', 'Unidade criada com sucesso!');
     cy.contains('Filial Centro').should('be.visible');
   });
+  });
+
+  // ----------------------------------------------------------------
+  context('Exclusão e Restrições', () => {
 
   it('exibe mensagem amigavel ao bloquear exclusao de unidade com produtos', () => {
     cy.intercept('DELETE', '**/api/unidades/1', {
@@ -153,5 +160,6 @@ describe('Modulo de Unidades', () => {
     abrirPagina('estoquista');
 
     cy.url().should('include', '/dashboard');
+  });
   });
 });
