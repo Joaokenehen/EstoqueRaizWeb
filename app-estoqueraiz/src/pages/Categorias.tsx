@@ -8,6 +8,7 @@ import { BarraAcoesLote } from '../components/BarraAcoesLote';
 import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import Layout from '../components/Layout';
 import { Modal } from '../components/Modal';
+import { FormularioBase } from '../components/FormularioBase';
 
 export const Categorias = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -81,7 +82,6 @@ export const Categorias = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     setProcessandoAcao(true);
     try {
       if (categoriaEditando) {
@@ -288,7 +288,11 @@ export const Categorias = () => {
         titulo={categoriaEditando ? 'Editar Categoria' : 'Nova Categoria'}
         maxWidth="max-w-md"
       >
-        <form onSubmit={handleSubmit} className="p-6">
+        <FormularioBase 
+          onSubmit={handleSubmit} 
+          processando={processandoAcao}
+          textoBotaoSubmit="Guardar Categoria"
+        >
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Categoria *</label>
@@ -300,17 +304,7 @@ export const Categorias = () => {
                   <textarea rows={3} maxLength={500} data-testid="categorias-textarea-descricao" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none" value={formData.descricao} onChange={e => setFormData({...formData, descricao: e.target.value})} placeholder="Ex: Furadeiras, serras e equipamentos elétricos" />
                 </div>
               </div>
-
-              <div className="mt-8 flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-                <button type="button" onClick={fecharModal} className="px-5 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium">
-                  Cancelar
-                </button>
-                <button type="submit" disabled={processandoAcao} className="px-5 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 flex items-center gap-2">
-                  {processandoAcao && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-                  {processandoAcao ? 'A guardar...' : 'Guardar Categoria'}
-                </button>
-              </div>
-            </form>
+        </FormularioBase>
       </Modal>
     </Layout>
   );

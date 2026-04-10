@@ -11,6 +11,7 @@ import { BarraAcoesLote } from '../components/BarraAcoesLote';
 import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import Layout from '../components/Layout';
 import { Modal } from '../components/Modal';
+import { FormularioBase } from '../components/FormularioBase';
 
 export const Produtos = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -32,7 +33,7 @@ export const Produtos = () => {
   const [modalAprovacaoAberto, setModalAprovacaoAberto] = useState(false);
   const [produtoAtivo, setProdutoAtivo] = useState<Produto | null>(null);
   const [processandoAcao, setProcessandoAcao] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [precosAprovacao, setPrecosAprovacao] = useState({ preco_custo: '', preco_venda: '' });
   const [imagemPreview, setImagemPreview] = useState<string | null>(null);
   const [produtoZoom, setProdutoZoom] = useState<Produto | null>(null);
@@ -83,10 +84,9 @@ export const Produtos = () => {
   const produtosPaginados = produtosFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
 
   const handleSubmitProduto = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formRef.current) return;
+    // O e.preventDefault() já é feito pelo FormularioBase
     setProcessandoAcao(true);
-    const formData = new FormData(formRef.current);
+    const formData = new FormData(e.target as HTMLFormElement);
     try {
       if (produtoAtivo) {
         await produtoService.atualizar(produtoAtivo.id, formData);
@@ -105,7 +105,6 @@ export const Produtos = () => {
   };
 
   const handleAprovar = async (e: React.FormEvent) => {
-    e.preventDefault();
     if (!produtoAtivo) return;
     setProcessandoAcao(true);
     try {
@@ -216,9 +215,8 @@ export const Produtos = () => {
       // É um novo produto, limpa a imagem e os dados
       setProdutoAtivo(null);
       setImagemPreview(null);
-      if (formRef.current) {
-        const inputFile = formRef.current.querySelector('input[type="file"]') as HTMLInputElement;
-        if (inputFile) inputFile.value = '';
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
     }
     setModalAberto(true);
@@ -419,36 +417,44 @@ export const Produtos = () => {
         isOpen={modalAberto} 
         onClose={() => setModalAberto(false)} 
         titulo={produtoAtivo ? 'Editar Produto' : 'Novo Produto'}
-        maxWidth="max-w-4xl"
+        maxWidth="max-w-2xl"
       >
-        <form ref={formRef} onSubmit={handleSubmitProduto} className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormularioBase 
+          onSubmit={handleSubmitProduto} 
+          processando={processandoAcao}
+        testId="form-produto"
+          textoBotaoSubmit="Salvar Alterações"
+        >
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Produto *</label>
-                <input required name="nome" type="text" defaultValue={produtoAtivo?.nome} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input required name="nome" type="text" data-testid="produtos-input-nome" defaultValue={produtoAtivo?.nome} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Código de Barras</label>
-                  <input name="codigo_barras" type="text" defaultValue={produtoAtivo?.codigo_barras} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <input name="codigo_barras" type="text" data-testid="produtos-input-codigo" defaultValue={produtoAtivo?.codigo_barras} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Estoque</label>
+                  <input name="quantidade_estoque" type="number" data-testid="produtos-input-estoque" defaultValue={produtoAtivo?.quantidade_estoque} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Qtd Mínima</label>
-                  <input name="quantidade_minima" type="number" defaultValue={produtoAtivo?.quantidade_minima} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <input name="quantidade_minima" type="number" data-testid="produtos-input-estoque-minimo" defaultValue={produtoAtivo?.quantidade_minima} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
-                  <select required name="categoria_id" defaultValue={produtoAtivo?.categoria_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                  <select required name="categoria_id" data-testid="produtos-select-categoria" defaultValue={produtoAtivo?.categoria_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="">Selecione...</option>
                     {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Unidade Base *</label>
-                  <select required name="unidade_id" defaultValue={produtoAtivo?.unidade_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                  <select required name="unidade_id" data-testid="produtos-select-unidade" defaultValue={produtoAtivo?.unidade_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="">Selecione...</option>
                     {unidades.map(u => <option key={u.id} value={u.id}>{u.nome}</option>)}
                   </select>
@@ -456,11 +462,11 @@ export const Produtos = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-                <textarea name="descricao" defaultValue={produtoAtivo?.descricao} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" rows={3} />
+                <textarea name="descricao" data-testid="produtos-input-descricao" defaultValue={produtoAtivo?.descricao} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" rows={3} />
               </div>
             </div>
             
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mt-2">
               <label className="block text-sm font-medium text-gray-700 mb-3">Foto do Produto</label>
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 {(imagemPreview || produtoAtivo?.imagem_url) ? (
@@ -483,6 +489,7 @@ export const Produtos = () => {
                     name="imagem" 
                     type="file" 
                     accept="image/*" 
+                    ref={fileInputRef}
                     data-testid="produtos-input-imagem"
                     onChange={handleAlterarImagem} 
                     className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer" 
@@ -490,14 +497,7 @@ export const Produtos = () => {
                 </div>
               </div>
             </div>
-          </div>
-          <div className="mt-6 flex justify-end gap-3 pt-4 border-t">
-            <button type="button" onClick={() => setModalAberto(false)} className="px-5 py-2 border rounded-lg font-medium">Cancelar</button>
-            <button type="submit" disabled={processandoAcao} className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium shadow-md hover:bg-indigo-700 disabled:opacity-50">
-              {processandoAcao ? 'Gravando...' : 'Salvar Alterações'}
-            </button>
-          </div>
-        </form>
+        </FormularioBase>
       </Modal>
 
       {/* MODAL 2: APROVAÇÃO */}
@@ -508,7 +508,11 @@ export const Produtos = () => {
         maxWidth="max-w-md"
         headerClasses="bg-green-50 text-green-800 border-green-200"
       >
-        <form onSubmit={handleAprovar} className="p-6 space-y-4">
+        <FormularioBase 
+          onSubmit={handleAprovar} 
+          processando={processandoAcao}
+          textoBotaoSubmit="Finalizar e Aprovar"
+        >
               <p className="text-sm text-gray-600">Defina a precificação para ativar o item no catálogo comercial.</p>
               <div>
                 <label className="block text-sm font-medium mb-1">Custo Unitário (R$)</label>
@@ -518,27 +522,24 @@ export const Produtos = () => {
                 <label className="block text-sm font-medium mb-1">Venda Unitária (R$)</label>
                 <input required type="number" step="0.01" value={precosAprovacao.preco_venda} onChange={e => setPrecosAprovacao({...precosAprovacao, preco_venda: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-500" placeholder="0.00" />
               </div>
-              <button type="submit" disabled={processandoAcao} className="w-full py-3 bg-green-600 text-white rounded-lg font-bold shadow-lg hover:bg-green-700 transition-all disabled:opacity-50">
-                {processandoAcao ? 'Aprovando...' : 'Finalizar e Aprovar'}
-              </button>
-            </form>
+        </FormularioBase>
       </Modal>
 
       {produtoZoom && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm" 
           onClick={() => setProdutoZoom(null)}
+          data-testid="produtos-modal-zoom"
         >
-          {/* Botão de Fechar Solto na Tela */}
           <button 
             type="button" 
             onClick={() => setProdutoZoom(null)} 
             className="absolute top-6 right-6 text-white bg-white/20 p-2 rounded-full hover:bg-white/40 transition-colors z-10"
+            data-testid="produtos-modal-zoom-close-btn"
           >
             <X size={28} />
           </button>
           
-          {/* Container para imagem com fallback */}
           <div className="relative max-w-full max-h-[90vh] flex items-center justify-center">
             <img 
               key={produtoZoom.id}
@@ -553,7 +554,7 @@ export const Produtos = () => {
               }}
               className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl" 
             />
-            {/* Fallback placeholder */}
+            
             <div className="hidden flex-col items-center justify-center bg-gray-100 rounded-xl text-gray-500 p-8 max-w-md">
               <ImageIcon size={64} className="mb-4" />
               <p className="text-lg font-medium">Imagem não disponível</p>

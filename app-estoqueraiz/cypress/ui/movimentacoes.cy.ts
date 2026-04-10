@@ -3,12 +3,6 @@ import { movimentacoesFixtures, type Movimentacao } from '../fixtures/movimentac
 import { unidadesFixtures } from '../fixtures/unidades';
 import { produtosFixtures, type Produto } from '../fixtures/produtos';
 
-/**
- * Classificacao desta spec:
- * - UI/integracao com backend mockado via intercept.
- * - Autenticacao simulada com localStorage; nao e E2E real.
- */
-
 describe('Modulo de Movimentacoes - UI com API mockada e sessao simulada', () => {
   let movimentacoesMock: Movimentacao[];
   let produtosMock: Produto[];
@@ -51,7 +45,7 @@ describe('Modulo de Movimentacoes - UI com API mockada e sessao simulada', () =>
   const selectPorLabel = (label: string) =>
     cy.contains('label', label).parent().find('select');
 
-  context('[Mockado: cy.intercept] Validação de Formulário e Restrições', () => {
+  context('Validação de Formulário e Restrições', () => {
 
     it('bloqueia o seletor de produto ate a escolha da unidade e mostra apenas itens aprovados da unidade', () => {
       abrirPagina('gerente', 1);
@@ -129,7 +123,7 @@ describe('Modulo de Movimentacoes - UI com API mockada e sessao simulada', () =>
     });
   });
 
-  context('[Mockado: cy.intercept] Registrar Movimentos', () => {
+  context('Registrar Movimentos', () => {
 
     it('registra uma entrada com sucesso e atualiza o historico', () => {
       cy.intercept('POST', '**/api/movimentacoes', (req) => {
