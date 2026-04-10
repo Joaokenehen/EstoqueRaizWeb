@@ -24,7 +24,6 @@ describe('Modulo de Categorias', () => {
     cy.wait('@listarCategorias');
   };
 
-  // ----------------------------------------------------------------
   context('Criação de Categorias', () => {
 
   it('permite ao gerente criar uma nova categoria', () => {
@@ -63,7 +62,6 @@ describe('Modulo de Categorias', () => {
   });
   });
 
-  // ----------------------------------------------------------------
   context('Edição, Filtro e Restrições', () => {
 
   it('permite filtrar e editar uma categoria existente', () => {

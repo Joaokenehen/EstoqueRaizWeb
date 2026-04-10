@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import {
   ArrowDownRight,
   ArrowRightLeft,
@@ -13,6 +13,7 @@ import Layout from '../components/Layout';
 import { movimentacaoService, type Movimentacao } from '../services/movimentacaoService';
 import { produtoService, type Produto } from '../services/produtoService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
+import { BarraFiltros } from '../components/BarraFiltro';
 
 type TipoMovimentacao = 'ENTRADA' | 'SAIDA' | 'TRANSFERENCIA' | 'AJUSTE';
 
@@ -23,7 +24,7 @@ export const Movimentacoes = () => {
   const [carregando, setCarregando] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
   const [processando, setProcessando] = useState(false);
-
+  const [filtro, setFiltro] = useState('');
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
   const isEstoquista = usuarioLogado?.cargo === 'estoquista';
@@ -147,21 +148,38 @@ export const Movimentacoes = () => {
       : true;
   });
 
+  const movimentacoesFiltradas = movimentacoes.filter((mov) => {
+  const termo = filtro.toLowerCase(); // <-- Usando o "filtro" aqui
+  const docMatches = mov.documento?.toLowerCase().includes(termo) || false;
+  const prodMatches = mov.Produto?.nome?.toLowerCase().includes(termo) || false;
+  const obsMatches = mov.observacao?.toLowerCase().includes(termo) || false;
+  
+  return docMatches || prodMatches || obsMatches;
+});
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">
-        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Movimentações de Estoque</h1>
             <p className="text-gray-500 mt-2">Gestão de entradas, saídas e transferências.</p>
           </div>
           <button
             onClick={() => setModalAberto(true)}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium"
+            disabled={carregando}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors shadow-sm font-medium text-white ${carregando ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
           >
             <Plus size={20} /> Registrar Movimento
           </button>
         </header>
+
+        {/* Barra de Filtros fora do Header, para ocupar a largura certinha! */}
+        <BarraFiltros 
+          buscaTexto={filtro} 
+          onBuscaChange={setFiltro} 
+          placeholderBusca="Buscar por NF, Produto ou Observação..."
+        />
 
         {carregando ? (
           <LoadingSpinner />
@@ -179,7 +197,9 @@ export const Movimentacoes = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {movimentacoes.map((movimentacao) => (
+                  
+                  {/* MUDANÇA 1: Usar movimentacoesFiltradas.map */}
+                  {movimentacoesFiltradas.map((movimentacao) => (
                     <tr key={movimentacao.id} className="hover:bg-gray-50">
                       <td className="p-4 text-sm text-gray-600 whitespace-nowrap">
                         {new Date(movimentacao.data_movimentacao).toLocaleDateString('pt-BR')} <br />
@@ -214,13 +234,18 @@ export const Movimentacoes = () => {
                       </td>
                     </tr>
                   ))}
-                  {movimentacoes.length === 0 && (
+
+                  {/* MUDANÇA 2: Checar se o array filtrado está vazio */}
+                  {movimentacoesFiltradas.length === 0 && (
                     <tr>
                       <td colSpan={5} className="p-8 text-center text-gray-500">
-                        Nenhuma movimentação registrada no histórico.
+                        {filtro !== '' 
+                          ? 'Nenhuma movimentação encontrada para esta busca.' 
+                          : 'Nenhuma movimentação registrada no histórico.'}
                       </td>
                     </tr>
                   )}
+
                 </tbody>
               </table>
             </div>

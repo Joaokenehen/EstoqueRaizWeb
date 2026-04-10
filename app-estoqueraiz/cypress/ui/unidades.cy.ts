@@ -27,7 +27,6 @@ describe('Modulo de Unidades', () => {
     }
   };
 
-  // ----------------------------------------------------------------
   context('Criação de Unidades', () => {
 
   it('permite ao gerente criar unidade com preenchimento automatico via CEP', () => {
@@ -96,7 +95,6 @@ describe('Modulo de Unidades', () => {
   });
   });
 
-  // ----------------------------------------------------------------
   context('Exclusão e Restrições', () => {
 
   it('exibe mensagem amigavel ao bloquear exclusao de unidade com produtos', () => {

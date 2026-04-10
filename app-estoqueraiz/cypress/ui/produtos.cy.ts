@@ -33,7 +33,6 @@ describe('Modulo de Produtos', () => {
     cy.wait('@listarUnidades');
   };
 
-  // ----------------------------------------------------------------
   context('Criação de Produtos', () => {
 
   it('permite ao gerente criar um novo produto', () => {
@@ -82,7 +81,6 @@ describe('Modulo de Produtos', () => {
   });
   });
 
-  // ----------------------------------------------------------------
   context('Aprovação e Precificação', () => {
 
   it('permite ao financeiro aprovar um item pendente e mantem o filtro inicial em pendentes', () => {
@@ -138,7 +136,6 @@ describe('Modulo de Produtos', () => {
   });
   });
 
-  // ----------------------------------------------------------------
   context('Exclusão em Lote e Permissões', () => {
 
   it('permite exclusao em lote para gerente', () => {

@@ -164,7 +164,6 @@ describe('Pagina de Relatorios', () => {
     }).as('gerarRelatorio');
   };
 
-  // ----------------------------------------------------------------
   context('Geração e Filtros de Relatório', () => {
 
   it('gera o relatorio ao carregar e permite refiltrar por periodo e unidade', () => {
@@ -216,7 +215,6 @@ describe('Pagina de Relatorios', () => {
   });
   });
 
-  // ----------------------------------------------------------------
   context('Controle de Acesso', () => {
 
   it('bloqueia acesso direto para estoquista', () => {

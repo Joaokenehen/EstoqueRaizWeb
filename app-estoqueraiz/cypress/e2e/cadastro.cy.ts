@@ -1,4 +1,4 @@
-/// <reference types="cypress" />
+﻿/// <reference types="cypress" />
 import { gerarCpfValido } from '../support/utils';
 
 describe('Página de Cadastro', () => {
@@ -7,7 +7,6 @@ describe('Página de Cadastro', () => {
     cy.visit('/cadastro');
   });
 
-  // ----------------------------------------------------------------
   context('Criação de Usuário', () => {
 
     it('Deve cadastrar um novo usuário com sucesso (Caminho Feliz)', () => {
@@ -21,9 +20,7 @@ describe('Página de Cadastro', () => {
       cy.get('[data-testid="cpf-input"]').type(cpfTeste);
       cy.get('[data-testid="senha-input"]').type(senhaTeste);
       cy.get('[data-testid="confirmar-senha-input"]').type(senhaTeste);
-
       cy.get('[data-testid="btn-finalizar-cadastro"]').click();
-
       cy.get('[data-testid="mensagem-feedback"]', { timeout: 10000 })
         .should('be.visible')
         .and('contain', 'Usuário criado com sucesso')
@@ -33,7 +30,6 @@ describe('Página de Cadastro', () => {
     });
   });
 
-  // ----------------------------------------------------------------
   context('Testes de Validação', () => {
 
     context('Duplicidade', () => {

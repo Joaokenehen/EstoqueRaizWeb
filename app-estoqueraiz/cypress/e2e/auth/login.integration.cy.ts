@@ -1,11 +1,4 @@
-/**
- * Testes de integracao real de login com backend + banco.
- *
- * Esses cenarios usam requisicoes reais.
- * Para comportamento de interface, manter os testes mockados em login.cy.ts.
- */
-
-import { gerarCpfValido } from '../../support/utils';
+﻿import { gerarCpfValido } from '../../support/utils';
 
 const API_BASE_URL = 'http://localhost:8081/api';
 

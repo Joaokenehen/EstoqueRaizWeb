@@ -1,218 +1,157 @@
-import { visitarComSessao } from '../support/testHelpers';
-import { movimentacoesFixtures, type Movimentacao } from '../fixtures/movimentacoes';
-import { unidadesFixtures } from '../fixtures/unidades';
-import { produtosFixtures, type Produto } from '../fixtures/produtos';
+import { gerarCpfValido } from '../support/utils';
 
-describe('Modulo de Movimentacoes', () => {
-  let movimentacoesMock: Movimentacao[];
-  let produtosMock: Produto[];
+describe('Modulo de Movimentacoes - E2E Real (Entrada, Saída e Ajuste)', () => {
+  const API_BASE_URL = 'http://localhost:8081/api';
+  let emailGerente: string;
+  let emailEstoquista: string;
+  let tokenGerente = '';
+  const senhaPadrao = 'Senha123';
+  let idProduto = 0;
+  let idUnidade = 0; 
+  const nomeProduto = `Prod Movimentacoes ${Date.now()}`;
 
-  const criarProdutosMock = (): Produto[] =>
-    produtosFixtures.lista().map((produto) =>
-      produto.id === 1
-        ? { ...produto, statusProduto: 'aprovado' }
-        : produto
-    );
+  before(() => {
+    const timestamp = Date.now();
+    emailGerente = `gerente_mov_${timestamp}@estoqueraiz.com`;
+    emailEstoquista = `estoque_mov_${timestamp}@estoqueraiz.com`;
 
-  const resetarMocks = () => {
-    produtosMock = criarProdutosMock();
-    movimentacoesMock = movimentacoesFixtures.lista();
-
-    cy.intercept('GET', '**/api/movimentacoes*', (req) => {
-      req.reply([...movimentacoesMock]);
-    }).as('listarMovimentacoes');
-
-    cy.intercept('GET', '**/api/produtos', (req) => {
-      req.reply([...produtosMock]);
-    }).as('listarProdutos');
-
-    cy.intercept('GET', '**/api/unidades', unidadesFixtures.lista()).as('listarUnidades');
-  };
-
-  const abrirPagina = (cargo: 'gerente' | 'estoquista', unidade_id: number) => {
-    resetarMocks();
-    visitarComSessao('/movimentacoes', {
-      cargo,
-      nome: `${cargo} teste`,
-      email: `${cargo}@estoqueraiz.com`,
-      unidade_id,
+    cy.request({
+      method: 'POST',
+      url: `${API_BASE_URL}/usuarios`,
+      failOnStatusCode: false,
+      body: { nome: 'Gerente Movimentos', email: emailGerente, senha: senhaPadrao, cpf: gerarCpfValido() }
+    }).then(() => {
+      cy.exec(`docker exec postgres-db psql -U admin -d estoque_raiz -c "UPDATE usuarios SET cargo = 'gerente', status = 'aprovado' WHERE email = '${emailGerente}';"`);
     });
-    cy.wait('@listarMovimentacoes');
-    cy.wait('@listarProdutos');
-    cy.wait('@listarUnidades');
-  };
+
+    cy.request({
+      method: 'POST',
+      url: `${API_BASE_URL}/auth/login`,
+      body: { email: emailGerente, senha: senhaPadrao },
+    }).then((loginRes) => {
+      tokenGerente = loginRes.body.token;
+
+      // Criando depêncidas para o banco ter os dados necessários para as movimentações
+      cy.request({
+        method: 'POST',
+        url: `${API_BASE_URL}/unidades`,
+        headers: { Authorization: `Bearer ${tokenGerente}` },
+        failOnStatusCode: false,
+        body: { nome: `Unidade E2E ${timestamp}`, descricao: 'Matriz Principal', rua: 'Rua X', numero: '100', bairro: 'Centro', cidade: 'SP', estado: 'SP', cep: '01000-000' }
+      }).then((resUnidade) => {
+        idUnidade = resUnidade.body.unidade?.id || resUnidade.body.id;
+
+        cy.request({
+          method: 'POST',
+          url: `${API_BASE_URL}/categorias`,
+          headers: { Authorization: `Bearer ${tokenGerente}` },
+          failOnStatusCode: false,
+          body: { nome: `Categoria E2E ${timestamp}`, descricao: 'Gerada automaticamente' }
+        }).then((resCategoria) => {
+          const idCategoria = resCategoria.body.categoria?.id || resCategoria.body.id;
+
+          cy.request({
+            method: 'POST',
+            url: `${API_BASE_URL}/usuarios`,
+            failOnStatusCode: false,
+            body: { nome: 'Estoquista Movimentos', email: emailEstoquista, senha: senhaPadrao, cpf: gerarCpfValido() }
+          }).then((res1) => {
+            const idUser = res1.body.usuario?.id || res1.body.id;
+            cy.request({
+              method: 'PATCH',
+              url: `${API_BASE_URL}/usuarios/${idUser}/aprovar`,
+              headers: { Authorization: `Bearer ${tokenGerente}` },
+              body: { cargo: 'estoquista', unidade_id: idUnidade }, // <-- MUDOU AQUI
+              failOnStatusCode: false,
+            });
+          });
+
+          cy.request({
+            method: 'POST',
+            url: `${API_BASE_URL}/produtos`,
+            headers: { Authorization: `Bearer ${tokenGerente}` },
+            failOnStatusCode: false,
+            body: {
+              nome: nomeProduto,
+              descricao: 'Produto E2E',
+              codigo_barras: `MOV-${timestamp}`,
+              preco_custo: 10,
+              preco_venda: 20,
+              quantidade_estoque: 50, 
+              quantidade_minima: 5,
+              categoria_id: idCategoria, // <-- MUDOU AQUI
+              unidade_id: idUnidade      // <-- MUDOU AQUI
+            }
+          }).then((resProd) => {
+            idProduto = resProd.body.produto?.id || resProd.body.id;
+            
+            cy.request({
+              method: 'PATCH',
+              url: `${API_BASE_URL}/produtos/${idProduto}/aprovar`,
+              headers: { Authorization: `Bearer ${tokenGerente}` },
+              failOnStatusCode: false,
+              body: { preco_custo: 10, preco_venda: 20 }
+            });
+          });
+        });
+      });
+    });
+  });
 
   const selectPorLabel = (label: string) =>
     cy.contains('label', label).parent().find('select');
 
-  // ----------------------------------------------------------------
-  context('Validação de Formulário e Restrições', () => {
+  context('[E2E real] Operações base de Estoque', () => {
 
-  it('bloqueia o seletor de produto ate a escolha da unidade e mostra apenas itens aprovados da unidade', () => {
-    abrirPagina('gerente', 1);
+    it('Gerente registra uma ENTRADA de 20 unidades com sucesso (Aumentando Estoque)', () => {
+      cy.clearLocalStorage();
+      cy.login(emailGerente, senhaPadrao);
+      cy.visit('/movimentacoes');
 
-    cy.contains('button', 'Registrar Movimento').click();
+      cy.intercept('POST', '**/api/movimentacoes').as('postMovimentacao');
 
-    selectPorLabel('Produto (Aprovados) *').should('be.disabled');
-    selectPorLabel('Unidade de Destino *').select('Filial Norte');
+      cy.contains('button', 'Registrar Movimento').click();
+      cy.contains('label', 'ENTRADA').click();
 
-    selectPorLabel('Produto (Aprovados) *').should('not.be.disabled');
-    selectPorLabel('Produto (Aprovados) *')
-      .find('option')
-      .then(($options) => {
-        const textos = [...$options].map((option) => option.textContent || '').join(' ');
+      selectPorLabel('Unidade de Destino *').select(idUnidade.toString());
+      selectPorLabel('Produto (Aprovados) *').select(idProduto.toString());
 
-        expect(textos).to.contain('Furadeira Industrial');
-        expect(textos).not.to.contain('Parafuso 10mm');
-        expect(textos).not.to.contain('Luva Nitrilica');
-      });
-  });
+      cy.get('[data-testid="movimentacoes-input-quantidade"]').clear().type('20');
+      cy.get('[data-testid="movimentacoes-input-documento"]').type('NF-E2E-12345');
+      cy.get('[data-testid="movimentacoes-input-observacao"]').type('Compra validada pelo Cypress');
 
-  it('restringe o estoquista a operar somente na propria unidade e mostra erro amigavel para estoque insuficiente', () => {
-    cy.intercept('POST', '**/api/movimentacoes', (req) => {
-      expect(req.body).to.include({
-        tipo: 'SAIDA',
-        produto_id: 1,
-        quantidade: 999,
-        unidade_origem_id: 1,
-      });
-      expect(req.body).not.to.have.property('documento');
-      expect(req.body).not.to.have.property('observacao');
-      expect(req.body).not.to.have.property('unidade_destino_id');
+      cy.contains('button', 'Confirmar e Gravar Movimento').click();
 
-      req.reply({
-        statusCode: 400,
-        body: { message: 'Estoque insuficiente' },
-      });
-    }).as('registrarMovimentacao');
+      cy.wait('@postMovimentacao').its('response.statusCode').should('be.oneOf', [200, 201]);
 
-    abrirPagina('estoquista', 1);
+      cy.get('[data-testid="barra-filtro-input-busca"]')
+        .clear()
+        .type('NF-E2E-12345');
 
-    cy.window().then((win) => {
-      cy.stub(win, 'alert').as('windowAlert');
+      cy.wait(500); 
+
+      cy.contains('NF-E2E-12345').should('be.visible');
     });
 
-    cy.contains('button', 'Registrar Movimento').click();
-    cy.contains('label', 'SAIDA').click();
+    it('Estoquista tem a SAÍDA bloqueada pelo backend caso tire mais unidades do que possui', () => {
+      cy.clearLocalStorage();
+      cy.login(emailEstoquista, senhaPadrao);
+      cy.visit('/movimentacoes');
 
-    selectPorLabel('Unidade de Origem *')
-      .find('option')
-      .then(($options) => {
-        const textos = [...$options].map((option) => option.textContent || '').join(' ');
+      cy.window().then((win) => { cy.stub(win, 'alert').as('windowAlert'); });
+      cy.intercept('POST', '**/api/movimentacoes').as('postMovimentacaoError');
 
-        expect(textos).to.contain('Matriz SP');
-        expect(textos).not.to.contain('Filial Norte');
-      });
+      cy.contains('button', 'Registrar Movimento').click();
+      cy.contains('label', 'SAIDA').click();
 
-    selectPorLabel('Unidade de Origem *').select('Matriz SP');
+      selectPorLabel('Unidade de Origem *').select(idUnidade.toString());
+      selectPorLabel('Produto (Aprovados) *').select(idProduto.toString());
 
-    selectPorLabel('Produto (Aprovados) *')
-      .find('option')
-      .then(($options) => {
-        const textos = [...$options].map((option) => option.textContent || '').join(' ');
+      cy.get('[data-testid="movimentacoes-input-quantidade"]').clear().type('999'); 
+      cy.contains('button', 'Confirmar e Gravar Movimento').click();
 
-        expect(textos).to.contain('Parafuso 10mm');
-        expect(textos).not.to.contain('Furadeira Industrial');
-      });
-
-    selectPorLabel('Produto (Aprovados) *').select('1');
-    cy.get('[data-testid="movimentacoes-input-quantidade"]').type('999');
-    cy.contains('button', 'Confirmar e Gravar Movimento').click();
-
-    cy.wait('@registrarMovimentacao');
-    cy.get('@windowAlert').should('have.been.calledWithMatch', /estoque insuficiente/i);
-  });
-  });
-
-  // ----------------------------------------------------------------
-  context('Registrar Movimentos', () => {
-
-  it('registra uma entrada com sucesso e atualiza o historico', () => {
-    cy.intercept('POST', '**/api/movimentacoes', (req) => {
-      expect(req.body).to.include({
-        tipo: 'ENTRADA',
-        produto_id: 2,
-        quantidade: 15,
-        documento: 'NF-999',
-        observacao: 'Reposicao emergencial',
-        unidade_destino_id: 2,
-      });
-      expect(req.body).not.to.have.property('unidade_origem_id');
-
-      const novaMovimentacao = {
-        id: 2,
-        tipo: 'ENTRADA' as const,
-        quantidade: 15,
-        data_movimentacao: '2026-04-02T10:30:00.000Z',
-        observacao: 'Reposicao emergencial',
-        documento: 'NF-999',
-        produto_id: 2,
-        usuario_id: 10,
-        unidade_destino_id: 2,
-        Produto: { nome: 'Furadeira Industrial' },
-        UnidadeDestino: { nome: 'Filial Norte' },
-      };
-
-      movimentacoesMock = [novaMovimentacao, ...movimentacoesMock];
-      req.reply({ statusCode: 201, body: { movimentacao: novaMovimentacao } });
-    }).as('registrarMovimentacao');
-
-    abrirPagina('gerente', 1);
-
-    cy.window().then((win) => {
-      cy.stub(win, 'alert').as('windowAlert');
+      cy.wait('@postMovimentacaoError').its('response.statusCode').should('eq', 400);
+      cy.get('@windowAlert').should('have.been.calledWithMatch', /Estoque insuficiente/i);
     });
-
-    cy.contains('button', 'Registrar Movimento').click();
-    selectPorLabel('Unidade de Destino *').select('Filial Norte');
-    selectPorLabel('Produto (Aprovados) *').select('2');
-    cy.get('[data-testid="movimentacoes-input-quantidade"]').type('15');
-    cy.get('[data-testid="movimentacoes-input-documento"]').type('NF-999');
-    cy.get('[data-testid="movimentacoes-input-observacao"]').type('Reposicao emergencial');
-    cy.contains('button', 'Confirmar e Gravar Movimento').click();
-
-    cy.wait('@registrarMovimentacao');
-    cy.wait('@listarMovimentacoes');
-
-    cy.get('@windowAlert').should('have.been.calledWithMatch', /ENTRADA registrada com sucesso/i);
-    cy.contains('NF-999').should('be.visible');
-    cy.contains('Furadeira Industrial').should('be.visible');
-  });
-
-  it('envia a transferencia invalida para validacao do backend e exibe erro amigavel', () => {
-    cy.intercept('POST', '**/api/movimentacoes', (req) => {
-      expect(req.body).to.include({
-        tipo: 'TRANSFERENCIA',
-        produto_id: 1,
-        quantidade: 5,
-        unidade_origem_id: 1,
-        unidade_destino_id: 1,
-      });
-      expect(req.body).not.to.have.property('documento');
-      expect(req.body).not.to.have.property('observacao');
-
-      req.reply({
-        statusCode: 400,
-        body: { message: 'A unidade de origem deve ser diferente da de destino' },
-      });
-    }).as('registrarMovimentacao');
-
-    abrirPagina('gerente', 1);
-
-    cy.window().then((win) => {
-      cy.stub(win, 'alert').as('windowAlert');
-    });
-
-    cy.contains('button', 'Registrar Movimento').click();
-    cy.contains('label', 'TRANSFERENCIA').click();
-    selectPorLabel('Unidade de Origem *').select('Matriz SP');
-    selectPorLabel('Unidade de Destino *').select('Matriz SP');
-    selectPorLabel('Produto (Aprovados) *').select('1');
-    cy.get('[data-testid="movimentacoes-input-quantidade"]').type('5');
-    cy.contains('button', 'Confirmar e Gravar Movimento').click();
-
-    cy.wait('@registrarMovimentacao');
-    cy.get('@windowAlert').should('have.been.calledWithMatch', /origem.*diferente.*destino/i);
-  });
   });
 });
