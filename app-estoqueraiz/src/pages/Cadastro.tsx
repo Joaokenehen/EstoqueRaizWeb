@@ -225,7 +225,6 @@ export const Cadastro = () => {
         <div className="flex flex-col items-center justify-center p-8 text-center space-y-4">
           
           <div className="relative flex items-center justify-center mb-4 mt-2">
-            {/* Círculo animado pulsando suave e atrasado atrás do ícone */}
             <div className="absolute inset-0 rounded-full bg-green-400 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] opacity-20"></div>
             <div className="relative rounded-full bg-green-100 p-4 shadow-sm" style={{ animation: 'modal-scale-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s', opacity: 0 }}>
               <CheckCircle className="text-green-600 w-16 h-16" />

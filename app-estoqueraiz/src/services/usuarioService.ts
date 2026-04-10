@@ -46,7 +46,7 @@ export const usuarioService = {
         },
 
     aprovar: async(id: number, dados: { cargo: string, unidade_id: number }) => {
-        const response = await api.patch(`/api/usuarios/${id}/aprovar`, { dados });
+        const response = await api.patch(`/api/usuarios/${id}/aprovar`, dados );
         return response.data;
     },
 
