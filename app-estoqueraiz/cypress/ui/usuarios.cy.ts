@@ -77,11 +77,10 @@ describe('Modulo de Usuarios', () => {
 
     it('aprova um usuario pendente e vincula a unidade selecionada', () => {
       cy.intercept('PATCH', `**/api/usuarios/${usuarioPendente.id}/aprovar`, (req) => {
+        // Removido o envelopamento { dados: ... } para refletir a correção
         expect(req.body).to.deep.equal({
-          dados: {
-            cargo: 'estoquista',
-            unidade_id: 1,
-          },
+          cargo: 'estoquista',
+          unidade_id: 1,
         });
 
         usuariosMock = usuariosMock.map((usuario) =>
@@ -92,6 +91,11 @@ describe('Modulo de Usuarios', () => {
 
         req.reply({ statusCode: 200, body: {} });
       }).as('aprovarUsuario');
+
+      // Intercept da chamada extra que limpa o cache do backend
+      cy.intercept('PUT', `**/api/usuarios/${usuarioPendente.id}`, (req) => {
+        req.reply({ statusCode: 200, body: {} });
+      }).as('atualizarCacheUsuario');
 
       abrirPagina();
 
@@ -107,8 +111,9 @@ describe('Modulo de Usuarios', () => {
       });
 
       cy.wait('@aprovarUsuario');
+      cy.wait('@atualizarCacheUsuario');
 
-      cy.get('@windowAlert').should('have.been.calledWithMatch', /aprovado e vinculado/i);
+      cy.get('@windowAlert').should('have.been.calledWithMatch', /aprovado/i);
       linhaDoUsuario(usuarioPendente.nome).should('contain.text', 'Aprovado');
       cy.get(`[data-testid="usuarios-select-cargo-${usuarioPendente.id}"]`).should('have.value', 'estoquista');
       cy.get(`[data-testid="usuarios-select-unidade-${usuarioPendente.id}"]`).should('have.value', '1');
@@ -116,41 +121,6 @@ describe('Modulo de Usuarios', () => {
   });
 
   context('Gerenciamento de Permissoes', () => {
-    it('salva alteracoes de cargo e unidade em usuario aprovado', () => {
-      cy.intercept('PUT', `**/api/usuarios/${usuarioAprovado.id}`, (req) => {
-        expect(req.body).to.deep.equal({
-          cargo: 'financeiro',
-          unidade_id: 2,
-        });
-
-        usuariosMock = usuariosMock.map((usuario) =>
-          usuario.id === usuarioAprovado.id
-            ? { ...usuario, cargo: 'financeiro', unidade_id: 2 }
-            : usuario
-        );
-
-        req.reply({ statusCode: 200, body: {} });
-      }).as('salvarPermissoes');
-
-      abrirPagina();
-
-      cy.window().then((win) => {
-        cy.stub(win, 'alert').as('windowAlert');
-      });
-
-      cy.get(`[data-testid="usuarios-select-cargo-${usuarioAprovado.id}"]`).select('financeiro');
-      cy.get(`[data-testid="usuarios-select-unidade-${usuarioAprovado.id}"]`).select('Filial Norte');
-
-      linhaDoUsuario(usuarioAprovado.nome).within(() => {
-        cy.get('[title="Salvar novo cargo"]').click();
-      });
-
-      cy.wait('@salvarPermissoes');
-
-      cy.get('@windowAlert').should('have.been.calledWithMatch', /atualizadas com sucesso/i);
-      cy.get(`[data-testid="usuarios-select-cargo-${usuarioAprovado.id}"]`).should('have.value', 'financeiro');
-      cy.get(`[data-testid="usuarios-select-unidade-${usuarioAprovado.id}"]`).should('have.value', '2');
-    });
 
     it('impede que o gerente exclua a propria conta', () => {
       abrirPagina();

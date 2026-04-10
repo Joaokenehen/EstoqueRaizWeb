@@ -428,41 +428,46 @@ export const Produtos = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Produto *</label>
-                <input required name="nome" type="text" data-testid="produtos-input-nome" defaultValue={produtoAtivo?.nome} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input required name="nome" type="text" data-testid="produtos-input-nome" defaultValue={produtoAtivo?.nome} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Código de Barras</label>
-                  <input name="codigo_barras" type="text" data-testid="produtos-input-codigo" defaultValue={produtoAtivo?.codigo_barras} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Estoque</label>
-                  <input name="quantidade_estoque" type="number" data-testid="produtos-input-estoque" defaultValue={produtoAtivo?.quantidade_estoque} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input name="codigo_barras" type="text" data-testid="produtos-input-codigo" defaultValue={produtoAtivo?.codigo_barras} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Qtd Mínima</label>
-                  <input name="quantidade_minima" type="number" data-testid="produtos-input-estoque-minimo" defaultValue={produtoAtivo?.quantidade_minima} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input name="quantidade_minima" type="number" data-testid="produtos-input-estoque" defaultValue={produtoAtivo?.quantidade_minima} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
-                  <select required name="categoria_id" data-testid="produtos-select-categoria" defaultValue={produtoAtivo?.categoria_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                <select required name="categoria_id" data-testid="produtos-select-categoria" defaultValue={produtoAtivo?.categoria_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="">Selecione...</option>
                     {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                   </select>
                 </div>
                 <div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Unidade Base *</label>
                   <select required name="unidade_id" data-testid="produtos-select-unidade" defaultValue={produtoAtivo?.unidade_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="">Selecione...</option>
-                    {unidades.map(u => <option key={u.id} value={u.id}>{u.nome}</option>)}
+                    
+                    {unidades
+                      .filter((u) => !isEstoquista || u.id === usuarioLogado?.unidade_id)
+                      .map(u => (
+                        <option key={u.id} value={u.id}>{u.nome}</option>
+                      ))
+                    }
+
                   </select>
+                </div>
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-                <textarea name="descricao" data-testid="produtos-input-descricao" defaultValue={produtoAtivo?.descricao} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" rows={3} />
+              <textarea name="descricao" data-testid="produtos-input-descricao" defaultValue={produtoAtivo?.descricao} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" rows={3} />
               </div>
             </div>
             
