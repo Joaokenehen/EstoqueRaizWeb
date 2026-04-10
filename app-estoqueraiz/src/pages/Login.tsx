@@ -46,20 +46,23 @@ export const Login = () => {
     }
   };
 
-return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-raiz-bege font-sans">
-      <div className="w-full max-w-[360px] p-6 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom">
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-raiz-bege via-white to-raiz-bege font-sans p-4">
+      <div className="w-full max-w-[400px] p-8 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom">
         
-        <header className="text-center mb-10">
+        <header className="text-center mb-6">
           <img 
             src={logoEstoque} 
             alt="Estoque Raiz" 
-            className="w-48 mx-auto mb-4"
+            className="w-48 md:w-56 mx-auto mb-4 drop-shadow-md cursor-pointer hover:scale-105 transition-transform duration-200"
+            onClick={() => navigate('/')}
+            title="Voltar para a página inicial"
           />
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-bold text-raiz-marrom tracking-tight">
             Bem-vindo
           </h1>
-          <p className="text-sm text-gray-500 mt-2">
+          <div className="h-1 w-12 bg-raiz-verde mx-auto mt-2 rounded-full mb-4"></div>
+          <p className="text-sm text-gray-500">
             Acesse seu painel de estoque
           </p>
         </header>
@@ -138,7 +141,7 @@ return (
           </button>
         </form>
 
-        <footer className="mt-8 text-center">
+        <footer className="mt-8 text-center border-t border-gray-100 pt-6">
           <p className="text-sm text-gray-600">
             Ainda não tem conta?{' '}
             <span 
