@@ -21,12 +21,9 @@ describe('Página de Cadastro', () => {
       cy.get('[data-testid="senha-input"]').type(senhaTeste);
       cy.get('[data-testid="confirmar-senha-input"]').type(senhaTeste);
       cy.get('[data-testid="btn-finalizar-cadastro"]').click();
-      cy.get('[data-testid="mensagem-feedback"]', { timeout: 10000 })
-        .should('be.visible')
-        .and('contain', 'Usuário criado com sucesso')
-        .and('have.class', 'bg-green-500');
-
-      cy.get('[data-testid="nome-input"]').should('have.value', '');
+      cy.contains('Conta Criada!', { timeout: 10000 }).should('be.visible');
+      cy.contains('em análise').should('be.visible');
+      cy.get('[data-testid="btn-ir-para-login"]').click();
     });
   });
 
@@ -45,7 +42,7 @@ describe('Página de Cadastro', () => {
         cy.get('[data-testid="senha-input"]').type('Senha123!');
         cy.get('[data-testid="confirmar-senha-input"]').type('Senha123!');
         cy.get('[data-testid="btn-finalizar-cadastro"]').click();
-        cy.get('[data-testid="mensagem-feedback"]').should('contain', 'sucesso');
+        cy.contains('Conta Criada!', { timeout: 10000 }).should('be.visible');
 
         cy.visit('/cadastro');
 
@@ -72,8 +69,8 @@ describe('Página de Cadastro', () => {
         cy.get('[data-testid="senha-input"]').type('Senha123!');
         cy.get('[data-testid="confirmar-senha-input"]').type('Senha123!');
         cy.get('[data-testid="btn-finalizar-cadastro"]').click();
-        cy.get('[data-testid="mensagem-feedback"]').should('contain', 'sucesso');
-
+        cy.contains('Conta Criada!', { timeout: 10000 }).should('be.visible');
+        
         cy.visit('/cadastro');
 
         cy.get('[data-testid="nome-input"]').type('Impostor Teste');
