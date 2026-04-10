@@ -131,7 +131,7 @@ export const Usuarios = () => {
     }
   };
 
-  const handleAprovar = async (id: number) => {
+const handleAprovar = async (id: number) => {
     const cargoSelecionado = cargosSelecionados[id];
     const unidadeSelecionada = unidadesSelecionadas[id];
 
@@ -139,20 +139,29 @@ export const Usuarios = () => {
       alert('Por favor, selecione o CARGO antes de aprovar.');
       return;
     }
-
+    
+    // 👇 A MÁGICA VOLTOU AQUI: Se for financeiro, não exige unidade!
     if (cargoSelecionado !== 'financeiro' && !unidadeSelecionada) {
       alert('Por favor, selecione a UNIDADE (Filial) do usuário antes de aprovar.');
       return;
     }
-    
+
     try {
       setProcessandoId(id);
       
+      // Define que o financeiro vai mandar a unidade como null (vazio) pro banco
       const unidadeParaEnviar = cargoSelecionado === 'financeiro' ? null : Number(unidadeSelecionada);
 
+      // 1. FAZ A APROVAÇÃO (Muda o status no banco de dados)
       await usuarioService.aprovar(id, { 
         cargo: cargoSelecionado, 
         unidade_id: unidadeParaEnviar as any 
+      });
+
+      // 2. O TRUQUE NINJA: Chama o atualizar para limpar o cache
+      await usuarioService.atualizar(id, {
+        cargo: cargoSelecionado as any,
+        unidade_id: unidadeParaEnviar as any
       });
       
       alert('Usuário aprovado com sucesso!');
