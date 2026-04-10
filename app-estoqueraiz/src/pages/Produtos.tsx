@@ -424,29 +424,29 @@ export const Produtos = () => {
             <form ref={formRef} onSubmit={handleSubmitProduto} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium mb-1">Nome *</label>
-                <input required name="nome" defaultValue={produtoAtivo?.nome} type="text" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
+                <input required name="nome" maxLength={150} defaultValue={produtoAtivo?.nome} type="text" data-testid="produtos-input-nome" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Categoria *</label>
-                <select required name="categoria_id" defaultValue={produtoAtivo?.categoria_id} className="w-full px-4 py-2 border rounded-lg bg-white outline-none">
+                <select required name="categoria_id" data-testid="produtos-select-categoria" defaultValue={produtoAtivo?.categoria_id} className="w-full px-4 py-2 border rounded-lg bg-white outline-none">
                   <option value="">Selecione...</option>
                   {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Unidade *</label>
-                <select required name="unidade_id" defaultValue={produtoAtivo?.unidade_id} className="w-full px-4 py-2 border rounded-lg bg-white outline-none">
+                <select required name="unidade_id" data-testid="produtos-select-unidade" defaultValue={produtoAtivo?.unidade_id} className="w-full px-4 py-2 border rounded-lg bg-white outline-none">
                   <option value="">Selecione...</option>
                   {unidades.map(u => <option key={u.id} value={u.id}>{u.nome}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Estoque Inicial *</label>
-                <input required name="quantidade_estoque" defaultValue={produtoAtivo?.quantidade_estoque} type="number" className="w-full px-4 py-2 border rounded-lg outline-none" />
+                <input required name="quantidade_estoque" defaultValue={produtoAtivo?.quantidade_estoque} type="number" data-testid="produtos-input-estoque" className="w-full px-4 py-2 border rounded-lg outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Estoque Mínimo</label>
-                <input name="quantidade_minima" defaultValue={produtoAtivo?.quantidade_minima} type="number" className="w-full px-4 py-2 border rounded-lg outline-none" />
+                <input name="quantidade_minima" defaultValue={produtoAtivo?.quantidade_minima} type="number" data-testid="produtos-input-estoque-minimo" className="w-full px-4 py-2 border rounded-lg outline-none" />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Imagem do Produto</label>
@@ -474,6 +474,7 @@ export const Produtos = () => {
                       name="imagem" 
                       type="file" 
                       accept="image/*" 
+                      data-testid="produtos-input-imagem"
                       onChange={handleAlterarImagem} // Chama a nossa função de preview
                       className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer" 
                     />

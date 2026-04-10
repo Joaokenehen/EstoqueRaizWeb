@@ -56,13 +56,14 @@ export const EsqueciSenha = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-raiz-bege font-sans p-4">
-      <div className="w-full max-w-400px p-8 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom relative">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-raiz-bege via-white to-raiz-bege font-sans p-4">
+      <div className="w-full max-w-[400px] p-8 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom relative">
         
         <button 
           onClick={() => navigate('/login')}
           className="absolute top-4 left-4 text-gray-400 hover:text-raiz-verde transition-colors"
           title="Voltar para o Login"
+          data-testid="esqueci-btn-voltar-login"
         >
           <ArrowLeft size={24} />
         </button>
@@ -94,6 +95,8 @@ export const EsqueciSenha = () => {
                 <input
                   type="email"
                   required
+                  maxLength={100}
+                  data-testid="esqueci-input-email"
                   placeholder="exemplo@estoqueraiz.com"
                   className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
                   value={email}
@@ -121,6 +124,7 @@ export const EsqueciSenha = () => {
                   type="text"
                   required
                   maxLength={6}
+                  data-testid="esqueci-input-codigo"
                   placeholder="000000"
                   className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all tracking-[0.2em] font-bold text-center"
                   value={codigo}
@@ -138,6 +142,8 @@ export const EsqueciSenha = () => {
                 <input
                   type={mostrarSenha ? "text" : "password"}
                   required
+                  maxLength={32}
+                  data-testid="esqueci-input-nova-senha"
                   placeholder="••••••••"
                   className="w-full pl-10 pr-12 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
                   value={novaSenha}

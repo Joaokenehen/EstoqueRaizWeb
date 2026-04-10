@@ -42,15 +42,16 @@ export const Cadastro = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-raiz-bege font-sans p-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-raiz-bege via-white to-raiz-bege font-sans p-4">
       <div className="w-full max-w-[400px] p-8 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom">
         
         <header className="text-center mb-6">
           <img 
             src={logoEstoque} 
             alt="Estoque Raiz" 
-            className="w-48 md:w-56 mx-auto mb-4 drop-shadow-md cursor-pointer"
+            className="w-48 md:w-56 mx-auto mb-4 drop-shadow-md cursor-pointer hover:scale-105 transition-transform duration-200"
             onClick={() => navigate('/')}
+            title="Voltar para a página inicial"
             data-testid="logo-estoque"
           />
           <h1 className="text-2xl font-bold text-raiz-marrom tracking-tight">
@@ -199,7 +200,7 @@ export const Cadastro = () => {
           <p className="text-sm text-gray-600">
             Já possui uma conta?{' '}
             <span 
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/login')}
               className="text-raiz-verde font-bold cursor-pointer hover:underline"
               data-testid="link-login"
             >

@@ -2,59 +2,50 @@
 
 export {};
 
+type CargoUsuario = 'gerente' | 'estoquista' | 'financeiro' | null;
+
+interface UsuarioSessao {
+  id: number;
+  nome: string;
+  email: string;
+  cargo: CargoUsuario;
+  unidade_id: number | null;
+  status: 'aprovado' | 'pendente' | 'rejeitado';
+}
+
 declare global {
   namespace Cypress {
     interface Chainable {
-      /**
-       * Comando personalizado para realizar login no sistema
-       * @example cy.login('admin@email.com', '123456')
-       */
       login(email: string, senha: string): Chainable<void>;
+      visitAuthenticated(path: string, usuario?: Partial<UsuarioSessao>): Chainable<void>;
     }
   }
 }
 
 Cypress.Commands.add('login', (email: string, senha: string) => {
   cy.visit('/login');
-  cy.get('input[type="email"]').type(email);
-  cy.get('input[type="password"]').type(senha);
-  cy.get('button[type="submit"]').click();
+  cy.get('[data-testid="email-input"]').type(email);
+  cy.get('[data-testid="senha-input"]').type(senha);
+  cy.contains('button', 'Entrar no Sistema').click();
   cy.url().should('include', '/dashboard');
 });
 
-// ***********************************************
-// This example commands.ts shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
-//
-// declare global {
-//   namespace Cypress {
-//     interface Chainable {
-//       login(email: string, password: string): Chainable<void>
-//       drag(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       dismiss(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       visit(originalFn: CommandOriginalFn, url: string, options: Partial<VisitOptions>): Chainable<Element>
-//     }
-//   }
-// }
+Cypress.Commands.add('visitAuthenticated', (path: string, usuarioParcial: Partial<UsuarioSessao> = {}) => {
+  const usuario: UsuarioSessao = {
+    id: 1,
+    nome: 'Usuario Teste',
+    email: 'usuario@estoqueraiz.com',
+    cargo: 'gerente',
+    unidade_id: 1,
+    status: 'aprovado',
+    ...usuarioParcial,
+  };
+
+  cy.visit(path, {
+    onBeforeLoad(win) {
+      win.localStorage.clear();
+      win.localStorage.setItem('@EstoqueRaiz:token', 'token-falso');
+      win.localStorage.setItem('@EstoqueRaiz:usuario', JSON.stringify(usuario));
+    },
+  });
+});
