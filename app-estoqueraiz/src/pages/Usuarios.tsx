@@ -139,21 +139,23 @@ export const Usuarios = () => {
       alert('Por favor, selecione o CARGO antes de aprovar.');
       return;
     }
-    
-    if (!unidadeSelecionada) {
+
+    if (cargoSelecionado !== 'financeiro' && !unidadeSelecionada) {
       alert('Por favor, selecione a UNIDADE (Filial) do usuário antes de aprovar.');
       return;
     }
-
+    
     try {
       setProcessandoId(id);
       
+      const unidadeParaEnviar = cargoSelecionado === 'financeiro' ? null : Number(unidadeSelecionada);
+
       await usuarioService.aprovar(id, { 
         cargo: cargoSelecionado, 
-        unidade_id: Number(unidadeSelecionada) 
+        unidade_id: unidadeParaEnviar as any 
       });
       
-      alert('Usuário aprovado e vinculado à unidade com sucesso!');
+      alert('Usuário aprovado com sucesso!');
     } catch (error) {
       alert('Erro ao aprovar usuário. Verifique sua conexão.');
     } finally {
@@ -183,7 +185,7 @@ export const Usuarios = () => {
     
     const cargoParaEnviar = cargoSelecionado === 'nenhum' ? null : cargoSelecionado;
     
-    const unidadeParaEnviar = (cargoParaEnviar === null || !unidadeSelecionada) 
+    const unidadeParaEnviar = (cargoParaEnviar === null || cargoParaEnviar === 'financeiro' || !unidadeSelecionada) 
       ? null 
       : Number(unidadeSelecionada);
 
@@ -379,13 +381,21 @@ export const Usuarios = () => {
                           </select>
 
                           <select
-                            className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px disabled:opacity-50"
+                            className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px disabled:opacity-50 disabled:bg-gray-100"
                             data-testid={`usuarios-select-unidade-${usuario.id}`}
-                            value={unidadesSelecionadas[usuario.id] || ''}
+                            value={cargosSelecionados[usuario.id] === 'financeiro' ? '' : (unidadesSelecionadas[usuario.id] || '')}
                             onChange={(e) => setUnidadesSelecionadas(prev => ({ ...prev, [usuario.id]: e.target.value }))}
-                            disabled={processandoId === usuario.id || usuario.status === 'rejeitado'}
+                            disabled={
+                              processandoId === usuario.id || 
+                              usuario.status === 'rejeitado' || 
+                              cargosSelecionados[usuario.id] === 'financeiro'
+                            }
                           >
-                            <option value="" disabled>Unidade...</option>
+                            
+                            <option value="" disabled>
+                              {cargosSelecionados[usuario.id] === 'financeiro' ? 'Acesso Global' : 'Unidade...'}
+                            </option>
+                            
                             {unidades.map(u => (
                               <option key={u.id} value={u.id}>{u.nome}</option>
                             ))}
