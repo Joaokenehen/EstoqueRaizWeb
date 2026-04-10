@@ -5,6 +5,10 @@ export default defineConfig({
 
   e2e: {
     baseUrl: "http://localhost:5173",
+    specPattern: [
+      "cypress/e2e/**/*.cy.{js,jsx,ts,tsx}",
+      "cypress/ui/**/*.cy.{js,jsx,ts,tsx}",
+    ],
     env: {
       // URL base da API do backend
       API_BASE_URL: "http://localhost:8081/api",
