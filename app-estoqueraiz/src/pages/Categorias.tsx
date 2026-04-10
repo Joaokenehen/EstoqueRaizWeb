@@ -7,6 +7,7 @@ import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
 import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import Layout from '../components/Layout';
+import { Modal } from '../components/Modal';
 
 export const Categorias = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -281,19 +282,13 @@ export const Categorias = () => {
       </div>
       
       {/* Modal de Criação/Edição */}
-      {modalAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-              <h2 className="text-xl font-bold text-gray-900">
-                {categoriaEditando ? 'Editar Categoria' : 'Nova Categoria'}
-              </h2>
-              <button onClick={fecharModal} className="text-gray-400 hover:text-gray-600 transition-colors">
-                <X size={24} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="p-6">
+      <Modal 
+        isOpen={modalAberto} 
+        onClose={fecharModal} 
+        titulo={categoriaEditando ? 'Editar Categoria' : 'Nova Categoria'}
+        maxWidth="max-w-md"
+      >
+        <form onSubmit={handleSubmit} className="p-6">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Categoria *</label>
@@ -316,9 +311,7 @@ export const Categorias = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </Layout>
   );
 };

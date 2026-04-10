@@ -7,6 +7,7 @@ import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
 import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import Layout from '../components/Layout';
+import { Modal } from '../components/Modal';
 
 
 export const Unidades = () => {
@@ -310,19 +311,13 @@ export const Unidades = () => {
       </div>
 
       {/* Modal de Criação/Edição */}
-      {modalAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-              <h2 className="text-xl font-bold text-gray-900">
-                {unidadeEditando ? 'Editar Unidade' : 'Nova Unidade'}
-              </h2>
-              <button onClick={fecharModal} className="text-gray-400 hover:text-gray-600 transition-colors">
-                <X size={24} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="p-6">
+      <Modal 
+        isOpen={modalAberto} 
+        onClose={fecharModal} 
+        titulo={unidadeEditando ? 'Editar Unidade' : 'Nova Unidade'}
+        maxWidth="max-w-2xl"
+      >
+        <form onSubmit={handleSubmit} className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                 
                 {/* LINHA 1: NOME DA UNIDADE */}
@@ -381,9 +376,7 @@ export const Unidades = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </Layout>
   );
 };

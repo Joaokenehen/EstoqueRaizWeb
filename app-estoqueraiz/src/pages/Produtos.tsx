@@ -10,6 +10,7 @@ import { LoadingSpinner } from '../components/Feedbacks';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
 import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import Layout from '../components/Layout';
+import { Modal } from '../components/Modal';
 
 export const Produtos = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -414,93 +415,100 @@ export const Produtos = () => {
       </div>
 
       {/* MODAL 1: CRIAR / EDITAR */}
-      {modalAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b flex justify-between bg-gray-50 sticky top-0 z-10">
-              <h2 className="text-xl font-bold">{produtoAtivo ? `Editando: ${produtoAtivo.nome}` : 'Novo Produto'}</h2>
-              <button onClick={() => setModalAberto(false)} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
-            </div>
-            <form ref={formRef} onSubmit={handleSubmitProduto} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Nome *</label>
-                <input required name="nome" maxLength={150} defaultValue={produtoAtivo?.nome} type="text" data-testid="produtos-input-nome" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-              </div>
+      <Modal 
+        isOpen={modalAberto} 
+        onClose={() => setModalAberto(false)} 
+        titulo={produtoAtivo ? 'Editar Produto' : 'Novo Produto'}
+        maxWidth="max-w-4xl"
+      >
+        <form ref={formRef} onSubmit={handleSubmitProduto} className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Categoria *</label>
-                <select required name="categoria_id" data-testid="produtos-select-categoria" defaultValue={produtoAtivo?.categoria_id} className="w-full px-4 py-2 border rounded-lg bg-white outline-none">
-                  <option value="">Selecione...</option>
-                  {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-                </select>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Produto *</label>
+                <input required name="nome" type="text" defaultValue={produtoAtivo?.nome} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Unidade *</label>
-                <select required name="unidade_id" data-testid="produtos-select-unidade" defaultValue={produtoAtivo?.unidade_id} className="w-full px-4 py-2 border rounded-lg bg-white outline-none">
-                  <option value="">Selecione...</option>
-                  {unidades.map(u => <option key={u.id} value={u.id}>{u.nome}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Estoque Inicial *</label>
-                <input required name="quantidade_estoque" defaultValue={produtoAtivo?.quantidade_estoque} type="number" data-testid="produtos-input-estoque" className="w-full px-4 py-2 border rounded-lg outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Estoque Mínimo</label>
-                <input name="quantidade_minima" defaultValue={produtoAtivo?.quantidade_minima} type="number" data-testid="produtos-input-estoque-minimo" className="w-full px-4 py-2 border rounded-lg outline-none" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Imagem do Produto</label>
-                
-                <div className="flex flex-col sm:flex-row items-center gap-4 p-4 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:border-indigo-400 transition-colors">
-                  
-                  {/* Área de Preview */}
-                  {(imagemPreview || (produtoAtivo && produtoAtivo.imagem_url)) ? (
-                    <img 
-                      src={imagemPreview || `${api.defaults.baseURL}${produtoAtivo?.imagem_url}`} 
-                      alt="Preview" 
-                      className="w-28 h-28 rounded-lg object-cover border-2 border-white shadow-md shrink-0" 
-                    />
-                  ) : (
-                    <div className="w-28 h-28 rounded-lg bg-gray-200 flex flex-col items-center justify-center text-gray-500 shrink-0 border border-gray-300">
-                      <ImageIcon size={40} className="mb-1" />
-                      <span className="text-xs">Sem foto</span>
-                    </div>
-                  )}
-
-                  {/* Input File Real */}
-                  <div className="flex-1 w-full space-y-2">
-                    <p className="text-xs text-gray-600">Selecione uma imagem (JPG, PNG) de até 5MB.</p>
-                    <input 
-                      name="imagem" 
-                      type="file" 
-                      accept="image/*" 
-                      data-testid="produtos-input-imagem"
-                      onChange={handleAlterarImagem} // Chama a nossa função de preview
-                      className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer" 
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Código de Barras</label>
+                  <input name="codigo_barras" type="text" defaultValue={produtoAtivo?.codigo_barras} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Qtd Mínima</label>
+                  <input name="quantidade_minima" type="number" defaultValue={produtoAtivo?.quantidade_minima} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
               </div>
-              <div className="md:col-span-2 mt-4 flex justify-end gap-3 pt-4 border-t">
-                <button type="button" onClick={() => setModalAberto(false)} className="px-5 py-2 border rounded-lg font-medium">Cancelar</button>
-                <button type="submit" disabled={processandoAcao} className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium shadow-md hover:bg-indigo-700 disabled:opacity-50">
-                  {processandoAcao ? 'Gravando...' : 'Salvar Alterações'}
-                </button>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
+                  <select required name="categoria_id" defaultValue={produtoAtivo?.categoria_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">Selecione...</option>
+                    {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Unidade Base *</label>
+                  <select required name="unidade_id" defaultValue={produtoAtivo?.unidade_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">Selecione...</option>
+                    {unidades.map(u => <option key={u.id} value={u.id}>{u.nome}</option>)}
+                  </select>
+                </div>
               </div>
-            </form>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                <textarea name="descricao" defaultValue={produtoAtivo?.descricao} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" rows={3} />
+              </div>
+            </div>
+            
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Foto do Produto</label>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                {(imagemPreview || produtoAtivo?.imagem_url) ? (
+                  <img 
+                    src={imagemPreview || `${api.defaults.baseURL}${produtoAtivo?.imagem_url}`} 
+                    alt="Preview" 
+                    className="w-28 h-28 rounded-lg object-cover border-2 border-white shadow-md shrink-0" 
+                  />
+                ) : (
+                  <div className="w-28 h-28 rounded-lg bg-gray-200 flex flex-col items-center justify-center text-gray-500 shrink-0 border border-gray-300">
+                    <ImageIcon size={40} className="mb-1" />
+                    <span className="text-xs">Sem foto</span>
+                  </div>
+                )}
+
+                {/* Input File Real */}
+                <div className="flex-1 w-full space-y-2">
+                  <p className="text-xs text-gray-600">Selecione uma imagem (JPG, PNG) de até 5MB.</p>
+                  <input 
+                    name="imagem" 
+                    type="file" 
+                    accept="image/*" 
+                    data-testid="produtos-input-imagem"
+                    onChange={handleAlterarImagem} 
+                    className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer" 
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+          <div className="mt-6 flex justify-end gap-3 pt-4 border-t">
+            <button type="button" onClick={() => setModalAberto(false)} className="px-5 py-2 border rounded-lg font-medium">Cancelar</button>
+            <button type="submit" disabled={processandoAcao} className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium shadow-md hover:bg-indigo-700 disabled:opacity-50">
+              {processandoAcao ? 'Gravando...' : 'Salvar Alterações'}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* MODAL 2: APROVAÇÃO */}
-      {modalAprovacaoAberto && produtoAtivo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-            <div className="px-6 py-4 border-b flex justify-between bg-green-50 rounded-t-xl">
-              <h2 className="text-xl font-bold text-green-800 flex items-center gap-2"><DollarSign /> Aprovar Item</h2>
-              <button onClick={() => setModalAprovacaoAberto(false)} className="text-green-700 hover:text-green-900"><X size={24} /></button>
-            </div>
-            <form onSubmit={handleAprovar} className="p-6 space-y-4">
+      <Modal 
+        isOpen={modalAprovacaoAberto && produtoAtivo !== null} 
+        onClose={() => setModalAprovacaoAberto(false)} 
+        titulo={<span className="flex items-center gap-2"><DollarSign /> Aprovar Item</span>} 
+        maxWidth="max-w-md"
+        headerClasses="bg-green-50 text-green-800 border-green-200"
+      >
+        <form onSubmit={handleAprovar} className="p-6 space-y-4">
               <p className="text-sm text-gray-600">Defina a precificação para ativar o item no catálogo comercial.</p>
               <div>
                 <label className="block text-sm font-medium mb-1">Custo Unitário (R$)</label>
@@ -514,9 +522,7 @@ export const Produtos = () => {
                 {processandoAcao ? 'Aprovando...' : 'Finalizar e Aprovar'}
               </button>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
 
       {produtoZoom && (
         <div 

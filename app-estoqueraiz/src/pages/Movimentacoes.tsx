@@ -14,6 +14,7 @@ import { movimentacaoService, type Movimentacao } from '../services/movimentacao
 import { produtoService, type Produto } from '../services/produtoService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BarraFiltros } from '../components/BarraFiltro';
+import { Modal } from '../components/Modal';
 
 type TipoMovimentacao = 'ENTRADA' | 'SAIDA' | 'TRANSFERENCIA' | 'AJUSTE';
 
@@ -235,7 +236,6 @@ export const Movimentacoes = () => {
                     </tr>
                   ))}
 
-                  {/* MUDANÇA 2: Checar se o array filtrado está vazio */}
                   {movimentacoesFiltradas.length === 0 && (
                     <tr>
                       <td colSpan={5} className="p-8 text-center text-gray-500">
@@ -253,20 +253,13 @@ export const Movimentacoes = () => {
         )}
       </div>
 
-      {modalAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl animate-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between bg-gray-50 rounded-t-xl">
-              <h2 className="text-xl font-bold text-gray-900">Nova Movimentação</h2>
-              <button
-                onClick={() => setModalAberto(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+      <Modal 
+        isOpen={modalAberto} 
+        onClose={() => setModalAberto(false)} 
+        titulo="Nova Movimentação" 
+        maxWidth="max-w-2xl"
+      >
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Qual operação deseja realizar?
@@ -456,10 +449,8 @@ export const Movimentacoes = () => {
                   {processando ? 'Processando...' : 'Confirmar e Gravar Movimento'}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+        </form>
+      </Modal>
     </Layout>
   );
 };
