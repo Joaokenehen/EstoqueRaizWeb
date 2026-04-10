@@ -7,7 +7,6 @@ describe('Página de Cadastro - Testes de UI', () => {
     cy.visit('/cadastro');
   });
 
-  // ----------------------------------------------------------------
   context('Testes de Validação no Frontend', () => {
 
     context('Senha', () => {
@@ -166,7 +165,6 @@ describe('Página de Cadastro - Testes de UI', () => {
     });
   });
 
-  // ----------------------------------------------------------------
   context('Limitadores de Caracteres (maxLength)', () => {
 
     it('Deve limitar o campo Nome a 100 caracteres', () => {

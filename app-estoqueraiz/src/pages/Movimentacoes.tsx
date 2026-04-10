@@ -13,6 +13,9 @@ import Layout from '../components/Layout';
 import { movimentacaoService, type Movimentacao } from '../services/movimentacaoService';
 import { produtoService, type Produto } from '../services/produtoService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
+import { BarraFiltros } from '../components/BarraFiltro';
+import { Modal } from '../components/Modal';
+import { FormularioBase } from '../components/FormularioBase';
 
 type TipoMovimentacao = 'ENTRADA' | 'SAIDA' | 'TRANSFERENCIA' | 'AJUSTE';
 
@@ -23,7 +26,7 @@ export const Movimentacoes = () => {
   const [carregando, setCarregando] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
   const [processando, setProcessando] = useState(false);
-
+  const [filtro, setFiltro] = useState('');
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
   const isEstoquista = usuarioLogado?.cargo === 'estoquista';
@@ -73,7 +76,6 @@ export const Movimentacoes = () => {
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     setProcessando(true);
 
     const payload = {
@@ -147,21 +149,37 @@ export const Movimentacoes = () => {
       : true;
   });
 
+  const movimentacoesFiltradas = movimentacoes.filter((mov) => {
+  const termo = filtro.toLowerCase(); // <-- Usando o "filtro" aqui
+  const docMatches = mov.documento?.toLowerCase().includes(termo) || false;
+  const prodMatches = mov.Produto?.nome?.toLowerCase().includes(termo) || false;
+  const obsMatches = mov.observacao?.toLowerCase().includes(termo) || false;
+  
+  return docMatches || prodMatches || obsMatches;
+});
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">
-        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Movimentações de Estoque</h1>
             <p className="text-gray-500 mt-2">Gestão de entradas, saídas e transferências.</p>
           </div>
           <button
             onClick={() => setModalAberto(true)}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium"
+            disabled={carregando}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors shadow-sm font-medium text-white ${carregando ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
           >
             <Plus size={20} /> Registrar Movimento
           </button>
         </header>
+
+        <BarraFiltros 
+          buscaTexto={filtro} 
+          onBuscaChange={setFiltro} 
+          placeholderBusca="Buscar por NF, Produto ou Observação..."
+        />
 
         {carregando ? (
           <LoadingSpinner />
@@ -179,7 +197,8 @@ export const Movimentacoes = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {movimentacoes.map((movimentacao) => (
+                  
+                  {movimentacoesFiltradas.map((movimentacao) => (
                     <tr key={movimentacao.id} className="hover:bg-gray-50">
                       <td className="p-4 text-sm text-gray-600 whitespace-nowrap">
                         {new Date(movimentacao.data_movimentacao).toLocaleDateString('pt-BR')} <br />
@@ -214,13 +233,17 @@ export const Movimentacoes = () => {
                       </td>
                     </tr>
                   ))}
-                  {movimentacoes.length === 0 && (
+
+                  {movimentacoesFiltradas.length === 0 && (
                     <tr>
                       <td colSpan={5} className="p-8 text-center text-gray-500">
-                        Nenhuma movimentação registrada no histórico.
+                        {filtro !== '' 
+                          ? 'Nenhuma movimentação encontrada para esta busca.' 
+                          : 'Nenhuma movimentação registrada no histórico.'}
                       </td>
                     </tr>
                   )}
+
                 </tbody>
               </table>
             </div>
@@ -228,213 +251,199 @@ export const Movimentacoes = () => {
         )}
       </div>
 
-      {modalAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl animate-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between bg-gray-50 rounded-t-xl">
-              <h2 className="text-xl font-bold text-gray-900">Nova Movimentação</h2>
-              <button
-                onClick={() => setModalAberto(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Qual operação deseja realizar?
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {(['ENTRADA', 'SAIDA', 'TRANSFERENCIA', 'AJUSTE'] as TipoMovimentacao[]).map(
-                    (tipo) => (
-                      <label
-                        key={tipo}
-                        className={`flex items-center justify-center py-2 px-1 border rounded-lg cursor-pointer text-xs font-bold transition-all ${
-                          form.tipo === tipo
-                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
-                            : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="tipo"
-                          value={tipo}
-                          checked={form.tipo === tipo}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              tipo: e.target.value as TipoMovimentacao,
-                              produto_id: '',
-                              unidade_origem_id: '',
-                              unidade_destino_id: '',
-                            })
-                          }
-                          className="sr-only"
-                        />
-                        {tipo}
-                      </label>
-                    )
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
-                {(form.tipo === 'SAIDA' || form.tipo === 'TRANSFERENCIA' || form.tipo === 'AJUSTE') && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Unidade de Origem *
-                    </label>
-                    <select
-                      required
-                      value={form.unidade_origem_id}
-                      onChange={(e) =>
-                        setForm({ ...form, unidade_origem_id: e.target.value, produto_id: '' })
-                      }
-                      className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${
-                        isEstoquista ? 'bg-gray-100 text-gray-600' : 'bg-white'
-                      }`}
-                    >
-                      <option value="">Retirar de...</option>
-                      {unidades
-                        .filter((unidade) => !isEstoquista || unidade.id === usuarioLogado?.unidade_id)
-                        .map((unidade) => (
-                          <option key={unidade.id} value={unidade.id}>
-                            {unidade.nome}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                )}
-
-                {(form.tipo === 'ENTRADA' || form.tipo === 'TRANSFERENCIA') && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Unidade de Destino *
-                    </label>
-                    <select
-                      required
-                      value={form.unidade_destino_id}
+      <Modal 
+        isOpen={modalAberto} 
+        onClose={() => setModalAberto(false)} 
+        titulo="Nova Movimentação" 
+        maxWidth="max-w-2xl"
+      >
+        {/* Substituímos a tag <form> pelo nosso novo componente base */}
+        <FormularioBase 
+          onSubmit={handleSubmit} 
+          processando={processando} 
+          textoBotaoSubmit="Confirmar e Gravar Movimento"
+        >
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Qual operação deseja realizar?
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {(['ENTRADA', 'SAIDA', 'TRANSFERENCIA', 'AJUSTE'] as TipoMovimentacao[]).map(
+                (tipo) => (
+                  <label
+                    key={tipo}
+                    className={`flex items-center justify-center py-2 px-1 border rounded-lg cursor-pointer text-xs font-bold transition-all ${
+                      form.tipo === tipo
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                        : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="tipo"
+                      value={tipo}
+                      checked={form.tipo === tipo}
                       onChange={(e) =>
                         setForm({
                           ...form,
-                          unidade_destino_id: e.target.value,
-                          produto_id: form.tipo === 'ENTRADA' ? '' : form.produto_id,
+                          tipo: e.target.value as TipoMovimentacao,
+                          produto_id: '',
+                          unidade_origem_id: '',
+                          unidade_destino_id: '',
                         })
                       }
-                      className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${
-                        isEstoquista && form.tipo === 'ENTRADA'
-                          ? 'bg-gray-100 text-gray-600'
-                          : 'bg-white'
-                      }`}
-                    >
-                      <option value="">Enviar para...</option>
-                      {unidades
-                        .filter(
-                          (unidade) =>
-                            !(isEstoquista && form.tipo === 'ENTRADA') ||
-                            unidade.id === usuarioLogado?.unidade_id
-                        )
-                        .map((unidade) => (
-                          <option key={unidade.id} value={unidade.id}>
-                            {unidade.nome}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Produto (Aprovados) *
+                      className="sr-only"
+                    />
+                    {tipo}
                   </label>
-                  <select
-                    required
-                    value={form.produto_id}
-                    onChange={(e) => setForm({ ...form, produto_id: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={
-                      (form.tipo === 'ENTRADA' && !form.unidade_destino_id) ||
-                      (form.tipo !== 'ENTRADA' && !form.unidade_origem_id)
-                    }
-                  >
-                    <option value="">
-                      {(form.tipo === 'ENTRADA' && !form.unidade_destino_id) ||
-                      (form.tipo !== 'ENTRADA' && !form.unidade_origem_id)
-                        ? 'Selecione uma unidade primeiro...'
-                        : 'Selecione o Item...'}
-                    </option>
-                    {produtosDisponiveis.map((produto) => (
-                      <option key={produto.id} value={produto.id}>
-                        {produto.nome} (Estoque: {produto.quantidade_estoque})
+                )
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+            {(form.tipo === 'SAIDA' || form.tipo === 'TRANSFERENCIA' || form.tipo === 'AJUSTE') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Unidade de Origem *
+                </label>
+                <select
+                  required
+                  value={form.unidade_origem_id}
+                  onChange={(e) =>
+                    setForm({ ...form, unidade_origem_id: e.target.value, produto_id: '' })
+                  }
+                  className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${
+                    isEstoquista ? 'bg-gray-100 text-gray-600' : 'bg-white'
+                  }`}
+                >
+                  <option value="">Retirar de...</option>
+                  {unidades
+                    .filter((unidade) => !isEstoquista || unidade.id === usuarioLogado?.unidade_id)
+                    .map((unidade) => (
+                      <option key={unidade.id} value={unidade.id}>
+                        {unidade.nome}
                       </option>
                     ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quantidade *
-                  </label>
-                  <input
-                    required
-                    type="number"
-                    min="1"
-                    data-testid="movimentacoes-input-quantidade"
-                    value={form.quantidade}
-                    onChange={(e) => setForm({ ...form, quantidade: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="Ex: 50"
-                  />
-                </div>
+                </select>
               </div>
+            )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Documento / NF
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={50}
-                    data-testid="movimentacoes-input-documento"
-                    value={form.documento}
-                    onChange={(e) => setForm({ ...form, documento: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="Ex: NF-123456"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Observação
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={500}
-                    data-testid="movimentacoes-input-observacao"
-                    value={form.observacao}
-                    onChange={(e) => setForm({ ...form, observacao: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="Motivo da movimentação"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 mt-6">
-                <button
-                  type="submit"
-                  disabled={processando}
-                  className="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold shadow-md hover:bg-indigo-700 transition-all disabled:opacity-50"
+            {(form.tipo === 'ENTRADA' || form.tipo === 'TRANSFERENCIA') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Unidade de Destino *
+                </label>
+                <select
+                  required
+                  value={form.unidade_destino_id}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      unidade_destino_id: e.target.value,
+                      produto_id: form.tipo === 'ENTRADA' ? '' : form.produto_id,
+                    })
+                  }
+                  className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${
+                    isEstoquista && form.tipo === 'ENTRADA'
+                      ? 'bg-gray-100 text-gray-600'
+                      : 'bg-white'
+                  }`}
                 >
-                  {processando ? 'Processando...' : 'Confirmar e Gravar Movimento'}
-                </button>
+                  <option value="">Enviar para...</option>
+                  {unidades
+                    .filter(
+                      (unidade) =>
+                        !(isEstoquista && form.tipo === 'ENTRADA') ||
+                        unidade.id === usuarioLogado?.unidade_id
+                    )
+                    .map((unidade) => (
+                      <option key={unidade.id} value={unidade.id}>
+                        {unidade.nome}
+                      </option>
+                    ))}
+                </select>
               </div>
-            </form>
+            )}
           </div>
-        </div>
-      )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Produto (Aprovados) *
+              </label>
+              <select
+                required
+                value={form.produto_id}
+                onChange={(e) => setForm({ ...form, produto_id: e.target.value })}
+                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={
+                  (form.tipo === 'ENTRADA' && !form.unidade_destino_id) ||
+                  (form.tipo !== 'ENTRADA' && !form.unidade_origem_id)
+                }
+              >
+                <option value="">
+                  {(form.tipo === 'ENTRADA' && !form.unidade_destino_id) ||
+                  (form.tipo !== 'ENTRADA' && !form.unidade_origem_id)
+                    ? 'Selecione uma unidade primeiro...'
+                    : 'Selecione o Item...'}
+                </option>
+                {produtosDisponiveis.map((produto) => (
+                  <option key={produto.id} value={produto.id}>
+                    {produto.nome} (Estoque: {produto.quantidade_estoque})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Quantidade *
+              </label>
+              <input
+                required
+                type="number"
+                min="1"
+                data-testid="movimentacoes-input-quantidade"
+                value={form.quantidade}
+                onChange={(e) => setForm({ ...form, quantidade: e.target.value })}
+                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Ex: 50"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Documento / NF
+              </label>
+              <input
+                type="text"
+                maxLength={50}
+                data-testid="movimentacoes-input-documento"
+                value={form.documento}
+                onChange={(e) => setForm({ ...form, documento: e.target.value })}
+                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Ex: NF-123456"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Observação
+              </label>
+              <input
+                type="text"
+                maxLength={500}
+                data-testid="movimentacoes-input-observacao"
+                value={form.observacao}
+                onChange={(e) => setForm({ ...form, observacao: e.target.value })}
+                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Motivo da movimentação"
+              />
+            </div>
+          </div>
+        </FormularioBase>
+      </Modal>
     </Layout>
   );
 };

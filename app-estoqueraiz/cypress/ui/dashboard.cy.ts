@@ -14,7 +14,6 @@ describe('Dashboard e Controle de Acesso (RBAC)', () => {
     cy.visit('/dashboard');
   };
 
-  // ----------------------------------------------------------------
   context('Proteção de Rotas', () => {
 
     it('Deve redirecionar para /login ao acessar /dashboard sem autenticação', () => {
@@ -38,7 +37,6 @@ describe('Dashboard e Controle de Acesso (RBAC)', () => {
     });
   });
 
-  // ----------------------------------------------------------------
   context('Visibilidade de Módulos por Cargo', () => {
 
     context('Gerente', () => {
@@ -121,7 +119,6 @@ describe('Dashboard e Controle de Acesso (RBAC)', () => {
     });
   });
 
-  // ----------------------------------------------------------------
   context('Navegação pelos Módulos', () => {
 
     it('Gerente deve navegar para /usuarios ao clicar no card', () => {
@@ -149,7 +146,6 @@ describe('Dashboard e Controle de Acesso (RBAC)', () => {
     });
   });
 
-  // ----------------------------------------------------------------
   context('Interface e Responsividade', () => {
 
     it('Deve abrir o Menu Lateral ao clicar no botão hambúrguer', () => {
@@ -188,7 +184,6 @@ describe('Dashboard e Controle de Acesso (RBAC)', () => {
     });
   });
 
-  // ----------------------------------------------------------------
   context('Modal de Perfil', () => {
 
     beforeEach(() => fazerLoginMock('gerente'));

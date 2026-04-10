@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react'; 
 import logoEstoque from '../assets/LogoEstoqueRaiz.png';
 import { usuarioService } from '../services/usuarioService';
+import { CheckCircle } from 'lucide-react';
+import { Modal } from '../components/Modal';
 
 export const Cadastro = () => {
   const navigate = useNavigate();
@@ -13,7 +15,8 @@ export const Cadastro = () => {
   const [mensagem, setMensagem] = useState({ texto: "", cor: "" });
   const [cpf, setCpf] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
-  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false); // Novo estado
+  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
+  const [modalSucessoAberto, setModalSucessoAberto] = useState(false);
 
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +35,8 @@ export const Cadastro = () => {
       });
 
       if (response.status === 201) {
-        setMensagem({ texto: 'Usuário criado com sucesso!', cor: 'green' });
+        setMensagem({ texto: '', cor: '' });
+        setModalSucessoAberto(true);
         setNome(''); setEmail(''); setSenha(''); setConfirmarSenha(''); setCpf('');
       }
     } catch (error: any) {
@@ -209,6 +213,42 @@ export const Cadastro = () => {
           </p>
         </footer>
       </div>
+      <Modal 
+        isOpen={modalSucessoAberto} 
+        onClose={() => {
+          setModalSucessoAberto(false);
+          navigate('/login'); 
+        }} 
+        titulo="Status do Cadastro" 
+        maxWidth="max-w-md"
+      >
+        <div className="flex flex-col items-center justify-center p-8 text-center space-y-4">
+          
+          <div className="relative flex items-center justify-center mb-4 mt-2">
+            <div className="absolute inset-0 rounded-full bg-green-400 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] opacity-20"></div>
+            <div className="relative rounded-full bg-green-100 p-4 shadow-sm" style={{ animation: 'modal-scale-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s', opacity: 0 }}>
+              <CheckCircle className="text-green-600 w-16 h-16" />
+            </div>
+          </div>
+          
+          <h3 className="text-2xl font-bold text-gray-800" style={{ animation: 'modal-fade-in 0.8s ease-out forwards 0.3s', opacity: 0 }}>Conta Criada!</h3>
+          
+          <p className="text-gray-600 text-sm" style={{ animation: 'modal-fade-in 0.8s ease-out forwards 0.4s', opacity: 0 }}>
+            Seu cadastro foi realizado com sucesso. Sua conta está <strong>em análise</strong> e, assim que for aprovada por um gerente, você poderá acessar o sistema.
+          </p>
+          
+          <button
+            onClick={() => {
+              setModalSucessoAberto(false);
+              navigate('/login'); 
+            }}
+            className="mt-6 w-full py-3 bg-raiz-verde text-white font-bold rounded-lg hover:bg-green-700 transition-all shadow-md active:scale-[0.98]"
+            data-testid="btn-ir-para-login"
+          >
+            Ir para o Login
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -1,11 +1,3 @@
-/**
- * Testes da pagina de login - comportamento da interface.
- *
- * Estes testes mockam o backend e focam apenas na UI.
- * Para integracao real com backend + banco, veja:
- * cypress/e2e/auth/login.integration.cy.ts
- */
-
 describe('Pagina de Login - Testes de UI', () => {
   beforeEach(() => {
     cy.visit('/login');

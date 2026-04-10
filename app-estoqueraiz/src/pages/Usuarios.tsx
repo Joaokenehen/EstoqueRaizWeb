@@ -131,7 +131,7 @@ export const Usuarios = () => {
     }
   };
 
-  const handleAprovar = async (id: number) => {
+const handleAprovar = async (id: number) => {
     const cargoSelecionado = cargosSelecionados[id];
     const unidadeSelecionada = unidadesSelecionadas[id];
 
@@ -140,7 +140,8 @@ export const Usuarios = () => {
       return;
     }
     
-    if (!unidadeSelecionada) {
+    // 👇 A MÁGICA VOLTOU AQUI: Se for financeiro, não exige unidade!
+    if (cargoSelecionado !== 'financeiro' && !unidadeSelecionada) {
       alert('Por favor, selecione a UNIDADE (Filial) do usuário antes de aprovar.');
       return;
     }
@@ -148,12 +149,22 @@ export const Usuarios = () => {
     try {
       setProcessandoId(id);
       
+      // Define que o financeiro vai mandar a unidade como null (vazio) pro banco
+      const unidadeParaEnviar = cargoSelecionado === 'financeiro' ? null : Number(unidadeSelecionada);
+
+      // 1. FAZ A APROVAÇÃO (Muda o status no banco de dados)
       await usuarioService.aprovar(id, { 
         cargo: cargoSelecionado, 
-        unidade_id: Number(unidadeSelecionada) 
+        unidade_id: unidadeParaEnviar as any 
+      });
+
+      // 2. O TRUQUE NINJA: Chama o atualizar para limpar o cache
+      await usuarioService.atualizar(id, {
+        cargo: cargoSelecionado as any,
+        unidade_id: unidadeParaEnviar as any
       });
       
-      alert('Usuário aprovado e vinculado à unidade com sucesso!');
+      alert('Usuário aprovado com sucesso!');
     } catch (error) {
       alert('Erro ao aprovar usuário. Verifique sua conexão.');
     } finally {
@@ -183,7 +194,7 @@ export const Usuarios = () => {
     
     const cargoParaEnviar = cargoSelecionado === 'nenhum' ? null : cargoSelecionado;
     
-    const unidadeParaEnviar = (cargoParaEnviar === null || !unidadeSelecionada) 
+    const unidadeParaEnviar = (cargoParaEnviar === null || cargoParaEnviar === 'financeiro' || !unidadeSelecionada) 
       ? null 
       : Number(unidadeSelecionada);
 
@@ -379,13 +390,21 @@ export const Usuarios = () => {
                           </select>
 
                           <select
-                            className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px disabled:opacity-50"
+                            className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px disabled:opacity-50 disabled:bg-gray-100"
                             data-testid={`usuarios-select-unidade-${usuario.id}`}
-                            value={unidadesSelecionadas[usuario.id] || ''}
+                            value={cargosSelecionados[usuario.id] === 'financeiro' ? '' : (unidadesSelecionadas[usuario.id] || '')}
                             onChange={(e) => setUnidadesSelecionadas(prev => ({ ...prev, [usuario.id]: e.target.value }))}
-                            disabled={processandoId === usuario.id || usuario.status === 'rejeitado'}
+                            disabled={
+                              processandoId === usuario.id || 
+                              usuario.status === 'rejeitado' || 
+                              cargosSelecionados[usuario.id] === 'financeiro'
+                            }
                           >
-                            <option value="" disabled>Unidade...</option>
+                            
+                            <option value="" disabled>
+                              {cargosSelecionados[usuario.id] === 'financeiro' ? 'Acesso Global' : 'Unidade...'}
+                            </option>
+                            
                             {unidades.map(u => (
                               <option key={u.id} value={u.id}>{u.nome}</option>
                             ))}

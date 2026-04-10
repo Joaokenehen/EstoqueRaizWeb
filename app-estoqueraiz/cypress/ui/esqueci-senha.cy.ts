@@ -3,7 +3,6 @@ describe('Pagina de Recuperacao de Senha', () => {
     cy.visit('/esqueci-senha');
   });
 
-  // ----------------------------------------------------------------
   context('Solicitação de Código de Recuperação', () => {
 
     it('solicita o codigo e avanca para a segunda etapa', () => {
@@ -38,7 +37,6 @@ describe('Pagina de Recuperacao de Senha', () => {
   });
   });
 
-  // ----------------------------------------------------------------
   context('Validação de Campos', () => {
 
   it('mantem o codigo somente numerico e com no maximo 6 digitos', () => {
@@ -56,7 +54,6 @@ describe('Pagina de Recuperacao de Senha', () => {
   });
   });
 
-  // ----------------------------------------------------------------
   context('Redefinição de Senha', () => {
 
   it('redefine a senha com sucesso e redireciona para o login apos 3 segundos', () => {

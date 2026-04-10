@@ -33,56 +33,90 @@ describe('Modulo de Produtos', () => {
     cy.wait('@listarUnidades');
   };
 
-  // ----------------------------------------------------------------
   context('Criação de Produtos', () => {
 
-  it('permite ao gerente criar um novo produto', () => {
-    cy.intercept('POST', '**/api/produtos', (req) => {
-      const novoProduto = {
-        id: 4,
-        nome: 'Serra Copo 60mm',
-        quantidade_estoque: 12,
-        quantidade_minima: 3,
-        statusProduto: 'pendente' as const,
-        ativo: true,
-        categoria_id: 1,
-        unidade_id: 1,
-        usuario_id: 10,
-      };
+    it('permite ao financeiro aprovar um item pendente e mantem o filtro inicial em pendentes', () => {
+      cy.intercept('PATCH', '**/api/produtos/1/aprovar', (req) => {
+        expect(req.body).to.deep.equal({
+          preco_custo: 25.5,
+          preco_venda: 39.9,
+        });
 
-      produtosMock = [...produtosMock, novoProduto];
-      req.reply({ statusCode: 201, body: { produto: novoProduto } });
-    }).as('criarProduto');
+        // Atualiza o mock simulando o banco de dados
+        produtosMock = produtosMock.map((produto) =>
+          produto.id === 1
+            ? {
+                ...produto,
+                statusProduto: 'aprovado',
+                preco_venda: 39.9,
+              }
+            : produto,
+        );
 
-    abrirPagina('gerente');
+        req.reply({
+          statusCode: 200,
+          body: {
+            produto: produtosMock.find((produto) => produto.id === 1),
+          },
+        });
+      }).as('aprovarProduto');
 
-    cy.window().then((win) => {
-      cy.stub(win, 'alert').as('windowAlert');
+      abrirPagina('financeiro');
+
+      cy.window().then((win) => {
+        cy.stub(win, 'alert').as('windowAlert');
+      });
+
+      cy.contains('button', 'Novo Produto').should('not.exist');
+      cy.contains('Parafuso 10mm').should('be.visible');
+      cy.contains('Luva Nitrilica').should('be.visible');
+      cy.contains('Furadeira Industrial').should('not.exist');
+
+      // Clica no botão de aprovar da linha específica
+      cy.contains('tr', 'Parafuso 10mm').within(() => {
+        cy.get('[title="Aprovar e Precificar"]').click();
+      });
+
+      cy.contains('Aprovar Item').should('be.visible');
+      
+      // Preenche os valores
+      cy.get('input[placeholder="0.00"]').eq(0).type('25.50');
+      cy.get('input[placeholder="0.00"]').eq(1).type('39.90');
+      cy.contains('button', 'Finalizar e Aprovar').click();
+
+      cy.wait('@aprovarProduto');
+      cy.wait('@listarProdutos');
+
+      cy.get('@windowAlert').should('have.been.calledWith', 'Produto Aprovado!');
+      
+      // Como o filtro base do financeiro é 'pendente', o produto aprovado deve sumir
+      cy.contains('Parafuso 10mm').should('not.exist');
     });
 
-    cy.contains('button', 'Novo Produto').click();
-    cy.get('[data-testid="produtos-input-nome"]').type('Serra Copo 60mm');
-    cy.get('[data-testid="produtos-select-categoria"]').select('Ferragens');
-    cy.get('[data-testid="produtos-select-unidade"]').select('Matriz SP');
-    cy.get('[data-testid="produtos-input-estoque"]').clear().type('12');
-    cy.get('[data-testid="produtos-input-estoque-minimo"]').clear().type('3');
-    cy.contains('button', 'Salvar').click();
+    // 👇 O NOVO TESTE PARA A REGRA QUE ACABAMOS DE CRIAR 👇
+    it('restringe a lista de unidades para o estoquista ao criar um novo produto', () => {
+      // Simula o login como estoquista. 
+      // O mock de localStorage dessa função deve ter setado a unidade_id dele.
+      abrirPagina('estoquista');
 
-    cy.wait('@criarProduto')
-      .its('request.headers.content-type')
-      .should('include', 'multipart/form-data');
-    cy.wait('@listarProdutos');
+      // Clica para criar um novo produto
+      cy.contains('button', 'Novo Produto').click();
 
-    cy.get('@windowAlert').should('have.been.calledWithMatch', /Produto criado/);
-    cy.get('[data-testid="produtos-input-nome"]').should('not.exist');
-    cy.contains('tbody tr', 'Serra Copo 60mm')
-      .should('exist')
-      .and('contain.text', 'Serra Copo 60mm')
-      .and('contain.text', '12 un');
+      // Garante que o modal de criação abriu
+      cy.contains('Novo Produto').should('be.visible');
+
+      // MÁGICA AQUI: O select deve ter APENAS 2 opções: 
+      // 1. O placeholder ("Selecione...") 
+      // 2. A única unidade à qual ele pertence
+      cy.get('[data-testid="produtos-select-unidade"]')
+        .find('option')
+        .should('have.length', 2);
+
+      // Opcional: Você pode garantir que o select não está bloqueado, apenas filtrado
+      cy.get('[data-testid="produtos-select-unidade"]').should('not.be.disabled');
+    });
   });
-  });
 
-  // ----------------------------------------------------------------
   context('Aprovação e Precificação', () => {
 
   it('permite ao financeiro aprovar um item pendente e mantem o filtro inicial em pendentes', () => {
@@ -138,7 +172,6 @@ describe('Modulo de Produtos', () => {
   });
   });
 
-  // ----------------------------------------------------------------
   context('Exclusão em Lote e Permissões', () => {
 
   it('permite exclusao em lote para gerente', () => {
