@@ -1,6 +1,5 @@
 import { visitarComSessao } from '../support/testHelpers';
 import { categoriasFixtures, type Categoria } from '../fixtures/categorias';
-import { usuariosTesteSession } from '../fixtures/testData';
 
 describe('Modulo de Categorias', () => {
   let categoriasMock: Categoria[];
