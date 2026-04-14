@@ -1,45 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { Package, BarChart3, Users, Zap, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import logoEstoque from '../assets/LogoEstoqueRaiz.png';
+import { features, benefits } from '../data/landingPageData';
 
 export const LandingPage = () => {
   const navigate = useNavigate();
 
-  const features = [
-    {
-      icon: Package,
-      title: 'Gestão de Produtos',
-      description: 'Controle completo do seu estoque com categorias e organização inteligente'
-    },
-    {
-      icon: BarChart3,
-      title: 'Relatórios Detalhados',
-      description: 'Análises avançadas e insights sobre movimentações de estoque'
-    },
-    {
-      icon: Users,
-      title: 'Gerenciamento de Usuários',
-      description: 'Controle de acesso com diferentes níveis de permissão'
-    },
-    {
-      icon: Zap,
-      title: 'Interface Rápida',
-      description: 'Performance otimizada para melhor produtividade do seu time'
-    }
-  ];
-
-  const benefits = [
-    'Reduz perda de produtos',
-    'Aumenta produtividade',
-    'Melhora controle financeiro',
-    'Facilita tomada de decisão',
-    'Suporta múltiplas unidades',
-    'Rastreabilidade completa'
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-raiz-bege via-white to-raiz-bege">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-white shadow-sm border-b-4 border-raiz-verde">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -68,7 +36,6 @@ export const LandingPage = () => {
         </nav>
       </header>
 
-      {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <h1 className="text-5xl sm:text-6xl font-bold text-raiz-verde mb-6">
           Controle seu Estoque com
@@ -97,7 +64,6 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <h2 className="text-4xl font-bold text-raiz-verde mb-4 text-center">
           Funcionalidades Principais
@@ -129,7 +95,6 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Benefits Section */}
       <section className="bg-raiz-bege py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-raiz-verde mb-4 text-center">
@@ -153,7 +118,6 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <h2 className="text-4xl font-bold text-raiz-verde mb-8">
           Pronto para começar?
@@ -170,7 +134,6 @@ export const LandingPage = () => {
         </button>
       </section>
 
-      {/* Footer */}
       <footer className="bg-raiz-verde text-raiz-bege py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">

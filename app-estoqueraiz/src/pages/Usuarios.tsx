@@ -64,7 +64,7 @@ export const Usuarios = () => {
 
   useEffect(() => {
     setPaginaAtual(1);
-    limparSelecao(); // Limpa a seleção ao trocar de página/filtro
+    limparSelecao();
   }, [buscaTexto, filtroStatus, filtroCargo, itensPorPagina, limparSelecao]);
 
   useEffect(() => {
@@ -140,7 +140,6 @@ const handleAprovar = async (id: number) => {
       return;
     }
     
-    // 👇 A MÁGICA VOLTOU AQUI: Se for financeiro, não exige unidade!
     if (cargoSelecionado !== 'financeiro' && !unidadeSelecionada) {
       alert('Por favor, selecione a UNIDADE (Filial) do usuário antes de aprovar.');
       return;
@@ -149,16 +148,13 @@ const handleAprovar = async (id: number) => {
     try {
       setProcessandoId(id);
       
-      // Define que o financeiro vai mandar a unidade como null (vazio) pro banco
       const unidadeParaEnviar = cargoSelecionado === 'financeiro' ? null : Number(unidadeSelecionada);
 
-      // 1. FAZ A APROVAÇÃO (Muda o status no banco de dados)
       await usuarioService.aprovar(id, { 
         cargo: cargoSelecionado, 
         unidade_id: unidadeParaEnviar as any 
       });
 
-      // 2. O TRUQUE NINJA: Chama o atualizar para limpar o cache
       await usuarioService.atualizar(id, {
         cargo: cargoSelecionado as any,
         unidade_id: unidadeParaEnviar as any
