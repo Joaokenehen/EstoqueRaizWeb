@@ -26,7 +26,7 @@ export const Produtos = () => {
   const podeCriar = isGerente || isEstoquista;
   const podeAprovar = isGerente || isFinanceiro;
   const [buscaTexto, setBuscaTexto] = useState('');
-  const [statusFiltro, setStatusFiltro] = useState(isFinanceiro ? 'pendente' : 'todos'); // Inicia focado no trabalho do cargo
+  const [statusFiltro, setStatusFiltro] = useState(isFinanceiro ? 'pendente' : 'todos');
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [modalAberto, setModalAberto] = useState(false);
@@ -84,7 +84,6 @@ export const Produtos = () => {
   const produtosPaginados = produtosFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
 
   const handleSubmitProduto = async (e: React.FormEvent) => {
-    // O e.preventDefault() já é feito pelo FormularioBase
     setProcessandoAcao(true);
     const formData = new FormData(e.target as HTMLFormElement);
     try {
@@ -178,14 +177,12 @@ export const Produtos = () => {
   const handleAlterarImagem = (e: React.ChangeEvent<HTMLInputElement>) => {
     const arquivo = e.target.files?.[0];
     if (arquivo) {
-      // Validar tipo de arquivo
       if (!arquivo.type.startsWith('image/')) {
         alert('Por favor, selecione apenas arquivos de imagem.');
         e.target.value = '';
         return;
       }
 
-      // Validar tamanho (5MB máximo)
       if (arquivo.size > 5 * 1024 * 1024) {
         alert('A imagem deve ter no máximo 5MB.');
         e.target.value = '';
@@ -202,7 +199,6 @@ export const Produtos = () => {
     }
   };
 
-  // Nova função para abrir o modal controlando a imagem
   const abrirModal = (produto?: Produto) => {
     if (produto) {
       setProdutoAtivo(produto);
@@ -212,7 +208,6 @@ export const Produtos = () => {
         setImagemPreview(null);
       }
     } else {
-      // É um novo produto, limpa a imagem e os dados
       setProdutoAtivo(null);
       setImagemPreview(null);
       if (fileInputRef.current) {
@@ -232,10 +227,9 @@ export const Produtos = () => {
             <p className="text-gray-500 mt-2">Gestão centralizada de itens, preços e aprovações.</p>
           </div>
 
-          {/* Botão Novo Produto no Header */}
           {podeCriar && (
             <button 
-              onClick={() => abrirModal()} // Simplificado, não precisa setar null aqui
+          onClick={() => abrirModal()}
               className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all shadow-md"
             >
               <Plus size={20} /> Novo Produto
@@ -243,7 +237,6 @@ export const Produtos = () => {
           )}
         </header>
 
-        {/* BARRA DE FILTROS COM SELETOR DE STATUS INJETADO NO CHILDREN */}
         <BarraFiltros 
           buscaTexto={buscaTexto} 
           onBuscaChange={setBuscaTexto} 
@@ -251,7 +244,6 @@ export const Produtos = () => {
           itensPorPagina={itensPorPagina}
           onItensPorPaginaChange={setItensPorPagina}
         >
-          {/* Este select entra na prop 'children' da BarraFiltros */}
           <div className="relative md:w-48 shrink-0">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <select
@@ -332,7 +324,6 @@ export const Produtos = () => {
                           title="Clique para ampliar"
                         >
                           <img src={`${api.defaults.baseURL}${prod.imagem_url}`} alt={prod.nome} className="w-14 h-14 rounded-lg object-cover border group-hover:opacity-75 transition-opacity" />
-                          {/* Ícone de zoom que aparece no hover */}
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 rounded-lg text-white">
                             <Plus size={20} />
                           </div>
@@ -400,7 +391,6 @@ export const Produtos = () => {
               </table>
             </div>
 
-            {/* Paginação */}
             <div className="bg-gray-50 px-4 py-3 border-t flex items-center justify-between sm:px-6">
               <p className="text-sm text-gray-700">Mostrando {produtosFiltrados.length} itens - Página {paginaAtual} de {totalPaginas}</p>
               <nav className="inline-flex -space-x-px shadow-sm rounded-md">
@@ -412,7 +402,6 @@ export const Produtos = () => {
         )}
       </div>
 
-      {/* MODAL 1: CRIAR / EDITAR */}
       <Modal 
         isOpen={modalAberto} 
         onClose={() => setModalAberto(false)} 
@@ -487,7 +476,6 @@ export const Produtos = () => {
                   </div>
                 )}
 
-                {/* Input File Real */}
                 <div className="flex-1 w-full space-y-2">
                   <p className="text-xs text-gray-600">Selecione uma imagem (JPG, PNG) de até 5MB.</p>
                   <input 
@@ -505,7 +493,6 @@ export const Produtos = () => {
         </FormularioBase>
       </Modal>
 
-      {/* MODAL 2: APROVAÇÃO */}
       <Modal 
         isOpen={modalAprovacaoAberto && produtoAtivo !== null} 
         onClose={() => setModalAprovacaoAberto(false)} 

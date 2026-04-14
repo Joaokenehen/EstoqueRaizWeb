@@ -75,7 +75,6 @@ export const Cadastro = () => {
 
         <form onSubmit={handleCadastro} className="space-y-4">
 
-          {/* Nome Input */}
           <div>
             <label className="block text-sm font-semibold text-raiz-marrom mb-1">
               Nome Completo
@@ -93,7 +92,6 @@ export const Cadastro = () => {
             <p className="text-[10px] text-right text-gray-400 mt-1">{nome.length}/100</p>
           </div>
 
-          {/* Email Input */}
           <div>
             <label className="block text-sm font-semibold text-raiz-marrom mb-1">
               E-mail
@@ -110,7 +108,6 @@ export const Cadastro = () => {
             />
           </div>
 
-          {/* CPF Input */}
           <div>
             <label className="block text-sm font-semibold text-raiz-marrom mb-1">
               CPF (Apenas números)
@@ -127,7 +124,6 @@ export const Cadastro = () => {
             />
           </div>
 
-          {/* Senha Input */}
           <div>
             <label className="block text-sm font-semibold text-raiz-marrom mb-1">
               Senha
@@ -154,7 +150,6 @@ export const Cadastro = () => {
             </div>
           </div>
 
-          {/* Confirmar Senha Input */}
           <div>
             <label className="block text-sm font-semibold text-raiz-marrom mb-1">
               Confirmar Senha

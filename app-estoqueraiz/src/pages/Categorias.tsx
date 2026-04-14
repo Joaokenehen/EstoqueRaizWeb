@@ -106,7 +106,6 @@ export const Categorias = () => {
       await categoriaService.deletar(id);
       await carregarCategorias();
     } catch (error: any) {
-      // Captura a mensagem do backend ou mostra uma genérica
       alert(error.response?.data?.message || 'Erro ao excluir categoria.');
     }
   };
@@ -131,7 +130,6 @@ export const Categorias = () => {
       limparSelecao();
       await carregarCategorias();
     } catch (error: any) {
-      // Captura a mensagem do backend para o lote também
       alert(error.response?.data?.message || 'Erro ao excluir algumas categorias.');
       await carregarCategorias();
     } finally {
@@ -281,7 +279,6 @@ export const Categorias = () => {
 
       </div>
       
-      {/* Modal de Criação/Edição */}
       <Modal 
         isOpen={modalAberto} 
         onClose={fecharModal} 

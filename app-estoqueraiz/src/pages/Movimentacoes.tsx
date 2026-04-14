@@ -52,7 +52,6 @@ export const Movimentacoes = () => {
 
       setMovimentacoes(Array.isArray(dadosMov) ? dadosMov : []);
 
-      // O estoquista só pode operar com produtos aprovados da própria unidade.
       const produtosAprovados = Array.isArray(dadosProd)
         ? dadosProd.filter((produto) => produto.statusProduto === 'aprovado')
         : [];
@@ -150,7 +149,7 @@ export const Movimentacoes = () => {
   });
 
   const movimentacoesFiltradas = movimentacoes.filter((mov) => {
-  const termo = filtro.toLowerCase(); // <-- Usando o "filtro" aqui
+  const termo = filtro.toLowerCase();
   const docMatches = mov.documento?.toLowerCase().includes(termo) || false;
   const prodMatches = mov.Produto?.nome?.toLowerCase().includes(termo) || false;
   const obsMatches = mov.observacao?.toLowerCase().includes(termo) || false;
@@ -257,7 +256,6 @@ export const Movimentacoes = () => {
         titulo="Nova Movimentação" 
         maxWidth="max-w-2xl"
       >
-        {/* Substituímos a tag <form> pelo nosso novo componente base */}
         <FormularioBase 
           onSubmit={handleSubmit} 
           processando={processando} 

@@ -138,7 +138,6 @@ export const Relatorios = () => {
           <p className="text-gray-500 mt-2">Analise a relevância dos seus produtos baseada no valor total de saídas.</p>
         </header>
 
-        {/* BARRA DE FILTROS DO RELATÓRIO */}
         <form onSubmit={gerarRelatorio} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row items-end gap-4 mb-6">
           <div className="w-full md:w-auto flex-1">
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Data Início</label>
@@ -164,7 +163,6 @@ export const Relatorios = () => {
           <MensagemErro mensagem={erro} />
         )}
 
-        {/* KPIs GERAIS */}
         {!carregando && estatisticas && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
             <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
@@ -186,7 +184,6 @@ export const Relatorios = () => {
           </div>
         )}
 
-        {/* TENDENCIA MENSAL */}
         {!carregando && (
           <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">Tendência mensal de movimentações</h2>
@@ -222,7 +219,6 @@ export const Relatorios = () => {
           </section>
         )}
 
-        {/* RESUMO DA CURVA ABC (Cards) */}
           {!carregando && dados && dados.resumo && dados.resumo.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {dados.resumo.map((res) => (
@@ -235,7 +231,6 @@ export const Relatorios = () => {
           </div>
         )}
 
-        {/* TABELA DE RESULTADOS */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {carregando ? (
             <LoadingSpinner />
@@ -290,7 +285,6 @@ export const Relatorios = () => {
           )}
         </div>
 
-        {/* INSIGHTS AUTOMATICOS */}
         {!carregando && insights.length > 0 && (
           <section className="mt-6 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">Insights para apresentação</h2>
