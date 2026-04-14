@@ -1,0 +1,42 @@
+import { Router } from "express";
+import {
+  listarUsuarios,
+  buscarUsuario,
+  criarUsuario,
+  atualizarUsuario,
+  deletarUsuario,
+  listarPendentes,
+  aprovarUsuario,
+  rejeitarUsuario,
+  alterarCargoUsuario,
+  solicitarRecuperacaoSenha,
+  redefinirSenha
+} from "../controllers/UsuariosController";
+import { autenticacao, apenasGerente } from "../middleware/autenticacao";
+
+const router = Router();
+
+router.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", service: "usuarios" });
+});
+
+router.get("/internal/:id", buscarUsuario);
+router.post("/", criarUsuario);
+router.get("/", autenticacao, listarUsuarios);
+router.get("/pendentes", autenticacao, apenasGerente, listarPendentes);
+router.get("/:id", autenticacao, buscarUsuario);
+router.put("/:id", autenticacao, atualizarUsuario);
+router.delete("/:id", autenticacao, apenasGerente, deletarUsuario);
+router.patch("/:id/aprovar", autenticacao, apenasGerente, aprovarUsuario);
+router.patch("/:id/rejeitar", autenticacao, apenasGerente, rejeitarUsuario);
+router.put(
+  "/:id/alterar-cargo",
+  autenticacao,
+  apenasGerente,
+  alterarCargoUsuario
+);
+router.post("/solicitar-recuperacao-senha", solicitarRecuperacaoSenha);
+router.post("/redefinir-senha", redefinirSenha);
+
+
+export default router;
