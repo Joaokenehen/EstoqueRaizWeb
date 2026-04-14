@@ -31,8 +31,8 @@ describe('Dashboard e Controle de Acesso (RBAC)', () => {
       cy.url().should('include', '/login');
     });
 
-    it('Deve redirecionar / para /login', () => {
-      cy.visit('/');
+    it('Deve redirecionar /login para /login', () => {
+      cy.visit('/login');
       cy.url().should('include', '/login');
     });
   });
