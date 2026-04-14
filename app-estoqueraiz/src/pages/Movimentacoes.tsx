@@ -6,7 +6,6 @@ import {
   FileText,
   Plus,
   Settings,
-  X,
 } from 'lucide-react';
 import { LoadingSpinner } from '../components/Feedbacks';
 import Layout from '../components/Layout';

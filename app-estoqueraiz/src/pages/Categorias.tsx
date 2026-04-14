@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { categoriaService, type Categoria } from '../services/categoriaService';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { Plus, X, Tags } from 'lucide-react';
+import { Plus, Tags } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
 import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
