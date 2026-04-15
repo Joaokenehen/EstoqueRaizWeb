@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
-import LogoAgrologica from "../assets/images/logo.png";
+import LogoAgrologica from "../assets/images/LogoEstoqueRaiz.png";
 import api from "../services/api";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -797,8 +797,8 @@ const estilos = StyleSheet.create({
   },
 
   logoHeader: {
-    width: 60,
-    height: 38,
+    width: 120,
+    height: 120,
     backgroundColor: "transparent",
     shadowColor: "transparent",
     shadowOffset: { width: 0, height: 0 },

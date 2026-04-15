@@ -16,6 +16,7 @@ import Financeiro from "./src/screens/Financeiro";
 import RelatorioCurvaABC from "./src/screens/RelatorioCurvaABC";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "./src/config/toastConfig.jsx";
+import LandingPage from "./src/screens/LandingPage";
 
 const Stack = createNativeStackNavigator();
 
@@ -23,7 +24,12 @@ export default function App() {
   return (
     <>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login">
+        <Stack.Navigator initialRouteName="LandingPage">
+          <Stack.Screen
+            name="LandingPage"
+            component={LandingPage}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="Login"
             component={Login}

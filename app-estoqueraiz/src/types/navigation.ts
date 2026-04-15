@@ -1,4 +1,5 @@
 export type RootStackParamList = {
+  LandingPage: undefined;
   Login: undefined;
   Cadastro: undefined;
   Home: undefined;
