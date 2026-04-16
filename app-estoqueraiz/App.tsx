@@ -2,6 +2,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Cadastro from "./src/screens/Cadastro";
 import Home from "./src/screens/Home";
+import { RootStackParamList } from "./src/types/navigation";
 import Login from "./src/screens/Login";
 import Dashboard from "./src/screens/Dashboard";
 import CadastroProduto from "./src/screens/CadastroProduto";
@@ -19,7 +20,7 @@ import { toastConfig } from "./src/config/toastConfig.jsx";
 import LandingPage from "./src/screens/LandingPage";
 import EsqueciSenha from "./src/screens/EsqueciSenha";
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (

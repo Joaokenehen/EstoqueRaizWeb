@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { NativeStackNavigationProp, NativeStackScreenProps } from "@react-navigation/native-stack";
 import { cpf as cpfValidator } from "cpf-cnpj-validator";
 import { useState } from "react";
 import {
@@ -18,12 +18,9 @@ import Toast from "react-native-toast-message";
 import api from "../services/api";
 import { useAppFonts } from "../hooks/useAppFonts";
 
-export default function Cadastro() {
-  type CadastroScreenProp = NativeStackNavigationProp<
-    RootStackParamList,
-    "Cadastro"
-  >;
-  const navigation = useNavigation<CadastroScreenProp>();
+type Props = NativeStackScreenProps<RootStackParamList, "Cadastro">;
+
+export default function Cadastro({ navigation }: Props) {
   const fontesCarregadas = useAppFonts();
 
   const [nome, setNome] = useState("");
@@ -31,8 +28,14 @@ export default function Cadastro() {
   const [cpfValor, setCpfValor] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const camposPreenchidos = nome && email && cpfValor && senha && confirmarSenha;
 
   async function cadastroUsuario() {
+    let newErrors: { [key: string]: string } = {};
+
     if (senha !== confirmarSenha) {
       Toast.show({
         type: "error",
@@ -41,6 +44,9 @@ export default function Cadastro() {
         position: "top",
         visibilityTime: 3000,
       });
+      newErrors.senha = "As senhas não coincidem";
+      newErrors.confirmarSenha = "As senhas não coincidem";
+      setErrors(newErrors);
       return;
     }
 
@@ -52,6 +58,13 @@ export default function Cadastro() {
         position: "top",
         visibilityTime: 3000,
       });
+      const missingErrors: { [key: string]: string } = {};
+      if (!nome) missingErrors.nome = "Obrigatório";
+      if (!email) missingErrors.email = "Obrigatório";
+      if (!cpfValor) missingErrors.cpf = "Obrigatório";
+      if (!senha) missingErrors.senha = "Obrigatório";
+      if (!confirmarSenha) missingErrors.confirmarSenha = "Obrigatório";
+      setErrors(missingErrors);
       return;
     }
     if (!cpfValidator.isValid(cpfValor)) {
@@ -62,8 +75,12 @@ export default function Cadastro() {
         position: "top",
         visibilityTime: 3000,
       });
+      setErrors({ ...errors, cpf: "CPF inválido" });
       return;
     }
+
+    setLoading(true);
+    setErrors({});
 
     try {
       const resposta = await api.post("/api/usuarios", {
@@ -98,6 +115,8 @@ export default function Cadastro() {
         position: "top",
         visibilityTime: 3000,
       });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -118,86 +137,91 @@ export default function Cadastro() {
         keyboardShouldPersistTaps="handled"
         bounces={false}
       >
-        <View style={styles.header}>
-          <Text style={styles.titulo}>Criar conta</Text>
-          <Text style={styles.subtitulo}>Preencha seus dados para começar</Text>
-        </View>
-
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nome</Text>
-            <Input
-              placeholder="Seu nome completo"
-              placeholderTextColor="#9CA3AF"
-              value={nome}
-              onChangeText={setNome}
-              style={styles.input}
-            />
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Text style={styles.icon}>🌱</Text>
+            <Text style={styles.titulo}>Criar conta</Text>
+            <Text style={styles.subtitulo}>Preencha seus dados para começar</Text>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>E-mail</Text>
-            <Input
-              placeholder="seu@email.com"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-              style={styles.input}
-              autoCapitalize="none"
-            />
-          </View>
+          <View style={styles.card}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Nome</Text>
+              <Input
+                placeholder="Seu nome completo"
+                placeholderTextColor="#9CA3AF"
+                value={nome}
+                onChangeText={setNome}
+                style={[styles.input, !!errors.nome && styles.inputError]}
+              />
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>CPF</Text>
-            <MaskedTextInput
-              mask="999.999.999-99"
-              onChangeText={setCpfValor}
-              value={cpfValor}
-              keyboardType="numeric"
-              style={styles.input}
-              placeholder="000.000.000-00"
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>E-mail</Text>
+              <Input
+                placeholder="seu@email.com"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+                style={[styles.input, !!errors.email && styles.inputError]}
+                autoCapitalize="none"
+              />
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Senha</Text>
-            <Input
-              placeholder="Mínimo 6 caracteres"
-              placeholderTextColor="#9CA3AF"
-              secureTextEntry={true}
-              value={senha}
-              onChangeText={setSenha}
-              style={styles.input}
-              textContentType={Platform.OS === "ios" ? "oneTimeCode" : "none"}
-            />
-          </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>CPF</Text>
+              <MaskedTextInput
+                mask="999.999.999-99"
+                onChangeText={setCpfValor}
+                value={cpfValor}
+                keyboardType="numeric"
+                style={[styles.input, !!errors.cpf && styles.inputError]}
+                placeholder="000.000.000-00"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Confirmar senha</Text>
-            <Input
-              placeholder="Digite a senha novamente"
-              placeholderTextColor="#9CA3AF"
-              secureTextEntry={true}
-              value={confirmarSenha}
-              onChangeText={setConfirmarSenha}
-              style={styles.input}
-            />
-          </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Senha</Text>
+              <Input
+                placeholder="Mínimo 6 caracteres"
+                placeholderTextColor="#9CA3AF"
+                secureTextEntry={true}
+                value={senha}
+                onChangeText={setSenha}
+                style={[styles.input, !!errors.senha && styles.inputError]}
+                textContentType={Platform.OS === "ios" ? "oneTimeCode" : "none"}
+              />
+            </View>
 
-          <TouchableOpacity style={styles.botao} onPress={cadastroUsuario}>
-            <Text style={styles.botaoTexto}>Criar conta</Text>
-          </TouchableOpacity>
-        </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Confirmar senha</Text>
+              <Input
+                placeholder="Digite a senha novamente"
+                placeholderTextColor="#9CA3AF"
+                secureTextEntry={true}
+                value={confirmarSenha}
+                onChangeText={setConfirmarSenha}
+                style={[styles.input, !!errors.confirmarSenha && styles.inputError]}
+              />
+            </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.loginTexto}>
-            Já tem uma conta?{" "}
-            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-              <Text style={styles.loginLink}>Entre aqui</Text>
+            <TouchableOpacity 
+              style={[styles.botao, (!camposPreenchidos || loading) && styles.botaoDesabilitado]} 
+              onPress={cadastroUsuario}
+              activeOpacity={0.8}
+              disabled={!camposPreenchidos || loading}
+            >
+              <Text style={styles.botaoTexto}>{loading ? "Criando..." : "Criar conta"}</Text>
             </TouchableOpacity>
-          </Text>
+          </View>
+          <View style={styles.footer}>
+            <Text style={styles.loginTexto}>
+              Já tem uma conta?{" "}
+              <Text style={styles.loginLink} onPress={() => navigation.navigate("Login")}>Entre aqui</Text>
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -207,22 +231,28 @@ export default function Cadastro() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000ff",
+    backgroundColor: "#FDFCF0", // Cor de fundo bege
   },
   scrollView: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
   },
   scrollContainer: {
     flexGrow: 1,
+    justifyContent: "center",
     paddingHorizontal: 24,
     paddingBottom: 40,
-    backgroundColor: "#FFFFFF",
+  },
+  content: {
+    flex: 1,
+    justifyContent: "center",
   },
   header: {
-    paddingTop: 80,
-    paddingBottom: 48,
     alignItems: "center",
+    marginBottom: 32,
+  },
+  icon: {
+    fontSize: 48,
+    marginBottom: 16,
   },
   titulo: {
     fontSize: 28,
@@ -237,11 +267,18 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     textAlign: "center",
   },
-  form: {
-    flex: 1,
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 5,
   },
   inputGroup: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
@@ -252,7 +289,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 52,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#F3F4F6",
     borderWidth: 1,
     borderColor: "#E5E7EB",
     borderRadius: 12,
@@ -261,13 +298,24 @@ const styles = StyleSheet.create({
     fontFamily: "NunitoSans_400Regular",
     color: "#111827",
   },
+  inputError: {
+    borderColor: "#EF4444",
+  },
   botao: {
-    backgroundColor: "#111827",
+    backgroundColor: "#2D5A27", // Cor da marca
     height: 52,
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 32,
+    marginTop: 16,
+    shadowColor: "#2D5A27",
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  botaoDesabilitado: {
+    backgroundColor: "#9CA3AF",
+    elevation: 0,
   },
   botaoTexto: {
     color: "#FFFFFF",
@@ -276,7 +324,7 @@ const styles = StyleSheet.create({
     fontFamily: "NunitoSans_600SemiBold",
   },
   footer: {
-    paddingVertical: 32,
+    marginTop: 32,
     alignItems: "center",
   },
   loginTexto: {
@@ -285,9 +333,8 @@ const styles = StyleSheet.create({
     color: "#6B7280",
   },
   loginLink: {
-    color: "#111827",
+    color: "#2D5A27", // Cor da marca
     fontWeight: "600",
     fontFamily: "NunitoSans_600SemiBold",
-    top: 5,
   },
 });

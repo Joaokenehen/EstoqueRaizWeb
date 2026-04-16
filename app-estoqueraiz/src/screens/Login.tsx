@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { NativeStackNavigationProp, NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -16,14 +16,18 @@ import { RootStackParamList } from "../types/navigation";
 import api from "../services/api";
 import Toast from "react-native-toast-message";
 
-export default function Login() {
-  type LoginScreenProp = NativeStackNavigationProp<RootStackParamList, "Login">;
-  const navigation = useNavigation<LoginScreenProp>();
+type Props = NativeStackScreenProps<RootStackParamList, "Login">;
+
+export default function Login({ navigation }: Props) {
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState(false);
 
   const handleLogin = async () => {
+    if (!email || !senha) return;
+    setLoading(true);
     try {
       const response = await api.post("/api/auth/login", {
         email,
@@ -39,6 +43,7 @@ export default function Login() {
 
       navigation.navigate("Dashboard");
     } catch (error: any) {
+      setLoginError(true);
       if (error.response) {
         Toast.show({
           type: "error",
@@ -56,6 +61,8 @@ export default function Login() {
           visibilityTime: 4000,
         });
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,59 +79,65 @@ export default function Login() {
         keyboardShouldPersistTaps="handled"
         bounces={false}
       >
-        <View style={styles.header}>
-          <Text style={styles.titulo}>Entrar</Text>
-          <Text style={styles.subtitulo}>Acesse sua conta para continuar</Text>
-        </View>
-
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>E-mail</Text>
-            <Input
-              placeholder="seu@email.com"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-              style={styles.input}
-            />
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Text style={styles.icon}>🌱</Text>
+            <Text style={styles.titulo}>Entrar</Text>
+            <Text style={styles.subtitulo}>Acesse sua conta para continuar</Text>
           </View>
 
-          <View style={styles.inputGroup}>
-            <View style={styles.labelContainer}>
-              <Text style={styles.label}>Senha</Text>
-              <TouchableOpacity onPress={() => navigation.navigate("EsqueciSenha" as any)}>
-                <Text style={styles.esqueciSenhaLink}>Esqueceu a senha?</Text>
-              </TouchableOpacity>
+          <View style={styles.card}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>E-mail</Text>
+              <Input
+                placeholder="seu@email.com"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  setLoginError(false);
+                }}
+                style={[styles.input, loginError && styles.inputError]}
+              />
             </View>
-            <Input
-              placeholder="Sua senha"
-              placeholderTextColor="#9CA3AF"
-              secureTextEntry={true}
-              value={senha}
-              onChangeText={setSenha}
-              style={styles.input}
-              textContentType={Platform.OS === "ios" ? "oneTimeCode" : "none"}
-            />
-          </View>
 
-          <TouchableOpacity
-            style={styles.botao}
-            onPress={() => {
-              handleLogin();
-            }}
-          >
-            <Text style={styles.botaoTexto}>Entrar</Text>
-          </TouchableOpacity>
-        </View>
+            <View style={styles.inputGroup}>
+              <View style={styles.labelContainer}>
+                <Text style={styles.label}>Senha</Text>
+                <TouchableOpacity onPress={() => navigation.navigate("EsqueciSenha" as any)}>
+                  <Text style={styles.esqueciSenhaLink}>Esqueceu a senha?</Text>
+                </TouchableOpacity>
+              </View>
+              <Input
+                placeholder="Sua senha"
+                placeholderTextColor="#9CA3AF"
+                secureTextEntry={true}
+                value={senha}
+                onChangeText={(text) => {
+                  setSenha(text);
+                  setLoginError(false);
+                }}
+                style={[styles.input, loginError && styles.inputError]}
+                textContentType={Platform.OS === "ios" ? "oneTimeCode" : "none"}
+              />
+            </View>
 
-        <View style={styles.footer}>
-          <View style={{ flexDirection: "row" }}>
-            <Text style={styles.loginTexto}>Não tem uma conta? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
-              <Text style={styles.loginLink}>Crie uma aqui</Text>
+            <TouchableOpacity
+              style={[styles.botao, (!email || !senha || loading) && styles.botaoDesabilitado]}
+              onPress={handleLogin}
+              activeOpacity={0.8}
+              disabled={!email || !senha || loading}
+            >
+              <Text style={styles.botaoTexto}>{loading ? "Entrando..." : "Entrar"}</Text>
             </TouchableOpacity>
+          </View>
+          <View style={styles.footer}>
+            <Text style={styles.loginTexto}>
+              Não tem uma conta?{" "}
+              <Text style={styles.loginLink} onPress={() => navigation.navigate("Cadastro" as any)}>Crie uma aqui</Text>
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -135,43 +148,54 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FDFCF0",
   },
   scrollView: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
   },
   scrollContainer: {
     flexGrow: 1,
+    justifyContent: "center",
     paddingHorizontal: 24,
     paddingBottom: 40,
-    backgroundColor: "#FFFFFF",
+  },
+  content: {
+    flex: 1,
+    justifyContent: "center",
   },
   header: {
-    paddingTop: 100,
-    paddingBottom: 48,
     alignItems: "center",
-    marginTop: 30,
+    marginBottom: 32,
+  },
+  icon: {
+    fontSize: 48,
+    marginBottom: 16,
   },
   titulo: {
     fontSize: 28,
     fontWeight: "700",
     fontFamily: "NunitoSans_700Bold",
     color: "#111827",
+    marginBottom: 8,
   },
   subtitulo: {
     fontSize: 15,
     fontFamily: "NunitoSans_400Regular",
-    color: "#044001",
+    color: "#6B7280",
     textAlign: "center",
-    marginBottom: 20,
-    marginTop: 25,
   },
-  form: {
-    flex: 1,
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 5,
   },
   inputGroup: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   labelContainer: {
     flexDirection: "row",
@@ -188,26 +212,37 @@ const styles = StyleSheet.create({
   esqueciSenhaLink: {
     fontSize: 12,
     fontFamily: "NunitoSans_600SemiBold",
-    color: "#044001",
+    color: "#2D5A27",
   },
   input: {
-    height: 50,
-    backgroundColor: "#F9FAFB",
+    height: 52,
+    backgroundColor: "#F3F4F6",
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 15,
+    borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 16,
     fontFamily: "NunitoSans_400Regular",
     color: "#111827",
   },
+  inputError: {
+    borderColor: "#EF4444",
+  },
   botao: {
-    backgroundColor: "#111827",
+    backgroundColor: "#2D5A27",
     height: 52,
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 32,
+    marginTop: 16,
+    shadowColor: "#2D5A27",
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  botaoDesabilitado: {
+    backgroundColor: "#9CA3AF",
+    elevation: 0,
   },
   botaoTexto: {
     color: "#FFFFFF",
@@ -216,9 +251,8 @@ const styles = StyleSheet.create({
     fontFamily: "NunitoSans_600SemiBold",
   },
   footer: {
-    paddingVertical: 32,
+    marginTop: 32,
     alignItems: "center",
-    bottom: 30,
   },
   loginTexto: {
     fontSize: 14,
@@ -226,7 +260,7 @@ const styles = StyleSheet.create({
     color: "#6B7280",
   },
   loginLink: {
-    color: "#111827",
+    color: "#2D5A27", // Cor da marca
     fontWeight: "600",
     fontFamily: "NunitoSans_600SemiBold",
   },

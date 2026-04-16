@@ -10,7 +10,9 @@ export const EsqueciSenha = () => {
   const [email, setEmail] = useState("");
   const [codigo, setCodigo] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState(""); // Novo estado
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false); // Novo olhinho
   const [mensagem, setMensagem] = useState({ texto: "", tipo: "" });
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +23,6 @@ export const EsqueciSenha = () => {
 
     try {
       await usuarioService.solicitarRecuperacaoSenha(email);
-      
       setMensagem({ texto: "Código de verificação enviado para o seu e-mail!", tipo: "sucesso" });
       setEtapa(2);
     } catch (error) {
@@ -33,6 +34,13 @@ export const EsqueciSenha = () => {
 
   const redefinirSenha = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 👇 Nova validação de senhas iguais
+    if (novaSenha !== confirmarSenha) {
+      setMensagem({ texto: "As senhas não coincidem. Verifique e tente novamente.", tipo: "erro" });
+      return;
+    }
+
     setLoading(true);
     setMensagem({ texto: "", tipo: "" });
 
@@ -41,7 +49,7 @@ export const EsqueciSenha = () => {
         email,
         codigoRecuperacao: codigo,
         novaSenha
-      })
+      });
 
       setMensagem({ texto: "Senha redefinida com sucesso! Redirecionando...", tipo: "sucesso" });
       setTimeout(() => navigate('/login'), 3000);
@@ -63,7 +71,6 @@ export const EsqueciSenha = () => {
           onClick={() => navigate('/login')}
           className="absolute top-4 left-4 text-gray-400 hover:text-raiz-verde transition-colors"
           title="Voltar para o Login"
-          data-testid="esqueci-btn-voltar-login"
         >
           <ArrowLeft size={24} />
         </button>
@@ -96,7 +103,6 @@ export const EsqueciSenha = () => {
                   type="email"
                   required
                   maxLength={100}
-                  data-testid="esqueci-input-email"
                   placeholder="exemplo@estoqueraiz.com"
                   className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
                   value={email}
@@ -124,7 +130,6 @@ export const EsqueciSenha = () => {
                   type="text"
                   required
                   maxLength={6}
-                  data-testid="esqueci-input-codigo"
                   placeholder="000000"
                   className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all tracking-[0.2em] font-bold text-center"
                   value={codigo}
@@ -143,7 +148,6 @@ export const EsqueciSenha = () => {
                   type={mostrarSenha ? "text" : "password"}
                   required
                   maxLength={32}
-                  data-testid="esqueci-input-nova-senha"
                   placeholder="••••••••"
                   className="w-full pl-10 pr-12 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
                   value={novaSenha}
@@ -155,6 +159,32 @@ export const EsqueciSenha = () => {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-raiz-verde"
                 >
                   {mostrarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
+
+            {/* 👇 Novo Campo: Confirmar Senha */}
+            <div>
+              <label className="block text-sm font-semibold text-raiz-marrom mb-1">Confirmar Senha</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock size={18} className="text-gray-400" />
+                </div>
+                <input
+                  type={mostrarConfirmarSenha ? "text" : "password"}
+                  required
+                  maxLength={32}
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-12 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-raiz-verde"
+                >
+                  {mostrarConfirmarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
