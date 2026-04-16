@@ -92,7 +92,12 @@ export default function Login() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Senha</Text>
+            <View style={styles.labelContainer}>
+              <Text style={styles.label}>Senha</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("EsqueciSenha" as any)}>
+                <Text style={styles.esqueciSenhaLink}>Esqueceu a senha?</Text>
+              </TouchableOpacity>
+            </View>
             <Input
               placeholder="Sua senha"
               placeholderTextColor="#9CA3AF"
@@ -168,12 +173,22 @@ const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: 24,
   },
+  labelContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
   label: {
     fontSize: 14,
     fontWeight: "600",
     fontFamily: "NunitoSans_600SemiBold",
     color: "#374151",
-    marginBottom: 8,
+  },
+  esqueciSenhaLink: {
+    fontSize: 12,
+    fontFamily: "NunitoSans_600SemiBold",
+    color: "#044001",
   },
   input: {
     height: 50,

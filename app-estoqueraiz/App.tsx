@@ -17,6 +17,7 @@ import RelatorioCurvaABC from "./src/screens/RelatorioCurvaABC";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "./src/config/toastConfig.jsx";
 import LandingPage from "./src/screens/LandingPage";
+import EsqueciSenha from "./src/screens/EsqueciSenha";
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +34,11 @@ export default function App() {
           <Stack.Screen
             name="Login"
             component={Login}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="EsqueciSenha"
+            component={EsqueciSenha}
             options={{ headerShown: false }}
           />
           <Stack.Screen
