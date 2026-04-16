@@ -1,0 +1,18 @@
+export type RootStackParamList = {
+  LandingPage: undefined;
+  Login: undefined;
+  Cadastro: undefined;
+  EsqueciSenha: undefined;
+  Home: undefined;
+  CadastroProduto: { produto?: any } | undefined; // o produto vai ser opcional para edicao
+  CadastroCategoria: undefined;
+  CadastroUnidade: undefined;
+  CadastroMovimentacao: undefined;
+  Dashboard: undefined;
+  ListaProdutos: undefined;
+  MapaUnidades: undefined;
+  Movimentacoes: undefined;
+  UsuariosSistema: undefined;
+  Financeiro: undefined;
+  RelatorioCurvaABC: undefined;
+};
