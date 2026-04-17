@@ -35,7 +35,6 @@ export const EsqueciSenha = () => {
   const redefinirSenha = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 👇 Nova validação de senhas iguais
     if (novaSenha !== confirmarSenha) {
       setMensagem({ texto: "As senhas não coincidem. Verifique e tente novamente.", tipo: "erro" });
       return;
@@ -162,8 +161,7 @@ export const EsqueciSenha = () => {
                 </button>
               </div>
             </div>
-
-            {/* 👇 Novo Campo: Confirmar Senha */}
+            
             <div>
               <label className="block text-sm font-semibold text-raiz-marrom mb-1">Confirmar Senha</label>
               <div className="relative">
