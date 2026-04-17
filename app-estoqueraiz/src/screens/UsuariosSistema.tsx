@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Modal,
+  TextInput,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -53,6 +54,7 @@ export default function UsuariosSistema() {
   const [filtroUnidade, setFiltroUnidade] = useState<number | null>(null);
   const [filtroCargo, setFiltroCargo] = useState<string>("");
   const [filtroStatus, setFiltroStatus] = useState<string>("");
+  const [buscaTexto, setBuscaTexto] = useState("");
 
   const [modalAprovacaoVisivel, setModalAprovacaoVisivel] = useState(false);
   const [usuarioSelecionado, setUsuarioSelecionado] = useState<Usuario | null>(
@@ -115,6 +117,18 @@ export default function UsuariosSistema() {
   const aplicarFiltros = useCallback(() => {
     let filtrados = [...usuarios];
 
+    if (buscaTexto.trim()) {
+      const termo = buscaTexto.toLowerCase();
+      filtrados = filtrados.filter((u) => {
+        const matchNome = u.nome.toLowerCase().includes(termo);
+        const matchEmail = u.email.toLowerCase().includes(termo);
+        const nomeUnidade = u.unidade?.nome || unidades.find(un => un.id === u.unidade_id)?.nome || "";
+        const matchUnidade = nomeUnidade.toLowerCase().includes(termo);
+        const matchCargo = (u.cargo || "").toLowerCase().includes(termo);
+        return matchNome || matchEmail || matchUnidade || matchCargo;
+      });
+    }
+
     if (filtroUnidade) {
       filtrados = filtrados.filter(
         (usuario) => usuario.unidade_id === filtroUnidade
@@ -134,13 +148,14 @@ export default function UsuariosSistema() {
     }
 
     setUsuariosFiltrados(filtrados);
-  }, [usuarios, filtroUnidade, filtroCargo, filtroStatus]);
+  }, [usuarios, filtroUnidade, filtroCargo, filtroStatus, buscaTexto, unidades]);
 
   useEffect(() => {
     aplicarFiltros();
   }, [aplicarFiltros]);
 
   function limparFiltros() {
+    setBuscaTexto("");
     setFiltroUnidade(null);
     setFiltroCargo("");
     setFiltroStatus("");
@@ -212,11 +227,20 @@ export default function UsuariosSistema() {
   }
 
   async function aprovarUsuario() {
-    if (!usuarioSelecionado || !cargoAprovacao || !unidadeAprovacao) {
+    if (!usuarioSelecionado || !cargoAprovacao) {
       Toast.show({
         type: "error",
         text1: "Erro",
-        text2: "Cargo e unidade são obrigatórios",
+        text2: "Cargo é obrigatório",
+      });
+      return;
+    }
+
+    if (cargoAprovacao.id !== "financeiro" && !unidadeAprovacao) {
+      Toast.show({
+        type: "error",
+        text1: "Erro",
+        text2: "Unidade é obrigatória para este cargo",
       });
       return;
     }
@@ -224,7 +248,7 @@ export default function UsuariosSistema() {
     try {
       await api.patch(`/api/usuarios/${usuarioSelecionado.id}/aprovar`, {
         cargo: cargoAprovacao.id,
-        unidade_id: Number(unidadeAprovacao.id),
+        unidade_id: cargoAprovacao.id === "financeiro" ? null : Number(unidadeAprovacao?.id),
       });
 
       Toast.show({
@@ -425,6 +449,22 @@ export default function UsuariosSistema() {
         </View>
       </View>
 
+      <View style={styles.barraPesquisa}>
+        <MaterialIcons name="search" size={20} color="#666" />
+        <TextInput
+          style={styles.inputPesquisa}
+          placeholder="Buscar por nome, email, cargo..."
+          placeholderTextColor="#9CA3AF"
+          value={buscaTexto}
+          onChangeText={setBuscaTexto}
+        />
+        {buscaTexto.length > 0 && (
+          <TouchableOpacity onPress={() => setBuscaTexto("")}>
+            <MaterialIcons name="clear" size={20} color="#666" />
+          </TouchableOpacity>
+        )}
+      </View>
+
       <ScrollView style={styles.listaContainer}>
         {usuariosFiltrados.length === 0 ? (
           <View style={styles.vazio}>
@@ -439,7 +479,7 @@ export default function UsuariosSistema() {
                   <Text style={styles.usuarioNome}>{usuario.nome}</Text>
                   <Text style={styles.usuarioEmail}>{usuario.email}</Text>
                   <Text style={styles.usuarioUnidade}>
-                    Unidade: {usuario.unidade?.nome || "Não definida"}
+                    Unidade: {usuario.unidade?.nome || unidades.find(un => un.id === usuario.unidade_id)?.nome || "Não definida"}
                   </Text>
                   <View style={styles.cargoContainer}>
                     <Text style={styles.usuarioCargo}>
@@ -538,21 +578,23 @@ export default function UsuariosSistema() {
                     />
                   </View>
 
-                  <View style={styles.modalCampo}>
-                    <Text style={styles.modalLabel}>Unidade:</Text>
-                    <Seletor
-                      rotulo=""
-                      valor={unidadeAprovacao}
-                      aoMudarValor={(valor) =>
-                        setUnidadeAprovacao(valor as any)
-                      }
-                      placeholder="Selecione a unidade"
-                      opcoes={unidades.map((unidade) => ({
-                        id: unidade.id.toString(),
-                        nome: unidade.nome,
-                      }))}
-                    />
-                  </View>
+                  {cargoAprovacao?.id !== "financeiro" && (
+                    <View style={styles.modalCampo}>
+                      <Text style={styles.modalLabel}>Unidade:</Text>
+                      <Seletor
+                        rotulo=""
+                        valor={unidadeAprovacao}
+                        aoMudarValor={(valor) =>
+                          setUnidadeAprovacao(valor as any)
+                        }
+                        placeholder="Selecione a unidade"
+                        opcoes={unidades.map((unidade) => ({
+                          id: unidade.id.toString(),
+                          nome: unidade.nome,
+                        }))}
+                      />
+                    </View>
+                  )}
 
                   <View style={styles.modalBotoes}>
                     <TouchableOpacity
@@ -571,7 +613,7 @@ export default function UsuariosSistema() {
                     <TouchableOpacity
                       style={[styles.modalBotao, styles.modalBotaoAprovar]}
                       onPress={() => aprovarUsuario()}
-                      disabled={!cargoAprovacao || !unidadeAprovacao}
+                      disabled={!cargoAprovacao || (cargoAprovacao.id !== "financeiro" && !unidadeAprovacao)}
                     >
                       <Text style={styles.modalBotaoTextoAprovar}>Aprovar</Text>
                     </TouchableOpacity>
@@ -688,6 +730,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8fafc",
+  },
+  barraPesquisa: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  inputPesquisa: {
+    flex: 1,
+    fontSize: 15,
+    color: "#050505",
+    marginLeft: 12,
+    paddingVertical: 0,
   },
   filtrosContainer: {
     backgroundColor: "#fff",

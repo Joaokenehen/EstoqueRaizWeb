@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Linking,
   Platform,
+  TextInput,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -38,6 +39,7 @@ export default function MapaUnidades() {
   const [carregando, setCarregando] = useState(true);
   const [processandoToque, setProcessandoToque] = useState<number | null>(null);
   const [ehGerente, setEhGerente] = useState(false);
+  const [termoPesquisa, setTermoPesquisa] = useState("");
 
   const verificarCargoUsuario = React.useCallback(async () => {
     try {
@@ -72,6 +74,19 @@ export default function MapaUnidades() {
     verificarCargoUsuario();
     carregarUnidades();
   }, [verificarCargoUsuario, carregarUnidades]);
+
+  const unidadesFiltradas = React.useMemo(() => {
+    if (!termoPesquisa) return unidades;
+    const termoLower = termoPesquisa.toLowerCase();
+    return unidades.filter(
+      (u) =>
+        u.nome.toLowerCase().includes(termoLower) ||
+        u.cidade.toLowerCase().includes(termoLower) ||
+        u.rua.toLowerCase().includes(termoLower) ||
+        u.bairro.toLowerCase().includes(termoLower) ||
+        u.cep.toLowerCase().includes(termoLower)
+    );
+  }, [unidades, termoPesquisa]);
 
   const abrirNoMapa = React.useCallback(
     async (unidade: Unidade) => {
@@ -132,7 +147,7 @@ export default function MapaUnidades() {
               <Text style={styles.subtitulo}>
                 {carregando
                   ? "Carregando unidades..."
-                  : `${unidades.length} unidades encontradas`}
+                  : `${unidadesFiltradas.length} unidades encontradas`}
               </Text>
             </View>
           </View>
@@ -152,15 +167,36 @@ export default function MapaUnidades() {
         </View>
       </View>
 
+      <View style={styles.barraPesquisa}>
+        <MaterialIcons name="search" size={20} color="#666" />
+        <TextInput
+          style={styles.inputPesquisa}
+          placeholder="Buscar por nome, endereço, CEP..."
+          placeholderTextColor="#999"
+          value={termoPesquisa}
+          onChangeText={setTermoPesquisa}
+        />
+        {termoPesquisa.length > 0 && (
+          <TouchableOpacity onPress={() => setTermoPesquisa("")}>
+            <MaterialIcons name="clear" size={20} color="#666" />
+          </TouchableOpacity>
+        )}
+      </View>
+
       {carregando ? (
         <ActivityIndicator
           size="large"
           color="#059669"
           style={styles.loading}
         />
+      ) : unidadesFiltradas.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <MaterialIcons name="business" size={64} color="#ccc" />
+          <Text style={styles.emptyText}>Nenhuma unidade encontrada.</Text>
+        </View>
       ) : (
         <ScrollView style={styles.lista}>
-          {unidades.map((unidade) => (
+          {unidadesFiltradas.map((unidade) => (
             <TouchableOpacity
               key={unidade.id}
               style={[
@@ -331,5 +367,29 @@ const styles = StyleSheet.create({
   },
   unidadeItemDesabilitado: {
     opacity: 0.5,
+  },
+  barraPesquisa: {
+    backgroundColor: "#fff",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  inputPesquisa: {
+    flex: 1,
+    fontSize: 15,
+    color: "#050505",
+    marginLeft: 12,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    padding: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#666",
+    marginTop: 16,
   },
 });

@@ -472,7 +472,7 @@ export default function CadastroProduto() {
       const isEdicao = !!produtoParaEditar;
 
       if (isEdicao) {
-        resposta = await api.patch(
+        resposta = await api.put(
           `/api/produtos/${produtoParaEditar.id}`,
           dados
         );

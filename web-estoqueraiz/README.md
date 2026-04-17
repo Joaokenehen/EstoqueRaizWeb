@@ -1,73 +1,152 @@
-# React + TypeScript + Vite
+# Estoque Raiz Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Painel administrativo do Estoque Raiz para operacao diaria no navegador. O projeto concentra autenticacao, consulta de indicadores, manutencao de cadastro e execucao dos fluxos administrativos por cargo.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React 19
+- Vite 7
+- TypeScript
+- React Router 7
+- Tailwind CSS 4
+- Axios
+- Cypress
 
-## React Compiler
+## O que esta implementado
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Landing page publica
+- Login, cadastro e recuperacao de senha
+- Dashboard protegido por autenticacao
+- Gestao de usuarios e aprovacoes de conta
+- Gestao de unidades e categorias
+- Gestao de produtos com upload de imagem
+- Registro de movimentacoes
+- Relatorios de Curva ABC e estatisticas gerais
+- Testes E2E e UI com Cypress
 
-## Expanding the ESLint configuration
+## Rotas da aplicacao
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Rota | Acesso | Finalidade |
+| --- | --- | --- |
+| `/` | Publico | Landing page |
+| `/login` | Publico | Autenticacao |
+| `/cadastro` | Publico | Criacao de conta |
+| `/esqueci-senha` | Publico | Recuperacao de senha |
+| `/dashboard` | Autenticado | Visao geral do sistema |
+| `/usuarios` | `gerente` | Aprovar contas, alterar cargo, excluir usuario |
+| `/unidades` | `gerente` | CRUD de unidades |
+| `/categorias` | `gerente`, `estoquista` | CRUD de categorias |
+| `/produtos` | `gerente`, `estoquista`, `financeiro` | Cadastro, aprovacao e manutencao de produtos |
+| `/movimentacoes` | `gerente`, `estoquista` | Registro e consulta de movimentacoes |
+| `/relatorios` | `gerente`, `financeiro` | Curva ABC e estatisticas |
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+As restricoes acima sao aplicadas pelo `ProtectedRoute` com base no usuario salvo em `localStorage`.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Integracao com a API
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+O frontend usa o arquivo `src/services/api.ts` para centralizar chamadas HTTP.
+
+- `Authorization: Bearer <token>` e injetado automaticamente quando existe token salvo.
+- Em respostas `401`, o token e removido do `localStorage`.
+- A URL base e lida de `VITE_API_URL`; se a variavel nao estiver definida, o fallback e `http://localhost:8081`.
+- Os dados de sessao sao gravados nas chaves `@EstoqueRaiz:token` e `@EstoqueRaiz:usuario`.
+
+Servicos de integracao disponiveis em `src/services/`:
+
+- `authService.ts`
+- `usuarioService.ts`
+- `unidadeService.ts`
+- `categoriaService.ts`
+- `produtoService.ts`
+- `movimentacaoService.ts`
+- `relatorioService.ts`
+
+## Estrutura relevante
+
+```text
+web-estoqueraiz/
+├─ src/
+│  ├─ components/   # layout, modais, protecao de rota e UI reutilizavel
+│  ├─ data/         # modulos, landing page e constantes de navegacao
+│  ├─ pages/        # telas principais
+│  ├─ services/     # camada HTTP
+│  └─ styles/       # estilos globais
+├─ cypress/
+│  ├─ e2e/          # fluxos E2E
+│  ├─ ui/           # cenarios por modulo
+│  ├─ fixtures/     # massa de teste
+│  └─ support/      # comandos e helpers
+└─ vite.config.ts
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Como rodar
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Pre-requisitos
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Node.js LTS
+- npm ou yarn
+- Gateway da API disponivel em `http://localhost:8081` ou outra URL configurada
+
+### Instalacao
+
+```bash
+cd web-estoqueraiz
+npm install
 ```
+
+### Configuracao opcional
+
+Crie um `.env` na raiz de `web-estoqueraiz` se quiser sobrescrever a URL padrao da API:
+
+```env
+VITE_API_URL=http://localhost:8081
+```
+
+### Desenvolvimento
+
+```bash
+npm run dev
+```
+
+### Build de producao
+
+```bash
+npm run build
+```
+
+### Preview local do build
+
+```bash
+npm run preview
+```
+
+### Lint
+
+```bash
+npm run lint
+```
+
+## Testes
+
+Configuracao principal em `cypress.config.ts`.
+
+- Base URL do app em testes: `http://localhost:5173`
+- Base URL da API em testes: `http://localhost:8081/api`
+
+Para executar os testes manualmente:
+
+```bash
+npx cypress open
+```
+
+Ou em modo headless:
+
+```bash
+npx cypress run
+```
+
+## Observacoes verificadas no codigo
+
+- O acesso por cargo e protegido no cliente via `ProtectedRoute`.
+- O modulo de produtos envia `FormData` para upload de imagem.
+- Recuperacao de senha e atualizacao de usuario/produto consomem a mesma API do backend, sem camada BFF adicional.

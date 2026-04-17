@@ -110,6 +110,7 @@ export default function Movimentacoes() {
           limit: ITENS_POR_PAGINA,
           search: termoPesquisaDebounced.trim() || undefined,
           produto_id: produtoSelecionado?.id || undefined,
+          usuario_id: usuarioSelecionado?.id || undefined,
           tipo: tipoSelecionado || undefined,
           unidade_id: unidadeSelecionada?.id || undefined,
         };

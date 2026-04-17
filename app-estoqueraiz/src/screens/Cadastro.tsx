@@ -17,6 +17,7 @@ import { RootStackParamList } from "../types/navigation";
 import Toast from "react-native-toast-message";
 import api from "../services/api";
 import { useAppFonts } from "../hooks/useAppFonts";
+import { Eye, EyeOff } from "lucide-react-native";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Cadastro">;
 
@@ -30,6 +31,8 @@ export default function Cadastro({ navigation }: Props) {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
 
   const camposPreenchidos = nome && email && cpfValor && senha && confirmarSenha;
 
@@ -184,27 +187,37 @@ export default function Cadastro({ navigation }: Props) {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Senha</Text>
-              <Input
-                placeholder="Mínimo 6 caracteres"
-                placeholderTextColor="#9CA3AF"
-                secureTextEntry={true}
-                value={senha}
-                onChangeText={setSenha}
-                style={[styles.input, !!errors.senha && styles.inputError]}
-                textContentType={Platform.OS === "ios" ? "oneTimeCode" : "none"}
-              />
+              <View style={styles.inputContainer}>
+                <Input
+                  placeholder="Mínimo 6 caracteres"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={!mostrarSenha}
+                  value={senha}
+                  onChangeText={setSenha}
+                  style={[styles.input, !!errors.senha && styles.inputError, styles.inputWithIcon]}
+                  textContentType={Platform.OS === "ios" ? "oneTimeCode" : "none"}
+                />
+                <TouchableOpacity style={styles.iconButton} onPress={() => setMostrarSenha(!mostrarSenha)}>
+                  {mostrarSenha ? <EyeOff size={20} color="#9CA3AF" /> : <Eye size={20} color="#9CA3AF" />}
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Confirmar senha</Text>
-              <Input
-                placeholder="Digite a senha novamente"
-                placeholderTextColor="#9CA3AF"
-                secureTextEntry={true}
-                value={confirmarSenha}
-                onChangeText={setConfirmarSenha}
-                style={[styles.input, !!errors.confirmarSenha && styles.inputError]}
-              />
+              <View style={styles.inputContainer}>
+                <Input
+                  placeholder="Digite a senha novamente"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={!mostrarConfirmarSenha}
+                  value={confirmarSenha}
+                  onChangeText={setConfirmarSenha}
+                  style={[styles.input, !!errors.confirmarSenha && styles.inputError, styles.inputWithIcon]}
+                />
+                <TouchableOpacity style={styles.iconButton} onPress={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}>
+                  {mostrarConfirmarSenha ? <EyeOff size={20} color="#9CA3AF" /> : <Eye size={20} color="#9CA3AF" />}
+                </TouchableOpacity>
+              </View>
             </View>
 
             <TouchableOpacity 
@@ -280,6 +293,10 @@ const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: 20,
   },
+  inputContainer: {
+    position: "relative",
+    justifyContent: "center",
+  },
   label: {
     fontSize: 14,
     fontWeight: "600",
@@ -298,8 +315,15 @@ const styles = StyleSheet.create({
     fontFamily: "NunitoSans_400Regular",
     color: "#111827",
   },
+  inputWithIcon: {
+    paddingRight: 45,
+  },
   inputError: {
     borderColor: "#EF4444",
+  },
+  iconButton: {
+    position: "absolute",
+    right: 15,
   },
   botao: {
     backgroundColor: "#2D5A27", // Cor da marca

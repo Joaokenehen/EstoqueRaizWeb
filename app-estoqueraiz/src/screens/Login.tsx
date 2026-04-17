@@ -15,6 +15,7 @@ import { Input } from "../components/Input";
 import { RootStackParamList } from "../types/navigation";
 import api from "../services/api";
 import Toast from "react-native-toast-message";
+import { Eye, EyeOff } from "lucide-react-native";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -24,6 +25,7 @@ export default function Login({ navigation }: Props) {
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !senha) return;
@@ -110,18 +112,23 @@ export default function Login({ navigation }: Props) {
                   <Text style={styles.esqueciSenhaLink}>Esqueceu a senha?</Text>
                 </TouchableOpacity>
               </View>
-              <Input
-                placeholder="Sua senha"
-                placeholderTextColor="#9CA3AF"
-                secureTextEntry={true}
-                value={senha}
-                onChangeText={(text) => {
-                  setSenha(text);
-                  setLoginError(false);
-                }}
-                style={[styles.input, loginError && styles.inputError]}
-                textContentType={Platform.OS === "ios" ? "oneTimeCode" : "none"}
-              />
+              <View style={styles.inputContainer}>
+                <Input
+                  placeholder="Sua senha"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={!mostrarSenha}
+                  value={senha}
+                  onChangeText={(text) => {
+                    setSenha(text);
+                    setLoginError(false);
+                  }}
+                  style={[styles.input, loginError && styles.inputError, styles.inputWithIcon]}
+                  textContentType={Platform.OS === "ios" ? "oneTimeCode" : "none"}
+                />
+                <TouchableOpacity style={styles.iconButton} onPress={() => setMostrarSenha(!mostrarSenha)}>
+                  {mostrarSenha ? <EyeOff size={20} color="#9CA3AF" /> : <Eye size={20} color="#9CA3AF" />}
+                </TouchableOpacity>
+              </View>
             </View>
 
             <TouchableOpacity
@@ -197,6 +204,10 @@ const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: 20,
   },
+  inputContainer: {
+    position: "relative",
+    justifyContent: "center",
+  },
   labelContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -225,8 +236,15 @@ const styles = StyleSheet.create({
     fontFamily: "NunitoSans_400Regular",
     color: "#111827",
   },
+  inputWithIcon: {
+    paddingRight: 45,
+  },
   inputError: {
     borderColor: "#EF4444",
+  },
+  iconButton: {
+    position: "absolute",
+    right: 15,
   },
   botao: {
     backgroundColor: "#2D5A27",

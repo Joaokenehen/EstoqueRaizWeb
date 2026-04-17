@@ -83,6 +83,7 @@ export const getMovimentacoesPaginadas = async (params?: {
   limit?: number;
   search?: string;
   produto_id?: number;
+  usuario_id?: number;
   tipo?: string;
   unidade_id?: number;
   data_inicio?: string;
@@ -118,7 +119,18 @@ export const getMovimentacoesPaginadas = async (params?: {
     // Filtro por unidade
     if (params?.unidade_id) {
       movimentacoesFiltradas = movimentacoesFiltradas.filter(
-        (m: any) => m.unidade_id === params.unidade_id
+        (m: any) =>
+          m.unidade_origem_id === params.unidade_id ||
+          m.unidade_destino_id === params.unidade_id
+      );
+    }
+
+    // Filtro por usuário
+    if (params?.usuario_id) {
+      movimentacoesFiltradas = movimentacoesFiltradas.filter(
+        (m: any) =>
+          m.usuario_id === params.usuario_id ||
+          m.usuario?.id === params.usuario_id
       );
     }
 
@@ -244,7 +256,7 @@ export const getProdutosPaginados = async (params?: {
     produtosFiltrados = produtosFiltrados.filter(
       (p: any) =>
         p.quantidade_estoque > 0 &&
-        p.quantidade_estoque <= (p.estoque_minimo || 10)
+        p.quantidade_estoque <= (p.quantidade_minima || 10)
     );
   } else if (params?.filtro_estoque === "zerado") {
     produtosFiltrados = produtosFiltrados.filter(

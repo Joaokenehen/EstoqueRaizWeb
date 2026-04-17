@@ -20,6 +20,7 @@ import Header from "../components/Header";
 import { ModalConfirmacao } from "../components/ModalConfirmacao";
 import api, { getProdutosPaginados } from "../services/api";
 import Toast from "react-native-toast-message";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type ListaProdutosScreenProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -58,6 +59,7 @@ export default function ListaProdutos() {
   const [modalExclusaoVisivel, setModalExclusaoVisivel] = useState(false);
   const [produtoParaExcluir, setProdutoParaExcluir] = useState<any>(null);
   const [carregandoExclusao, setCarregandoExclusao] = useState(false);
+  const [cargoUsuario, setCargoUsuario] = useState<string>("");
 
   const carregarProdutos = useCallback(
     async (
@@ -138,6 +140,9 @@ export default function ListaProdutos() {
   const carregarDadosIniciais = useCallback(async () => {
     try {
       setCarregando(true);
+
+      const cargo = await AsyncStorage.getItem("cargo");
+      setCargoUsuario(cargo || "");
 
       const [responseCategorias, responseUnidades] = await Promise.all([
         api.get("/api/categorias"),
@@ -261,25 +266,29 @@ export default function ListaProdutos() {
           )}
         </View>
 
-        <View style={estilos.acoesProduto}>
-          <TouchableOpacity
-            style={estilos.botaoEditar}
-            onPress={() => editarProduto(produto)}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="edit" size={18} color="#2196F3" />
-            <Text style={estilos.textoBotaoEditar}>Editar</Text>
-          </TouchableOpacity>
+        {cargoUsuario !== "financeiro" && (
+          <View style={estilos.acoesProduto}>
+            <TouchableOpacity
+              style={estilos.botaoEditar}
+              onPress={() => editarProduto(produto)}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="edit" size={18} color="#2196F3" />
+              <Text style={estilos.textoBotaoEditar}>Editar</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={estilos.botaoDeletar}
-            onPress={() => confirmarExclusao(produto)}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="delete" size={18} color="#F44336" />
-            <Text style={estilos.textoBotaoDeletar}>Excluir</Text>
-          </TouchableOpacity>
-        </View>
+            {cargoUsuario === "gerente" && (
+              <TouchableOpacity
+                style={estilos.botaoDeletar}
+                onPress={() => confirmarExclusao(produto)}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name="delete" size={18} color="#F44336" />
+                <Text style={estilos.textoBotaoDeletar}>Excluir</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
     );
   };
