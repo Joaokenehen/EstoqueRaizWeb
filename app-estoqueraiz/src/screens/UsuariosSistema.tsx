@@ -227,11 +227,20 @@ export default function UsuariosSistema() {
   }
 
   async function aprovarUsuario() {
-    if (!usuarioSelecionado || !cargoAprovacao || !unidadeAprovacao) {
+    if (!usuarioSelecionado || !cargoAprovacao) {
       Toast.show({
         type: "error",
         text1: "Erro",
-        text2: "Cargo e unidade são obrigatórios",
+        text2: "Cargo é obrigatório",
+      });
+      return;
+    }
+
+    if (cargoAprovacao.id !== "financeiro" && !unidadeAprovacao) {
+      Toast.show({
+        type: "error",
+        text1: "Erro",
+        text2: "Unidade é obrigatória para este cargo",
       });
       return;
     }
@@ -239,7 +248,7 @@ export default function UsuariosSistema() {
     try {
       await api.patch(`/api/usuarios/${usuarioSelecionado.id}/aprovar`, {
         cargo: cargoAprovacao.id,
-        unidade_id: Number(unidadeAprovacao.id),
+        unidade_id: cargoAprovacao.id === "financeiro" ? null : Number(unidadeAprovacao?.id),
       });
 
       Toast.show({
@@ -569,21 +578,23 @@ export default function UsuariosSistema() {
                     />
                   </View>
 
-                  <View style={styles.modalCampo}>
-                    <Text style={styles.modalLabel}>Unidade:</Text>
-                    <Seletor
-                      rotulo=""
-                      valor={unidadeAprovacao}
-                      aoMudarValor={(valor) =>
-                        setUnidadeAprovacao(valor as any)
-                      }
-                      placeholder="Selecione a unidade"
-                      opcoes={unidades.map((unidade) => ({
-                        id: unidade.id.toString(),
-                        nome: unidade.nome,
-                      }))}
-                    />
-                  </View>
+                  {cargoAprovacao?.id !== "financeiro" && (
+                    <View style={styles.modalCampo}>
+                      <Text style={styles.modalLabel}>Unidade:</Text>
+                      <Seletor
+                        rotulo=""
+                        valor={unidadeAprovacao}
+                        aoMudarValor={(valor) =>
+                          setUnidadeAprovacao(valor as any)
+                        }
+                        placeholder="Selecione a unidade"
+                        opcoes={unidades.map((unidade) => ({
+                          id: unidade.id.toString(),
+                          nome: unidade.nome,
+                        }))}
+                      />
+                    </View>
+                  )}
 
                   <View style={styles.modalBotoes}>
                     <TouchableOpacity
@@ -602,7 +613,7 @@ export default function UsuariosSistema() {
                     <TouchableOpacity
                       style={[styles.modalBotao, styles.modalBotaoAprovar]}
                       onPress={() => aprovarUsuario()}
-                      disabled={!cargoAprovacao || !unidadeAprovacao}
+                      disabled={!cargoAprovacao || (cargoAprovacao.id !== "financeiro" && !unidadeAprovacao)}
                     >
                       <Text style={styles.modalBotaoTextoAprovar}>Aprovar</Text>
                     </TouchableOpacity>

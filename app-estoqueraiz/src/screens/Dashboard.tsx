@@ -92,7 +92,7 @@ export default function PainelControle() {
       setCargoUsuario(cargo ? formatarCargo(cargo) : "Usuário");
       setCargoOriginal(cargo || "");
 
-      const podeAcessarTodas = cargo === "gerente";
+      const podeAcessarTodas = cargo === "gerente" || cargo === "financeiro";
       setPodeAcessarTodasUnidades(podeAcessarTodas);
 
       if (nome) {
@@ -135,7 +135,9 @@ export default function PainelControle() {
       if (unidadeSelecionada) {
         await carregarDadosUnidade(unidadeSelecionada.id);
       } else {
-        if (unidadeUsuario) {
+        if (podeAcessarTodasUnidades) {
+          await carregarDadosUnidade();
+        } else if (unidadeUsuario) {
           setUnidadeSelecionada(unidadeUsuario);
           await carregarDadosUnidade(unidadeUsuario.id);
         }
@@ -147,12 +149,13 @@ export default function PainelControle() {
     }
   }
 
-  async function carregarDadosUnidade(unidadeId: number) {
+  async function carregarDadosUnidade(unidadeId?: number) {
     try {
       setCarregandoDados(true);
+      const paramUnidade = unidadeId ? `unidade_id=${unidadeId}` : "";
 
       const responseProdutos = await api.get(
-        `/api/produtos?unidade_id=${unidadeId}`
+        `/api/produtos${paramUnidade ? '?' + paramUnidade : ''}`
       );
       const produtos = Array.isArray(responseProdutos.data)
         ? responseProdutos.data.filter(
@@ -176,13 +179,13 @@ export default function PainelControle() {
           (produto: any) =>
             produto.quantidade_estoque > 0 &&
             produto.quantidade_estoque < produto.quantidade_minima &&
-            produto.unidade_id === unidadeId
+            (!unidadeId || produto.unidade_id === unidadeId)
         )
         .slice(0, 3);
       setProdutosEstoqueBaixo(produtosBaixoUnidade);
 
       const responseMovimentacoes = await api.get(
-        `/api/movimentacoes?unidade_id=${unidadeId}&limit=3`
+        `/api/movimentacoes?limit=3${paramUnidade ? '&' + paramUnidade : ''}`
       );
       const movimentacoes = Array.isArray(responseMovimentacoes.data)
         ? responseMovimentacoes.data.slice(0, 3)
@@ -712,13 +715,15 @@ export default function PainelControle() {
             <MaterialIcons name="inventory" size={36} color="#3b82f6" />
             <Text style={estilos.textoNavegacaoRapida}>Lista de Produtos</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={estilos.itemNavegacaoRapida}
-            onPress={() => navegacao.navigate("CadastroProduto")}
-          >
-            <MaterialIcons name="add-box" size={36} color="#059669" />
-            <Text style={estilos.textoNavegacaoRapida}>Novo Produto</Text>
-          </TouchableOpacity>
+          {cargoOriginal !== "financeiro" && (
+            <TouchableOpacity
+              style={estilos.itemNavegacaoRapida}
+              onPress={() => navegacao.navigate("CadastroProduto")}
+            >
+              <MaterialIcons name="add-box" size={36} color="#059669" />
+              <Text style={estilos.textoNavegacaoRapida}>Novo Produto</Text>
+            </TouchableOpacity>
+          )}
           {cargoOriginal === "gerente" && (
             <TouchableOpacity
               style={estilos.itemNavegacaoRapida}
