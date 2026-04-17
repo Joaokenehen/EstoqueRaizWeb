@@ -4,8 +4,8 @@ import { categoriaService, type Categoria } from '../services/categoriaService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { api } from '../services/api';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { Plus, X,DollarSign, Image as ImageIcon, Filter } from 'lucide-react';
-import { BotaoAprovar, BotaoRejeitar, BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
+import { Plus, X, Image as ImageIcon, Filter } from 'lucide-react';
+import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
 import { LoadingSpinner } from '../components/Feedbacks';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
 import { useSelecaoLote } from '../hooks/useSelecaoLote';
@@ -22,19 +22,15 @@ export const Produtos = () => {
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
   const isGerente = usuarioLogado?.cargo === 'gerente';
   const isEstoquista = usuarioLogado?.cargo === 'estoquista';
-  const isFinanceiro = usuarioLogado?.cargo === 'financeiro';
   const podeCriar = isGerente || isEstoquista;
-  const podeAprovar = isGerente || isFinanceiro;
   const [buscaTexto, setBuscaTexto] = useState('');
-  const [statusFiltro, setStatusFiltro] = useState(isFinanceiro ? 'pendente' : 'todos');
+  const [statusFiltro, setStatusFiltro] = useState('todos');
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [modalAberto, setModalAberto] = useState(false);
-  const [modalAprovacaoAberto, setModalAprovacaoAberto] = useState(false);
   const [produtoAtivo, setProdutoAtivo] = useState<Produto | null>(null);
   const [processandoAcao, setProcessandoAcao] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [precosAprovacao, setPrecosAprovacao] = useState({ preco_custo: '', preco_venda: '' });
   const [imagemPreview, setImagemPreview] = useState<string | null>(null);
   const [produtoZoom, setProdutoZoom] = useState<Produto | null>(null);
   const { 
@@ -100,34 +96,6 @@ export const Produtos = () => {
       alert('Erro ao salvar.');
     } finally {
       setProcessandoAcao(false);
-    }
-  };
-
-  const handleAprovar = async (e: React.FormEvent) => {
-    if (!produtoAtivo) return;
-    setProcessandoAcao(true);
-    try {
-      await produtoService.aprovar(produtoAtivo.id, {
-        preco_custo: Number(precosAprovacao.preco_custo),
-        preco_venda: Number(precosAprovacao.preco_venda)
-      });
-      alert('Produto Aprovado!');
-      setModalAprovacaoAberto(false);
-      await carregarDados();
-    } catch (error) {
-      alert('Erro ao aprovar.');
-    } finally {
-      setProcessandoAcao(false);
-    }
-  };
-
-  const handleRejeitar = async (id: number) => {
-    if (!window.confirm('Rejeitar este produto?')) return;
-    try {
-      await produtoService.rejeitar(id);
-      await carregarDados();
-    } catch (error) {
-      alert('Erro ao rejeitar.');
     }
   };
 
@@ -353,21 +321,7 @@ export const Produtos = () => {
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           
-                          {podeAprovar && prod.statusProduto === 'pendente' && (
-                            <>
-                              <BotaoAprovar 
-                                onClick={() => { setProdutoAtivo(prod); setModalAprovacaoAberto(true); }} 
-                                title="Aprovar e Precificar" 
-                              />
-                              <BotaoRejeitar 
-                                onClick={() => handleRejeitar(prod.id)} 
-                                title="Rejeitar Produto" 
-                              />
-                            </>
-                          )}
-                          
-                          {/* Botão de Edição visível para Gerente sempre, ou Financeiro/Estoquista conforme sua regra */}
-                          {(isGerente || isEstoquista || (isFinanceiro && prod.statusProduto === 'aprovado')) && (
+                          {(isGerente || isEstoquista) && (
                             <BotaoEditar 
                               onClick={() => { setProdutoAtivo(prod); setModalAberto(true); }} 
                               title="Editar Informações" 
@@ -490,30 +444,6 @@ export const Produtos = () => {
                 </div>
               </div>
             </div>
-        </FormularioBase>
-      </Modal>
-
-      <Modal 
-        isOpen={modalAprovacaoAberto && produtoAtivo !== null} 
-        onClose={() => setModalAprovacaoAberto(false)} 
-        titulo={<span className="flex items-center gap-2"><DollarSign /> Aprovar Item</span>} 
-        maxWidth="max-w-md"
-        headerClasses="bg-green-50 text-green-800 border-green-200"
-      >
-        <FormularioBase 
-          onSubmit={handleAprovar} 
-          processando={processandoAcao}
-          textoBotaoSubmit="Finalizar e Aprovar"
-        >
-              <p className="text-sm text-gray-600">Defina a precificação para ativar o item no catálogo comercial.</p>
-              <div>
-                <label className="block text-sm font-medium mb-1">Custo Unitário (R$)</label>
-                <input required type="number" step="0.01" value={precosAprovacao.preco_custo} onChange={e => setPrecosAprovacao({...precosAprovacao, preco_custo: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-500" placeholder="0.00" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Venda Unitária (R$)</label>
-                <input required type="number" step="0.01" value={precosAprovacao.preco_venda} onChange={e => setPrecosAprovacao({...precosAprovacao, preco_venda: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-500" placeholder="0.00" />
-              </div>
         </FormularioBase>
       </Modal>
 

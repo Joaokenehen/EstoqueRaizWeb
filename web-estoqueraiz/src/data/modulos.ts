@@ -4,7 +4,8 @@ import {
   Tags, 
   Building2, 
   Users, 
-  BarChart3
+  BarChart3,
+  DollarSign
 } from 'lucide-react';
 
 export type CargoPermitido = 'gerente' | 'estoquista' | 'financeiro';
@@ -28,7 +29,7 @@ export const modulos: ModuloProps[] = [
     icon: Package, 
     corIcone: 'text-blue-600', 
     corFundo: 'bg-blue-100',
-    cargosPermitidos: ['gerente', 'estoquista', 'financeiro'] 
+    cargosPermitidos: ['gerente', 'estoquista'] 
   },
   { 
     nome: 'Movimentações', 
@@ -75,4 +76,13 @@ export const modulos: ModuloProps[] = [
     corFundo: 'bg-red-100',
     cargosPermitidos: ['gerente', 'financeiro'] 
   },
+  { 
+    nome: 'Financeiro', 
+    descricao: 'Controle financeiro e relatórios',
+    rota: '/financeiro', 
+    icon: DollarSign, 
+    corIcone: 'text-green-600', 
+    corFundo: 'bg-green-100',
+    cargosPermitidos: ['gerente', 'financeiro'] 
+  }
 ];

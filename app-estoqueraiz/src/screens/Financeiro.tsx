@@ -262,10 +262,24 @@ export default function ProdutosFinanceiro() {
       return;
     }
 
+    const custoNum = parseFloat(precos.custo.replace(',', '.'));
+    const vendaNum = parseFloat(precos.venda.replace(',', '.'));
+
+    if (vendaNum < custoNum) {
+      Toast.show({
+        type: "error",
+        text1: "Atenção",
+        text2: "O valor de venda não pode ser menor que o custo.",
+        position: "top",
+        visibilityTime: 4000,
+      });
+      return;
+    }
+
     try {
       await api.patch(`/api/produtos/${produtoId}/aprovar`, {
-        preco_custo: parseFloat(precos.custo),
-        preco_venda: parseFloat(precos.venda),
+        preco_custo: custoNum,
+        preco_venda: vendaNum,
       });
 
       // Limpar cache para forçar busca de dados atualizados
@@ -302,10 +316,24 @@ export default function ProdutosFinanceiro() {
       return;
     }
 
+    const custoNum = parseFloat(precos.custo.replace(',', '.'));
+    const vendaNum = parseFloat(precos.venda.replace(',', '.'));
+
+    if (vendaNum < custoNum) {
+      Toast.show({
+        type: "error",
+        text1: "Atenção",
+        text2: "O valor de venda não pode ser menor que o custo.",
+        position: "top",
+        visibilityTime: 4000,
+      });
+      return;
+    }
+
     try {
       await api.put(`/api/produtos/${produtoId}`, {
-        preco_custo: parseFloat(precos.custo),
-        preco_venda: parseFloat(precos.venda),
+        preco_custo: custoNum,
+        preco_venda: vendaNum,
       });
 
       Toast.show({

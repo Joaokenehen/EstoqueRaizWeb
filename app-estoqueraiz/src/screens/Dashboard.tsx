@@ -708,13 +708,15 @@ export default function PainelControle() {
       <View style={estilos.navegacaoRapida}>
         <Text style={estilos.tituloSecao}>Acesso Rápido</Text>
         <View style={estilos.gradeNavegacaoRapida}>
-          <TouchableOpacity
-            style={estilos.itemNavegacaoRapida}
-            onPress={() => navegacao.navigate("ListaProdutos")}
-          >
-            <MaterialIcons name="inventory" size={36} color="#3b82f6" />
-            <Text style={estilos.textoNavegacaoRapida}>Lista de Produtos</Text>
-          </TouchableOpacity>
+          {cargoOriginal !== "financeiro" && (
+            <TouchableOpacity
+              style={estilos.itemNavegacaoRapida}
+              onPress={() => navegacao.navigate("ListaProdutos")}
+            >
+              <MaterialIcons name="inventory" size={36} color="#3b82f6" />
+              <Text style={estilos.textoNavegacaoRapida}>Lista de Produtos</Text>
+            </TouchableOpacity>
+          )}
           {cargoOriginal !== "financeiro" && (
             <TouchableOpacity
               style={estilos.itemNavegacaoRapida}
