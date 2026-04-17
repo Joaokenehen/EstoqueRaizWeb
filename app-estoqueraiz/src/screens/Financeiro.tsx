@@ -303,7 +303,7 @@ export default function ProdutosFinanceiro() {
     }
 
     try {
-      await api.patch(`/api/produtos/${produtoId}`, {
+      await api.put(`/api/produtos/${produtoId}`, {
         preco_custo: parseFloat(precos.custo),
         preco_venda: parseFloat(precos.venda),
       });

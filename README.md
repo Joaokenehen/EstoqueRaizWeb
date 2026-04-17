@@ -1,149 +1,100 @@
-# EstoqueRaiz - Sistema de Gestão de Estoque
+# Estoque Raiz
 
-EstoqueRaiz é uma aplicação completa para gestão de inventário, desenvolvida com uma arquitetura moderna de microserviços e um frontend reativo. O projeto serve como um exemplo prático de implementação de diversos padrões de arquitetura e boas práticas de desenvolvimento.
+![Logo do Estoque Raiz](web-estoqueraiz/src/assets/LogoEstoqueRaiz.png)
 
-## ✨ Features
+O Estoque Raiz e um sistema de gestao de estoque com tres frentes integradas:
 
-- **Autenticação e Autorização:** Sistema de login com JWT.
-- **Gestão de Entidades:** CRUD completo para Produtos, Categorias, Unidades e Usuários.
-- **Controle de Inventário:** Registro de entradas e saídas de produtos.
-- **Relatórios:** Geração de relatórios sobre o estado do estoque.
-- **Observabilidade:** Monitoramento completo com Prometheus e Grafana.
+- uma API em microservicos para regras de negocio, persistencia e observabilidade;
+- um painel web para operacao administrativa;
+- um aplicativo mobile para uso em campo e consultas rapidas.
 
-## 🏗️ Arquitetura
+O projeto atende um cenario multiunidade e trabalha com cadastro de usuarios, aprovacao de contas, catalogo de produtos, movimentacoes de estoque e relatorios gerenciais.
 
-O sistema é dividido em dois diretórios principais: `api-estoqueraiz` e `app-estoqueraiz`.
+## Estrutura do monorepo
 
-- **Backend (`api-estoqueraiz`):** Um monorepo contendo múltiplos microserviços em Node.js e TypeScript, orquestrados com Docker. Um gateway de API (Nginx) serve como ponto de entrada único para todos os serviços.
-- **Frontend (`app-estoqueraiz`):** Uma aplicação de página única (SPA) desenvolvida com React, Vite e Tailwind CSS.
+| Diretório | Papel | Stack principal |
+| --- | --- | --- |
+| [api-estoqueraiz](api-estoqueraiz/README.md) | Backend, gateway, banco, cache e observabilidade | Node.js, TypeScript, Express, PostgreSQL, Redis, Nginx, Prometheus, Grafana |
+| [web-estoqueraiz](web-estoqueraiz/README.md) | Painel administrativo em navegador | React, Vite, TypeScript, Tailwind CSS, Cypress |
+| [app-estoqueraiz](app-estoqueraiz/README.md) | Aplicativo mobile | React Native, Expo, TypeScript, AsyncStorage |
 
-A documentação detalhada da arquitetura, incluindo diagramas C4 e ADRs (Architectural Decision Records), pode ser encontrada no diretório `api-estoqueraiz/docs`.
+## Fluxos principais
 
-### 🚀 Tech Stack
+1. Cadastro de usuario
+Usuários se cadastram publicamente e entram como `pendente`. Um gerente aprova, define cargo e unidade, e só então o login passa a ser permitido.
 
-| Categoria | Tecnologia |
-| :--- | :--- |
-| **Backend** | Node.js, TypeScript, Express.js |
-| **Frontend** | React, Vite, TypeScript, Tailwind CSS |
-| **Banco de Dados** | PostgreSQL, Redis |
-| **API Gateway** | Nginx |
-| **Container & Orquestração** | Docker, Docker Compose |
-| **Observabilidade** | Prometheus, Grafana, cAdvisor |
-| **Testes (Frontend)** | Cypress |
+2. Cadastro de produto
+Produtos são criados com `statusProduto = pendente`. Financeiro ou gerente aprova definindo `preco_custo` e `preco_venda`.
 
-## 🏁 Getting Started
+3. Movimentacao de estoque
+Entradas, saidas, ajustes e transferencias sao registradas no `movimentacoes-service`. O `produtos-service` consome o evento publicado e atualiza o estoque.
 
-Siga as instruções abaixo para configurar e executar o projeto em seu ambiente local.
+4. Relatorios
+Curva ABC e estatisticas gerais sao calculadas a partir das movimentacoes e do catalogo de produtos, com cache em Redis e invalidacao por eventos.
 
-### ✅ Pré-requisitos
+## Arquitetura resumida
 
-- [Git](https://git-scm.com/)
-- [Docker](https://www.docker.com/products/docker-desktop/) e [Docker Compose](https://docs.docker.com/compose/)
-- [Node.js](https://nodejs.org/) (v18 ou superior)
-- [npm](https://www.npmjs.com/) ou [yarn](https://yarnpkg.com/)
+- O acesso externo passa pelo gateway Nginx em `http://localhost:8081`.
+- A API e dividida em 7 servicos: autenticacao, usuarios, unidades, categorias, produtos, movimentacoes e relatorios.
+- PostgreSQL centraliza a persistencia.
+- Redis e usado como cache distribuido e tambem como barramento Pub/Sub.
+- Prometheus, Grafana, cAdvisor e Node Exporter compoem a camada de observabilidade.
 
-### 🛠️ Instalação e Execução
+## Como subir o ambiente
 
-1.  **Clone o repositório:**
-    ```bash
-    git clone https://github.com/Joaokenehen/EstoqueRaizWeb.git
-    cd EstoqueRaizWeb
-    ```
+### 1. API
 
-2.  **Configurar Variáveis de Ambiente do Backend:**
-    Navegue até o diretório da API e crie um arquivo `.env` a partir do exemplo.
-    ```bash
-    cd api-estoqueraiz
-    touch .env
-    ```
-    Preencha o arquivo `.env` com as variáveis necessárias. No mínimo, você precisará de:
-    ```env
-    # .env - api-estoqueraiz
-    
-    # Portas (pode usar os padrões do docker-compose)
-    NGINX_PORT=8081
-    
-    # Banco de Dados PostgreSQL
-    DATABASE_URL="postgresql://admin:admin123@postgres-db:5432/estoque_raiz?schema=public"
-    
-    # JWT Secret
-    JWT_SECRET="SEU_SEGREDO_SUPER_SECRETO"
-    
-    # Variáveis de Email (se for usar o serviço de usuários)
-    EMAIL_SERVICE="seu-servico-de-email"
-    EMAIL_NOME="Nome Remetente"
-    EMAIL_USER="usuario@email.com"
-    EMAIL_PASS="senha-do-email"
-    ```
+Entre em `api-estoqueraiz`, configure o `.env` e suba a stack:
 
-3.  **Iniciar o Backend:**
-    Ainda no diretório `api-estoqueraiz`, suba todos os contêineres do backend.
-    ```bash
-    docker-compose up -d
-    ```
-    Isso iniciará todos os microserviços, bancos de dados e a stack de observabilidade.
+```bash
+cd api-estoqueraiz
+docker compose up -d --build
+```
 
-4.  **Iniciar o Frontend:**
-    Abra um novo terminal, navegue até o diretório do app e instale as dependências.
-    ```bash
-    cd ../app-estoqueraiz
-    npm install
-    ```
-    Em seguida, inicie o servidor de desenvolvimento.
-    ```bash
-    npm run dev
-    ```
+Documentacao detalhada: [api-estoqueraiz/README.md](api-estoqueraiz/README.md)
 
-### 🌐 Acessando a Aplicação
+### 2. Web
 
-- **Frontend:** [http://localhost:5173](http://localhost:5173) (Porta padrão do Vite, pode variar)
-- **API Gateway (Backend):** [http://localhost:8081](http://localhost:8081)
-- **Grafana (Observabilidade):** [http://localhost:3000](http://localhost:3000) (Login: admin/admin123)
-- **Prometheus:** [http://localhost:9090](http://localhost:9090)
+O frontend web pode usar `VITE_API_URL` para apontar para o gateway. Se a variavel nao existir, ele usa `http://localhost:8081`.
 
-## 🧪 Testes
+```bash
+cd web-estoqueraiz
+npm install
+npm run dev
+```
 
-Para executar os testes end-to-end do frontend com Cypress:
+Documentacao detalhada: [web-estoqueraiz/README.md](web-estoqueraiz/README.md)
+
+### 3. App mobile
+
+O app usa uma `baseURL` configurada diretamente em `app-estoqueraiz/src/services/api.tsx`. Antes de rodar em outro ambiente, ajuste esse host para o IP/hostname do gateway acessivel pelo dispositivo.
 
 ```bash
 cd app-estoqueraiz
-npx cypress open
+npm install
+npx expo start
 ```
 
-## 📚 Documentação da API
+Documentacao detalhada: [app-estoqueraiz/README.md](app-estoqueraiz/README.md)
 
-A documentação da API está disponível de duas formas no diretório `api-estoqueraiz/docs`:
+## Enderecos uteis
 
-- **OpenAPI:** `openapi-spec.yaml`
-- **Postman:** `API Estoque Raiz - Microservices.postman_collection.json`
+- Gateway da API: `http://localhost:8081`
+- Health do gateway: `http://localhost:8081/health`
+- Painel web em dev: `http://localhost:5173`
+- Grafana: `http://localhost:3000`
+- Prometheus: `http://localhost:9090`
 
-## 🖼️ Galeria do Sistema
+## Onde encontrar mais documentacao
 
-<table>
-  <tr>
-    <td align="center"><strong>Página de Login</strong></td>
-    <td align="center"><strong>Dashboard Principal</strong></td>
-  </tr>
-  <tr>
-    <td><img src="https://github.com/user-attachments/assets/f22e5b54-3f04-410d-9376-f0510caa5018" alt="Tela de Login"></td>
-    <td><img src="https://github.com/user-attachments/assets/2ca4589d-bf72-4565-8a2e-398557e378da" alt="Dashboard Principal"></td>
-  </tr>
-  <tr>
-    <td align="center"><strong>Cadastro de Produtos</strong></td>
-    <td align="center"><strong>Categorias</strong></td>
-  </tr>
-  <tr>
-    <td><img src="https://github.com/user-attachments/assets/67f5842a-9930-414e-afa0-b00cdb710d95" alt="Tela de Cadastro de Produtos"></td>
-    <td><img src="https://github.com/user-attachments/assets/19483981-16bf-4d24-9fab-83e79a85f87b" alt="Tela de Categorias"></td>
-  </tr>
-</table>
+- [README da API](api-estoqueraiz/README.md)
+- [Documentacao tecnica da API](api-estoqueraiz/docs/README.md)
+- [README do painel web](web-estoqueraiz/README.md)
+- [README do app mobile](app-estoqueraiz/README.md)
+- [Regras de Negocio](<Regras De Negócio.md>)
 
-## 🤝 Contribuição
+## Observacoes verificadas no codigo
 
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
-
-## ✍️ Autores
-
-- João Gustavo Quennehen
-- Lucas da Silva Custodio
-
+- O backend de produtos lista hoje todos os produtos `ativos`, independentemente de `statusProduto`; o fluxo de aprovacao continua existindo e e tratado por telas especificas e pelo endpoint de pendentes.
+- A API expõe `PUT /api/produtos/:id` para atualizacao geral; nao existe `PATCH` generico para esse recurso.
+- No app mobile, parte da busca, filtragem e paginação e feita no cliente porque a API retorna listas completas em alguns fluxos.

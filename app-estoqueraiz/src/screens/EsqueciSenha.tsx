@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -13,7 +13,7 @@ import { Input } from "../components/Input";
 import Toast from "react-native-toast-message";
 import { Eye, EyeOff } from "lucide-react-native";
 import api from "../services/api";
-import { RootStackParamList } from "../types/navigation";
+import { usuarioService } from "../services/usuarioService";
 
 export default function EsqueciSenha() {
   const navigation = useNavigation();
@@ -36,7 +36,7 @@ export default function EsqueciSenha() {
     setLoading(true);
 
     try {
-      await api.post("/api/usuarios/recuperar-senha", { email });
+      await usuarioService.solicitarRecuperacaoSenha(email);
       
       Toast.show({
         type: "success",

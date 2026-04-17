@@ -1,50 +1,133 @@
-# Welcome to your Expo app 👋
+# Estoque Raiz App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicativo mobile do Estoque Raiz, construido com React Native e Expo. Ele cobre login, consulta operacional, aprovacoes, cadastro e acompanhamento de estoque a partir das mesmas APIs usadas pelo painel web.
 
-## Get started
+## Stack
 
-1. Install dependencies
+- Expo 54
+- React Native 0.81
+- TypeScript
+- React Navigation
+- Axios
+- AsyncStorage
+- React Native Toast Message
 
-   ```bash
-   npm install
-   ```
+## Fluxos implementados
 
-2. Start the app
+- Landing page, login, cadastro e recuperacao de senha
+- Dashboard com resumo do usuario, alertas e atalhos
+- Cadastro e edicao de produtos
+- Lista de produtos com filtros
+- Cadastro de categorias e unidades
+- Mapa de unidades
+- Consulta e cadastro de movimentacoes
+- Aprovacao financeira de produtos pendentes
+- Gestao de usuarios do sistema
+- Relatorio de Curva ABC
 
-   ```bash
-   npx expo start
-   ```
+## Navegacao principal
 
-In the output, you'll find options to open the app in a
+As telas registradas em `App.tsx` sao:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+| Tela | Finalidade |
+| --- | --- |
+| `LandingPage` | Entrada inicial |
+| `Login` | Autenticacao |
+| `Cadastro` | Criacao de conta |
+| `EsqueciSenha` | Recuperacao de senha |
+| `Dashboard` | Visao geral e acesso aos modulos |
+| `CadastroProduto` | Criacao e edicao de produto |
+| `ListaProdutos` | Consulta, filtro e exclusao de produto |
+| `CadastroCategoria` | Cadastro de categoria |
+| `CadastroUnidade` | Cadastro de unidade |
+| `MapaUnidades` | Visualizacao de unidades |
+| `Movimentacoes` | Consulta de movimentacoes |
+| `CadastroMovimentacao` | Criacao de movimentacao |
+| `UsuariosSistema` | Aprovacao e manutencao de usuarios |
+| `Financeiro` | Aprovacao de produtos e edicao de precos |
+| `RelatorioCurvaABC` | Analise gerencial |
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+O dashboard decide quais atalhos exibir com base no `cargo` salvo no `AsyncStorage`.
 
-## Get a fresh project
+## Integracao com a API
 
-When you're ready, run:
+O arquivo `src/services/api.tsx` centraliza a comunicacao HTTP.
 
-```bash
-npm run reset-project
+- `token`, `usuario`, `nome` e `cargo` sao persistidos no `AsyncStorage`.
+- O token e enviado automaticamente no header `Authorization`.
+- A `baseURL` esta configurada diretamente no codigo.
+- O app mantem um cache em memoria para respostas `GET`.
+
+Detalhes importantes do comportamento atual:
+
+- Cache geral de `GET`: 30 segundos
+- Cache de movimentacoes: 15 segundos
+- Listas de produtos e produtos pendentes nao sao cacheadas para evitar dados defasados
+- Parte da filtragem e da paginacao de produtos e movimentacoes e feita no cliente
+
+## Configurando a URL da API
+
+Antes de executar em outro ambiente, ajuste a `baseURL` em `src/services/api.tsx` para o host acessivel pelo dispositivo ou emulador.
+
+Exemplo:
+
+```ts
+const api = axios.create({
+  baseURL: "http://SEU_IP_OU_HOST:8081",
+  timeout: 10000,
+});
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Se voce estiver usando celular fisico, o aparelho precisa estar na mesma rede do computador onde o gateway da API esta rodando.
 
-## Learn more
+## Estrutura relevante
 
-To learn more about developing your project with Expo, look at the following resources:
+```text
+app-estoqueraiz/
+├─ App.tsx
+├─ src/
+│  ├─ components/   # header, inputs, modais e cards
+│  ├─ config/       # configuracao de toast
+│  ├─ screens/      # telas do aplicativo
+│  ├─ services/     # integracao HTTP e helpers de cache
+│  ├─ assets/       # imagens e fontes
+│  └─ types/        # tipos de navegacao e suporte
+└─ app.json
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Como rodar
 
-## Join the community
+### Pre-requisitos
 
-Join our community of developers creating universal apps.
+- Node.js LTS
+- npm
+- Expo Go no celular ou emulador Android/iOS configurado
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Instalacao
+
+```bash
+cd app-estoqueraiz
+npm install
+```
+
+### Desenvolvimento
+
+```bash
+npx expo start
+```
+
+### Atalhos uteis
+
+```bash
+npm run android
+npm run ios
+npm run web
+npm run lint
+```
+
+## Observacoes verificadas no codigo
+
+- O fluxo de login salva os dados de sessao localmente e navega para `Dashboard`.
+- A tela `Financeiro` aprova produtos pendentes definindo preco de custo e preco de venda.
+- O app consulta a API diretamente; nao existe camada intermediaria entre mobile e backend.
+- Como a API retorna listas completas em alguns endpoints, filtros como busca, unidade e paginacao sao complementados no proprio app.
