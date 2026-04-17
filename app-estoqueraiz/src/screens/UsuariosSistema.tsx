@@ -122,7 +122,8 @@ export default function UsuariosSistema() {
       filtrados = filtrados.filter((u) => {
         const matchNome = u.nome.toLowerCase().includes(termo);
         const matchEmail = u.email.toLowerCase().includes(termo);
-        const matchUnidade = (u.unidade?.nome || "").toLowerCase().includes(termo);
+        const nomeUnidade = u.unidade?.nome || unidades.find(un => un.id === u.unidade_id)?.nome || "";
+        const matchUnidade = nomeUnidade.toLowerCase().includes(termo);
         const matchCargo = (u.cargo || "").toLowerCase().includes(termo);
         return matchNome || matchEmail || matchUnidade || matchCargo;
       });
@@ -147,7 +148,7 @@ export default function UsuariosSistema() {
     }
 
     setUsuariosFiltrados(filtrados);
-  }, [usuarios, filtroUnidade, filtroCargo, filtroStatus, buscaTexto]);
+  }, [usuarios, filtroUnidade, filtroCargo, filtroStatus, buscaTexto, unidades]);
 
   useEffect(() => {
     aplicarFiltros();
@@ -469,7 +470,7 @@ export default function UsuariosSistema() {
                   <Text style={styles.usuarioNome}>{usuario.nome}</Text>
                   <Text style={styles.usuarioEmail}>{usuario.email}</Text>
                   <Text style={styles.usuarioUnidade}>
-                    Unidade: {usuario.unidade?.nome || "Não definida"}
+                    Unidade: {usuario.unidade?.nome || unidades.find(un => un.id === usuario.unidade_id)?.nome || "Não definida"}
                   </Text>
                   <View style={styles.cargoContainer}>
                     <Text style={styles.usuarioCargo}>
