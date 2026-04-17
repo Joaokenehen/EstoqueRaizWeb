@@ -11,6 +11,7 @@ export type RootStackParamList = {
   Dashboard: undefined;
   ListaProdutos: undefined;
   MapaUnidades: undefined;
+  MapaCategorias: undefined;
   Movimentacoes: undefined;
   UsuariosSistema: undefined;
   Financeiro: undefined;

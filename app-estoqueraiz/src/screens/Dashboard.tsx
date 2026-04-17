@@ -719,15 +719,15 @@ export default function PainelControle() {
             <MaterialIcons name="add-box" size={36} color="#059669" />
             <Text style={estilos.textoNavegacaoRapida}>Novo Produto</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={estilos.itemNavegacaoRapida}
-            onPress={() => navegacao.navigate("CadastroCategoria")}
-          >
-            <MaterialIcons name="category" size={36} color="#f59e0b" />
-            <Text style={estilos.textoNavegacaoRapida}>
-              Cadastro de Categorias
-            </Text>
-          </TouchableOpacity>
+          {cargoOriginal === "gerente" && (
+            <TouchableOpacity
+              style={estilos.itemNavegacaoRapida}
+              onPress={() => navegacao.navigate("MapaCategorias")}
+            >
+              <MaterialIcons name="category" size={36} color="#f59e0b" />
+              <Text style={estilos.textoNavegacaoRapida}>Categorias</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={estilos.itemNavegacaoRapida}
             onPress={() => navegacao.navigate("MapaUnidades")}

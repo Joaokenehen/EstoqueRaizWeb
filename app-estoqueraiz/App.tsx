@@ -10,6 +10,7 @@ import CadastroCategoria from "./src/screens/CadastroCategorias";
 import CadastroUnidade from "./src/screens/CadastroUnidades";
 import ListaProdutos from "./src/screens/ListaProdutos";
 import MapaUnidades from "./src/screens/MapaUnidades";
+import MapaCategorias from "./src/screens/MapaCategorias";
 import Movimentacoes from "./src/screens/Movimentacoes";
 import CadastroMovimentacao from "./src/screens/CadastroMovimentacao";
 import UsuariosSistema from "./src/screens/UsuariosSistema";
@@ -83,6 +84,11 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+          name="MapaCategorias"
+          component={MapaCategorias}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
             name="Movimentacoes"
             component={Movimentacoes}
             options={{ headerShown: false }}
