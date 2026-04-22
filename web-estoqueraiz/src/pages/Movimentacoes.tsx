@@ -26,6 +26,8 @@ export const Movimentacoes = () => {
   const [modalAberto, setModalAberto] = useState(false);
   const [processando, setProcessando] = useState(false);
   const [filtro, setFiltro] = useState('');
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
   const isEstoquista = usuarioLogado?.cargo === 'estoquista';
@@ -153,7 +155,24 @@ export const Movimentacoes = () => {
   const prodMatches = mov.Produto?.nome?.toLowerCase().includes(termo) || false;
   const obsMatches = mov.observacao?.toLowerCase().includes(termo) || false;
   
-  return docMatches || prodMatches || obsMatches;
+  const matchTexto = docMatches || prodMatches || obsMatches;
+
+  let matchData = true;
+  if (dataInicio || dataFim) {
+    const dataMov = new Date(mov.data_movimentacao);
+    
+    if (dataInicio) {
+      const dataIn = new Date(`${dataInicio}T00:00:00`);
+      if (dataMov < dataIn) matchData = false;
+    }
+    
+    if (dataFim) {
+      const dataOut = new Date(`${dataFim}T23:59:59.999`);
+      if (dataMov > dataOut) matchData = false;
+    }
+  }
+
+  return matchTexto && matchData;
 });
 
   return (
@@ -177,7 +196,25 @@ export const Movimentacoes = () => {
           buscaTexto={filtro} 
           onBuscaChange={setFiltro} 
           placeholderBusca="Buscar por NF, Produto ou Observação..."
-        />
+        >
+          <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0">
+            <input 
+              type="date" 
+              value={dataInicio} 
+              onChange={(e) => setDataInicio(e.target.value)} 
+              className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-gray-600 bg-white"
+              title="Data inicial"
+            />
+            <span className="text-gray-400 text-sm hidden sm:block">até</span>
+            <input 
+              type="date" 
+              value={dataFim} 
+              onChange={(e) => setDataFim(e.target.value)} 
+              className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-gray-600 bg-white"
+              title="Data final"
+            />
+          </div>
+        </BarraFiltros>
 
         {carregando ? (
           <LoadingSpinner />
@@ -235,8 +272,8 @@ export const Movimentacoes = () => {
                   {movimentacoesFiltradas.length === 0 && (
                     <tr>
                       <td colSpan={5} className="p-8 text-center text-gray-500">
-                        {filtro !== '' 
-                          ? 'Nenhuma movimentação encontrada para esta busca.' 
+                        {filtro !== '' || dataInicio !== '' || dataFim !== ''
+                          ? 'Nenhuma movimentação encontrada para estes filtros.' 
                           : 'Nenhuma movimentação registrada no histórico.'}
                       </td>
                     </tr>

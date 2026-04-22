@@ -26,23 +26,23 @@ export const LandingPage = () => {
         <header className="sticky top-0 z-50 border-b border-white/50 bg-[#f6f1e6]/90 backdrop-blur-xl">
           <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
-              <div className="rounded-[22px] border border-raiz-verde/15 bg-gradient-to-br from-white via-[#fffdf7] to-[#efe5cf] px-4 py-3 shadow-[0_18px_38px_-24px_rgba(45,90,39,0.45)] ring-1 ring-white/80">
-                <img
-                  src={logoEstoque}
-                  alt="Estoque Raiz"
-                  className="h-12 w-auto drop-shadow-[0_8px_16px_rgba(45,90,39,0.18)] sm:h-14"
-                />
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-raiz-verde/70">
-                  Estoque Raiz
-                </p>
-                <p className="text-sm text-slate-600">
-                  Gestao de estoque com foco operacional
-                </p>
-              </div>
+            <div className="hidden sm:block rounded-[22px] border border-raiz-verde/15 bg-gradient-to-br from-white via-[#fffdf7] to-[#efe5cf] px-4 py-3 shadow-[0_18px_38px_-24px_rgba(45,90,39,0.45)] ring-1 ring-white/80">
+              <img
+                src={logoEstoque}
+                alt="Estoque Raiz"
+                className="h-20 w-auto drop-shadow-[0_8px_16px_rgba(45,90,39,0.18)] sm:h-24 lg:h-28"
+              />
             </div>
-
+            
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-raiz-verde/70">
+                Estoque Raiz
+              </p>
+              <p className="text-sm text-slate-600">
+                Gestão de estoque com foco operacional
+              </p>
+            </div>
+          </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate("/login")}
