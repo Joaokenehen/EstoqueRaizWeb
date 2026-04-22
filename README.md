@@ -85,13 +85,11 @@ Documentacao detalhada: [app-estoqueraiz/README.md](app-estoqueraiz/README.md)
 - Grafana: `http://localhost:3000`
 - Prometheus: `http://localhost:9090`
 
-## Onde encontrar mais documentacao
+## Para detalhes aprofundados sobre a arquitetura e execução de cada frente do projeto, consulte as respectivas documentações:
 
-- [README da API](api-estoqueraiz/README.md)
-- [Documentacao tecnica da API](api-estoqueraiz/docs/README.md)
-- [README do painel web](web-estoqueraiz/README.md)
-- [README do app mobile](app-estoqueraiz/README.md)
-- [Regras de Negocio](<Regras De Negócio.md>)
+- ⚙️ **API (Backend e Infraestrutura)**: Configuração de microserviços, gateway, variáveis de ambiente, cache e observabilidade.
+- 💻 **Painel Web**: Frontend em React/Vite, estrutura de rotas, scripts e testes E2E.
+- 📱 **App Mobile**: Aplicativo em React Native/Expo, fluxos de tela e consumo da API no dispositivo.
 
 ## Observacoes verificadas no codigo
 
