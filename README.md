@@ -75,8 +75,6 @@ npm install
 npx expo start
 ```
 
-Documentacao detalhada: [app-estoqueraiz/README.md](app-estoqueraiz/README.md)
-
 ## Enderecos uteis
 
 - Gateway da API: `http://localhost:8081`
@@ -87,9 +85,9 @@ Documentacao detalhada: [app-estoqueraiz/README.md](app-estoqueraiz/README.md)
 
 ## Para detalhes aprofundados sobre a arquitetura e execução de cada frente do projeto, consulte as respectivas documentações:
 
-- ⚙️ **API (Backend e Infraestrutura)**: Configuração de microserviços, gateway, variáveis de ambiente, cache e observabilidade.
-- 💻 **Painel Web**: Frontend em React/Vite, estrutura de rotas, scripts e testes E2E.
-- 📱 **App Mobile**: Aplicativo em React Native/Expo, fluxos de tela e consumo da API no dispositivo.
+- ⚙️ **[API (Backend e Infraestrutura)](api-estoqueraiz/README.md)**: Configuração de microserviços, gateway, variáveis de ambiente, cache e observabilidade.
+- 💻 **[Painel Web](web-estoqueraiz/README.md)**: Frontend em React/Vite, estrutura de rotas, scripts e testes E2E.
+- 📱 **[App Mobile](app-estoqueraiz/README.md)**: Aplicativo em React Native/Expo, fluxos de tela e consumo da API no dispositivo.
 
 ## Observacoes verificadas no codigo
 
