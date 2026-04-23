@@ -51,7 +51,7 @@ cd api-estoqueraiz
 docker compose up -d --build
 ```
 
-Documentacao detalhada: [api-estoqueraiz/README.md](api-estoqueraiz/README.md)
+Documentacao detalhada: ⚙️ **[API (Backend e Infraestrutura)](api-estoqueraiz/README.md)**
 
 ### 2. Web
 
@@ -63,7 +63,7 @@ npm install
 npm run dev
 ```
 
-Documentacao detalhada: [web-estoqueraiz/README.md](web-estoqueraiz/README.md)
+Documentacao detalhada: 💻 **[Painel Web](web-estoqueraiz/README.md)**
 
 ### 3. App mobile
 
@@ -75,7 +75,7 @@ npm install
 npx expo start
 ```
 
-Documentacao detalhada: [app-estoqueraiz/README.md](app-estoqueraiz/README.md)
+Documentacao detalhada: 📱 **[App Mobile](app-estoqueraiz/README.md)**
 
 ## Enderecos uteis
 
