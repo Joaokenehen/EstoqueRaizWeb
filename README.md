@@ -51,7 +51,7 @@ cd api-estoqueraiz
 docker compose up -d --build
 ```
 
-Documentacao detalhada: [api-estoqueraiz/README.md](api-estoqueraiz/README.md)
+Documentacao detalhada: ⚙️ **[API (Backend e Infraestrutura)](api-estoqueraiz/README.md)**
 
 ### 2. Web
 
@@ -63,7 +63,7 @@ npm install
 npm run dev
 ```
 
-Documentacao detalhada: [web-estoqueraiz/README.md](web-estoqueraiz/README.md)
+Documentacao detalhada: 💻 **[Painel Web](web-estoqueraiz/README.md)**
 
 ### 3. App mobile
 
@@ -75,6 +75,8 @@ npm install
 npx expo start
 ```
 
+Documentacao detalhada: 📱 **[App Mobile](app-estoqueraiz/README.md)**
+
 ## Enderecos uteis
 
 - Gateway da API: `http://localhost:8081`
@@ -83,11 +85,13 @@ npx expo start
 - Grafana: `http://localhost:3000`
 - Prometheus: `http://localhost:9090`
 
-## Para detalhes aprofundados sobre a arquitetura e execução de cada frente do projeto, consulte as respectivas documentações:
+## Onde encontrar mais documentacao
 
-- ⚙️ **[API (Backend e Infraestrutura)](api-estoqueraiz/README.md)**: Configuração de microserviços, gateway, variáveis de ambiente, cache e observabilidade.
-- 💻 **[Painel Web](web-estoqueraiz/README.md)**: Frontend em React/Vite, estrutura de rotas, scripts e testes E2E.
-- 📱 **[App Mobile](app-estoqueraiz/README.md)**: Aplicativo em React Native/Expo, fluxos de tela e consumo da API no dispositivo.
+- [README da API](api-estoqueraiz/README.md)
+- [Documentacao tecnica da API](api-estoqueraiz/docs/README.md)
+- [README do painel web](web-estoqueraiz/README.md)
+- [README do app mobile](app-estoqueraiz/README.md)
+- [Regras de Negocio](<Regras De Negócio.md>)
 
 ## Observacoes verificadas no codigo
 
