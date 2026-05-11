@@ -17,8 +17,8 @@ export const metrics = [
   },
   {
     value: "24h",
-    label: "acesso web e mobile",
-    detail: "Consulta, cadastro e aprovação no mesmo ecossistema",
+    label: "acesso web",
+    detail: "Consulta, cadastro e aprovação centralizados",
   },
   {
     value: "ABC",
@@ -78,9 +78,9 @@ export const workflows = [
   },
   {
     icon: Smartphone,
-    title: "Operação contínua fora da mesa",
+    title: "Acessibilidade total",
     description:
-      "O app complementa o painel web para consultas, aprovações e lançamentos em campo.",
+      "Acesse a plataforma de qualquer navegador moderno, adaptando-se a qualquer dispositivo.",
   },
 ];
 
@@ -110,7 +110,6 @@ export const benefits = [
 export const trustSignals = [
   "API gateway, Redis e PostgreSQL integrados",
   "Curva ABC e estatísticas gerais disponíveis",
-  "Fluxo web + app alinhado com a mesma API",
   "Permissões por cargo e unidade no mesmo ecossistema",
   "Cadastro, aprovação e movimentação no mesmo circuito",
   "Arquitetura pronta para evolução operacional",
@@ -142,7 +141,6 @@ export const spotlightItems = [
 export const heroHighlights = [
   "Produtos, categorias e unidades no mesmo fluxo",
   "Aprovação financeira e gerencial sem planilha paralela",
-  "Painel web e app conectados a uma única API",
 ];
 
 export const heroLabel = {

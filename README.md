@@ -6,11 +6,10 @@
 
 ## 📋 Visão Geral
 
-O Estoque Raiz é uma solução de gestão de estoque com três frentes integradas:
+O Estoque Raiz é uma solução de gestão de estoque com duas frentes integradas:
 
 - **API Backend** em microserviços para regras de negócio, persistência distribuída e observabilidade
 - **Painel Web** para operação administrativa e análise de dados
-- **App Mobile** para operações em campo e consultas rápidas
 
 O projeto atende um cenário multiunidade com cadastro de usuários, aprovação de contas, catálogo de produtos, movimentações de estoque e relatórios gerenciais (Curva ABC, estatísticas).
 
@@ -20,8 +19,6 @@ O projeto atende um cenário multiunidade com cadastro de usuários, aprovação
 | --- | --- | --- |
 | [api-estoqueraiz](api-estoqueraiz/README.md) | Backend, gateway, banco, cache e observabilidade | Node.js, TypeScript, Express, PostgreSQL, Redis, Nginx, Prometheus, Grafana |
 | [web-estoqueraiz](web-estoqueraiz/README.md) | Painel administrativo em navegador | React, Vite, TypeScript, Tailwind CSS, Cypress |
-| [app-estoqueraiz](app-estoqueraiz/README.md) | Aplicativo mobile | React Native, Expo, TypeScript, AsyncStorage |
-| [app-estoqueraiz](app-estoqueraiz/README.md) | Aplicativo mobile | React Native, Expo, TypeScript, AsyncStorage |
 
 ---
 
@@ -159,15 +156,6 @@ O diagrama abaixo ilustra o fluxo completo de uma movimentação de estoque no s
 | **Axios** | Latest | Cliente HTTP |
 | **Cypress** | Latest | Testes E2E |
 
-### Frontend Mobile
-
-| Tecnologia | Versão | Finalidade |
-| --- | --- | --- |
-| **React Native** | Latest | Framework mobile |
-| **Expo** | Latest | Desenvolvimento rápido |
-| **TypeScript** | 5.3+ | Type safety |
-| **AsyncStorage** | Latest | Persistência local |
-
 ---
 
 ## 📁 Estrutura de Diretórios
@@ -278,14 +266,6 @@ npm run dev
 
 Acesse: **http://localhost:5173**
 
-### 5. App Mobile (Opcional)
-
-```bash
-cd app-estoqueraiz
-npm install
-npx expo start
-```
-
 ---
 
 ## 🔗 Endereços Úteis
@@ -320,7 +300,6 @@ npx expo start
 
 - [📚 Documentação da API Backend](api-estoqueraiz/README.md)
 - [💻 Documentação do Painel Web](web-estoqueraiz/README.md)
-- [📱 Documentação do App Mobile](app-estoqueraiz/README.md)
 - [📋 Regras de Negócio Detalhadas](Regras%20De%20Negócio.md)
 
 ### Documentação Técnica Avançada
@@ -361,7 +340,6 @@ npx expo start
 
 - **API Gateway Centralizado**: Todo tráfego externo passa pelo Nginx (http://localhost:8081)
 - **Frontend API URL**: O painel web busca pela variável `VITE_API_URL`, caso contrário usa `http://localhost:8081`
-- **Mobile BaseURL**: O app mobile tem `baseURL` configurada em `app-estoqueraiz/src/services/api.tsx` - ajuste para o IP/hostname acessível pelo dispositivo
 - **Soft Delete**: Produtos inativos (ativo=false) não aparecem em listagens mas permanecem no banco
 - **Cache Inteligente**: Relatórios usam cache Redis invalidado por eventos de movimentação
 - **Estoque Assíncrono**: Produtos Service consome eventos para atualizar estoque em tempo real
@@ -372,7 +350,6 @@ npx expo start
 
 - O backend lista produtos `ativos` independentemente de `statusProduto`; o fluxo de aprovação é tratado por telas específicas
 - A API expõe `PUT /api/produtos/:id` para atualização geral; não existe `PATCH` genérico para esse recurso
-- No app mobile, filtragem e paginação são parcialmente feitas no cliente (API retorna listas completas em alguns fluxos)
 - JWT tokens são validados no API Gateway; serviços internos confiam na autenticação centralizada
 
 ---

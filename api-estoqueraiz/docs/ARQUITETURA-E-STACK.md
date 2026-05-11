@@ -51,10 +51,10 @@ O **Estoque Raiz** utiliza uma **arquitetura de microserviços** com padrões s�
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        CAMADA DE APRESENTAÇÃO                        │
-│  ┌──────────────┐              ┌────────────────┐                   │
-│  │  Web (React) │              │  Mobile (RN)   │                   │
-│  │ http://5173  │              │   Expo         │                   │
-│  └──────────────┘              └────────────────┘                   │
+│  ┌──────────────┐                                                   │
+│  │  Web (React) │                                                   │
+│  │ http://5173  │                                                   │
+│  └──────────────┘                                                   │
 └───────────────────────────────────────────────────────────────────────┘
                                     │
                                     │ HTTP/REST
@@ -163,19 +163,6 @@ O **Estoque Raiz** utiliza uma **arquitetura de microserviços** com padrões s�
 #### Testes
 - **Cypress**: Testes E2E e UI
 - **Cypress Command Console**: Inspetor de elementos
-
-### Frontend Mobile
-
-#### Framework & Platform
-- **React Native**: Framework mobile
-- **Expo**: Plataforma para desenvolvimento rápido
-- **TypeScript**: Type safety
-
-#### Persistência Local
-- **AsyncStorage**: Persistência key-value no device
-
-#### HTTP Client
-- **Axios**: Cliente HTTP
 
 ## 📁 Organização de Repositório
 
