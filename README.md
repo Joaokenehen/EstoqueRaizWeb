@@ -4,7 +4,7 @@
 
 **Estoque Raiz** é um sistema WMS (Warehouse Management System) moderno desenvolvido para **Agrológica Agromercantil**, especializada em insumos agrícolas. O sistema gerencia 7 estoques independentes com rastreabilidade completa de lotes, validades e movimentações entre unidades.
 
-## 📋 Visão Geral
+## Visão Geral
 
 O Estoque Raiz é uma solução de gestão de estoque com duas frentes integradas:
 
@@ -22,7 +22,7 @@ O projeto atende um cenário multiunidade com cadastro de usuários, aprovação
 
 ---
 
-## 🏗️ Arquitetura
+## Arquitetura
 
 ### Tipo de Arquitetura: **Microserviços com Padrão Síncrono/Assíncrono**
 
@@ -68,7 +68,7 @@ Observabilidade:
 
 ---
 
-## 🎯 Fluxo de Negócio Principal
+## Fluxo de Negócio Principal
 
 ### Diagrama de Movimentação de Estoque
 
@@ -91,35 +91,35 @@ O diagrama abaixo ilustra o fluxo completo de uma movimentação de estoque no s
 ### Regras de Negócio Principais
 
 #### 1. Cadastro e Aprovação de Usuário
-- ✅ Cadastro público (status = `pendente`)
-- 👔 Gerente aprova e define cargo (status = `aprovado`)
-- 🔐 Login bloqueado até aprovação
-- ⏰ Limpeza automática: contas pendentes > 7 dias são removidas
+- Cadastro público (status = `pendente`)
+- Gerente aprova e define cargo (status = `aprovado`)
+- Login bloqueado até aprovação
+- Limpeza automática: contas pendentes > 7 dias são removidas
 
 #### 2. Cadastro e Aprovação de Produto
-- 📦 Criação com status = `pendente`
-- 💰 Financeiro aprova e define preços (custo + venda)
-- 🏠 Soft delete: produtos inativos não aparecem em listagens
-- ⚠️ Alerta: produtos vencendo (< 30 dias) destacados no dashboard
+- Criação com status = `pendente`
+- Financeiro aprova e define preços (custo + venda)
+- Soft delete: produtos inativos não aparecem em listagens
+- Alerta: produtos vencendo (< 30 dias) destacados no dashboard
 
 #### 3. Movimentação de Estoque
 - **Tipos**: ENTRADA, SAÍDA, TRANSFERÊNCIA, AJUSTE
-- 🔍 **Validações**:
+- **Validações**:
   - Saldo suficiente (SAÍDA/TRANSFERÊNCIA)
   - Origem ≠ Destino (TRANSFERÊNCIA)
   - Permissão por unidade (estoquista)
-- 📤 **Propagação de Eventos**: Atualiza estoque em tempo real
-- 🔄 **Clonagem**: Produtos novos na unidade destino (TRANSFERÊNCIA)
+- **Propagação de Eventos**: Atualiza estoque em tempo real
+- **Clonagem**: Produtos novos na unidade destino (TRANSFERÊNCIA)
 
 #### 4. Relatórios e Análises
-- 📊 **Curva ABC**: Análise de giro de produtos por movimentações de SAÍDA
-- 📈 **Estatísticas Gerais**: Dashboard com KPIs principais
-- ⚡ **Cache em Redis**: Invalidado por eventos de movimentação
-- 🔄 **Atualização Automática**: Dashboard reflete alterações em tempo real
+- **Curva ABC**: Análise de giro de produtos por movimentações de SAÍDA
+- **Estatísticas Gerais**: Dashboard com KPIs principais
+- **Cache em Redis**: Invalidado por eventos de movimentação
+- **Atualização Automática**: Dashboard reflete alterações em tempo real
 
 ---
 
-## 🛠️ Stack de Desenvolvimento
+## Stack de Desenvolvimento
 
 ### Backend
 
@@ -158,7 +158,7 @@ O diagrama abaixo ilustra o fluxo completo de uma movimentação de estoque no s
 
 ---
 
-## 📁 Estrutura de Diretórios
+## Estrutura de Diretórios
 
 ### Raiz do Projeto
 
@@ -215,7 +215,7 @@ EstoqueRaizWeb/
 
 ---
 
-## 🚀 Como Subir o Ambiente
+## Como Subir o Ambiente
 
 ### Pré-requisitos
 
@@ -245,11 +245,11 @@ docker compose up -d --build
 ```
 
 **Serviços iniciados:**
-- 🔀 **Nginx Gateway**: http://localhost:8081
-- 🗄️ **PostgreSQL**: localhost:5432
-- ⚡ **Redis**: localhost:6379
-- 📊 **Prometheus**: http://localhost:9090
-- 📈 **Grafana**: http://localhost:3000 (admin/admin)
+- **Nginx Gateway**: http://localhost:8081
+- **PostgreSQL**: localhost:5432
+- **Redis**: localhost:6379
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3000 (admin/admin)
 
 Verificar saúde:
 ```bash
@@ -268,7 +268,7 @@ Acesse: **http://localhost:5173**
 
 ---
 
-## 🔗 Endereços Úteis
+## Endereços Úteis
 
 ### Produção
 
@@ -324,7 +324,7 @@ Acesse: **http://localhost:5173**
 
 ---
 
-## 🔗 Links do Projeto
+## Links do Projeto
 
 | Link | Descrição |
 | --- | --- |
@@ -334,9 +334,7 @@ Acesse: **http://localhost:5173**
 
 ---
 
-## 📝 Notas Importantes
-
-## 📝 Notas Importantes
+## Notas Importantes
 
 - **API Gateway Centralizado**: Todo tráfego externo passa pelo Nginx (http://localhost:8081)
 - **Frontend API URL**: O painel web busca pela variável `VITE_API_URL`, caso contrário usa `http://localhost:8081`
@@ -346,7 +344,7 @@ Acesse: **http://localhost:5173**
 
 ---
 
-## 📊 Observações Verificadas no Código
+## Observações Verificadas no Código
 
 - O backend lista produtos `ativos` independentemente de `statusProduto`; o fluxo de aprovação é tratado por telas específicas
 - A API expõe `PUT /api/produtos/:id` para atualização geral; não existe `PATCH` genérico para esse recurso
@@ -354,28 +352,28 @@ Acesse: **http://localhost:5173**
 
 ---
 
-## 🎓 Este é um Projeto do TCC
+## Este é um Projeto do TCC
 
 Este projeto foi desenvolvido como **Trabalho de Conclusão de Curso** e contempla:
 
-✅ Análise e especificação de regras de negócio  
-✅ Arquitetura de microserviços documentada  
-✅ Stack moderno (TypeScript, React, Node.js)  
-✅ Padrões de design (DDD, Design Patterns)  
-✅ Infraestrutura com Docker & observabilidade  
-✅ Testes automatizados (E2E, UI)  
-✅ Documentação técnica completa  
-✅ Diagrama de fluxos em Draw.io  
+- Análise e especificação de regras de negócio  
+- Arquitetura de microserviços documentada  
+- Stack moderno (TypeScript, React, Node.js)  
+- Padrões de design (DDD, Design Patterns)  
+- Infraestrutura com Docker & observabilidade  
+- Testes automatizados (E2E, UI)  
+- Documentação técnica completa  
+- Diagrama de fluxos em Draw.io  
 
 ---
 
-## 📄 Licença
+## Licença
 
 Este projeto é de código aberto e está disponível em: **https://github.com/Joaokenehen/EstoqueRaizWeb**
 
 ---
 
-## 👥 Autores
+## Autores
 
 - **João Gustavo Quennehen** - Dev Fullstack
 - **Lucas da Silva Custódio** - Dev Fullstack
