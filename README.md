@@ -367,12 +367,6 @@ Este projeto foi desenvolvido como **Trabalho de Conclusão de Curso** e contemp
 
 ---
 
-## Licença
-
-Este projeto é de código aberto e está disponível em: **https://github.com/Joaokenehen/EstoqueRaizWeb**
-
----
-
 ## Autores
 
 - **João Gustavo Quennehen** - Dev Fullstack
