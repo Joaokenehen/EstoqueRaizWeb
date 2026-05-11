@@ -77,7 +77,7 @@ Observabilidade:
 
 O diagrama abaixo ilustra o fluxo completo de uma movimentação de estoque no sistema:
 
-📊 **[Ver Diagrama Draw.io](api-estoqueraiz/docs/fluxo-negocio.drawio)**
+![Fluxo de Movimentação de Estoque](api-estoqueraiz/docs/images/Digrama_EstoqueRaiz.png)
 
 **Resumo do Fluxo:**
 
