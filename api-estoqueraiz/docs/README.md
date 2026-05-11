@@ -1,8 +1,43 @@
-# Arquitetura de Microserviços - Sistema Estoque Raiz
+# Documentação Técnica - Sistema Estoque Raiz
 
 Sistema WMS (Warehouse Management System) para gestão de 7 unidades de estoque de insumos agrícolas da Agrológica Agromercantil.
 
-## Visão Geral
+## 📖 Documentação Principal
+
+### Arquitetura & Stack
+- **[ARQUITETURA-E-STACK.md](ARQUITETURA-E-STACK.md)** - Detalhamento da arquitetura, padrões, stack de tecnologias e organização
+- **[ADR-002 - Arquitetura de Microserviços.md](ADR-002%20-%20Arquitetura%20de%20Microserviços.md)** - Decisão arquitetural e motivação
+
+### Fluxos & Diagramas
+- **[fluxo-negocio.drawio](fluxo-negocio.drawio)** - Diagrama visual do fluxo de movimentação de estoque (abra no Draw.io)
+- **[DDD-CONTEXT-MAP.md](DDD-CONTEXT-MAP.md)** - Mapeamento de bounded contexts e domain-driven design
+- **[DIAGRAMAS-C4.md](DIAGRAMAS-C4.md)** - Diagramas C4 de arquitetura
+
+### Segurança & Observabilidade
+- **[AUTENTICACAO-AUTORIZACAO.md](AUTENTICACAO-AUTORIZACAO.md)** - JWT, roles, permissões
+- **[CHECKLIST-SEGURANCA.md](CHECKLIST-SEGURANCA.md)** - Verificações de segurança
+- **[PLANO-OBSERVABILIDADE.md](PLANO-OBSERVABILIDADE.md)** - Prometheus, Grafana, logs
+- **[THREAT-MODEL.md](THREAT-MODEL.md)** - Análise de ameaças
+
+### Resiliência & Deploy
+- **[ESTRATEGIAS-RESILIENCIA.md](ESTRATEGIAS-RESILIENCIA.md)** - Circuit breaker, retry, fallback
+- **[RESILIENCIA-E-OBSERVABILIDADE.md](RESILIENCIA-E-OBSERVABILIDADE.md)** - Padrões combinados
+- **[ESTRATEGIA-DEPLOY.md](ESTRATEGIA-DEPLOY.md)** - Estratégia de deployment
+- **[SLOs-SLIs.md](SLOs-SLIs.md)** - Service Level Objectives e Indicators
+- **[runbook-incidentes.md](runbook-incidentes.md)** - Como responder a incidentes
+
+### Dados & Business Intelligence
+- **[bi/](bi/)** - Data warehouse e modelagem dimensional
+- **[DDD-TACTICAL-DESIGN.md](DDD-TACTICAL-DESIGN.md)** - Tático design patterns
+
+### Ferramentas
+- **[openapi-spec.yaml](openapi-spec.yaml)** - Especificação OpenAPI da API
+- **[API Estoque Raiz - Microservices.postman_collection.json](API%20Estoque%20Raiz%20-%20Microservices.postman_collection.json)** - Collection Postman
+- **[COMANDOS-UTEIS.md](COMANDOS-UTEIS.md)** - Comandos úteis para desenvolvimento
+
+---
+
+## 🏗️ Visão Geral
 
 Arquitetura baseada em microserviços com comunicação assíncrona via eventos, cache distribuído e API Gateway centralizado.
 

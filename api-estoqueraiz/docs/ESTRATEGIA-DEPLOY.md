@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-Este documento define as estratégias de deploy utilizadas no Sistema WMS Estoque Raiz, cobrindo tanto a API (backend de microserviços) quanto o aplicativo mobile (React Native).
+Este documento define as estratégias de deploy utilizadas no Sistema WMS Estoque Raiz para a API (backend de microserviços).
 
 ---
 
@@ -155,83 +155,6 @@ Tempo de rollback: < 30 segundos
 
 ---
 
-## 2. Estratégia de Deploy do App Mobile
-
-### 2.1 Modelo: Over-The-Air (OTA) Updates via Expo
-
-O aplicativo utiliza Expo para atualizações OTA, permitindo deploy de código JavaScript sem reenvio às lojas.
-
-### 2.2 Canais de Release
-
-#### Staging Channel
-
-- Canal: `staging`
-- Objetivo: Testes internos pela equipe Agrológica
-- Deploy automático: Sim (branch develop)
-- Disponível via: Expo Go App
-
-#### Production Channel
-
-- Canal: `production`
-- Objetivo: Usuários finais em produção
-- Deploy automático: Sim (branch main, após aprovação)
-- Disponível via: App instalado das lojas
-
-### 2.3 Fluxo de Deploy OTA
-
-```
-1. Build e Teste:
-   - CI verifica TypeScript e lint
-   - Build APK/IPA para testes
-
-2. Publish Staging:
-   - expo publish --release-channel staging
-   - QA testa no Expo Go
-   - Validação de funcionalidades
-
-3. Publish Production:
-   - expo publish --release-channel production
-   - Usuários recebem update automaticamente
-   - Primeira abertura após deploy carrega nova versão
-
-4. Monitoramento:
-   - Crash reports via Sentry
-   - Analytics via Firebase
-   - Feedback de usuários
-```
-
-### 2.4 Atualizações de Binário
-
-Para mudanças que requerem código nativo (permissões, bibliotecas nativas):
-
-```
-1. Build nativo:
-   - npx expo build:android
-   - npx expo build:ios
-
-2. Submissão:
-   - Google Play Store (revisão ~2-3 dias)
-   - Apple App Store (revisão ~1-2 dias)
-
-3. Lançamento faseado:
-   - Dia 1: 10% dos usuários
-   - Dia 3: 50% dos usuários
-   - Dia 5: 100% dos usuários
-```
-
-### 2.5 Rollback de App
-
-#### OTA Rollback
-
-```bash
-expo publish --release-channel production --version 1.0.0
-```
-
-#### Binário Rollback
-
-- Google Play: Rollback via console (instantâneo)
-- App Store: Submeter versão anterior (revisão necessária)
-
 ---
 
 ## 3. Infraestrutura e Requisitos
@@ -265,7 +188,6 @@ expo publish --release-channel production --version 1.0.0
 #### Artifacts
 
 - Docker images: GitHub Container Registry
-- APK/IPA builds: GitHub Actions Artifacts (30 dias)
 
 ---
 
@@ -286,7 +208,6 @@ Métricas observadas por 1 hora após deploy:
 - Taxa de erro HTTP (4xx, 5xx)
 - Uso de CPU e memória
 - Conexões de banco de dados
-- Crash rate do app mobile
 
 ### 4.3 Critérios de Sucesso
 
@@ -295,7 +216,6 @@ Deploy considerado bem-sucedido se:
 - Taxa de erro < 1%
 - Latência p99 < 500ms
 - CPU < 70% de uso
-- Zero crashes críticos no app
 - Feedback positivo da equipe Agrológica
 
 ---

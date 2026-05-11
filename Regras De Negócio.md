@@ -196,12 +196,6 @@ O Sistema WMS Estoque Raiz é uma solução de gestão de armazém desenvolvida 
 - Sincronização futura de dados
 - Interface preparada para integração
 
-### Mobile App
-
-- API RESTful com autenticação JWT
-- Endpoints paginados para performance
-- Documentação Swagger completa
-
 ### Mapas
 
 - Visualização de unidades no mapa
@@ -214,7 +208,7 @@ O Sistema WMS Estoque Raiz é uma solução de gestão de armazém desenvolvida 
 ### Arquitetura
 
 - Backend: Node.js + TypeScript + Sequelize + PostgreSQL
-- Frontend: React Native + Expo
+- Frontend: React + Vite + TypeScript
 - Padrão MVC com controllers, models, routes
 - Middleware de autenticação e verificação de unidade
 
@@ -229,6 +223,5 @@ O Sistema WMS Estoque Raiz é uma solução de gestão de armazém desenvolvida 
 
 - Paginação em listagens grandes
 - Índices no banco para consultas frequentes
-- Cache de dados no mobile (AsyncStorage)
 
 ---
