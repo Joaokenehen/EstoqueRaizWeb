@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram id="AGyUua8Vh965RjbHor_b" name="Fluxo de Movimentação de Estoque">
+    <mxGraphModel dx="1414" dy="743" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="operador" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Usuário&#xa;(Estoquista / Gerente)" vertex="1">
+          <mxGeometry height="80" width="40" x="90" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="auth" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="API Gateway&#xa;(Valida JWT, Cargo&#xa;e Unidade)" vertex="1">
+          <mxGeometry height="60" width="120" x="190" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="iniciaMov" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Movimentações Service&#xa;(Processa Solicitação)" vertex="1">
+          <mxGeometry height="60" width="140" x="350" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="validaSaldo" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Validações:&#xa;- Saldo Suficiente?&#xa;- Origem ≠ Destino?" vertex="1">
+          <mxGeometry height="130" width="160" x="530" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="erroSaldo" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Erro 400: Rejeita&#xa;Operação" vertex="1">
+          <mxGeometry height="60" width="120" x="550" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="gravaMov" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#fff2cc;strokeColor=#d6b656;" value="Banco PostgreSQL&#xa;(Grava Movimentação)" vertex="1">
+          <mxGeometry height="80" width="130" x="740" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="pubEvento" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Redis Pub/Sub&#xa;Publica:&#xa;movimentacao:criada" vertex="1">
+          <mxGeometry height="80" width="150" x="930" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="produtosSvc" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Produtos Service&#xa;(Consome Evento)" vertex="1">
+          <mxGeometry height="60" width="120" x="945" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="atualizaEstoque" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Atualiza Saldo e/ou&#xa;Clona Produto na&#xa;Unidade Destino" vertex="1">
+          <mxGeometry height="60" width="120" x="945" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="relatoriosSvc" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Relatórios Service&#xa;(Invalida Cache)" vertex="1">
+          <mxGeometry height="60" width="120" x="745" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="edge1" edge="1" parent="1" source="operador" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge2" edge="1" parent="1" source="auth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="iniciaMov">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge3" edge="1" parent="1" source="iniciaMov" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="validaSaldo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge4" edge="1" parent="1" source="validaSaldo" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="gravaMov" value="Válido">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge5" edge="1" parent="1" source="validaSaldo" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" target="erroSaldo" value="Inválido">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge6" edge="1" parent="1" source="gravaMov" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="pubEvento">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge7" edge="1" parent="1" source="pubEvento" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="produtosSvc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge8" edge="1" parent="1" source="produtosSvc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" target="relatoriosSvc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge9" edge="1" parent="1" source="produtosSvc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="atualizaEstoque">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
