@@ -16,7 +16,6 @@ O projeto atende um cenario multiunidade e trabalha com cadastro de usuarios, ap
 | --- | --- | --- |
 | [api-estoqueraiz](api-estoqueraiz/README.md) | Backend, gateway, banco, cache e observabilidade | Node.js, TypeScript, Express, PostgreSQL, Redis, Nginx, Prometheus, Grafana |
 | [web-estoqueraiz](web-estoqueraiz/README.md) | Painel administrativo em navegador | React, Vite, TypeScript, Tailwind CSS, Cypress |
-| [app-estoqueraiz](app-estoqueraiz/README.md) | Aplicativo mobile | React Native, Expo, TypeScript, AsyncStorage |
 
 ## Fluxos principais
 
@@ -75,22 +74,11 @@ npm install
 npx expo start
 ```
 
-Documentacao detalhada: 📱 **[App Mobile](app-estoqueraiz/README.md)**
-
-## Enderecos uteis
-
-- Gateway da API: `http://localhost:8081`
-- Health do gateway: `http://localhost:8081/health`
-- Painel web em dev: `http://localhost:5173`
-- Grafana: `http://localhost:3000`
-- Prometheus: `http://localhost:9090`
-
 ## Onde encontrar mais documentacao
 
 - [README da API](api-estoqueraiz/README.md)
 - [Documentacao tecnica da API](api-estoqueraiz/docs/README.md)
 - [README do painel web](web-estoqueraiz/README.md)
-- [README do app mobile](app-estoqueraiz/README.md)
 - [Regras de Negocio](<Regras De Negócio.md>)
 
 ## Observacoes verificadas no codigo
