@@ -375,6 +375,7 @@ Este projeto é de código aberto e está disponível em: **https://github.com/J
 
 ---
 
-## 👥 Contribuidores
+## 👥 Autores
 
-- **João Araújo** - Lead Developer & Arquiteto
+- **João Gustavo Quennehen** - Dev Fullstack
+- **Lucas da Silva Custódio** - Dev Fullstack
