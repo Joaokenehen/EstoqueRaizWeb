@@ -456,6 +456,9 @@ components:
         id:
           type: integer
           example: 1
+        codigo_movimentacao:
+          type: string
+          example: "MOV-20260418-7FA3BC"
         tipo:
           type: string
           enum: [ENTRADA, SAIDA, TRANSFERENCIA, AJUSTE]
@@ -465,6 +468,25 @@ components:
             - **SAIDA**: Reduz estoque (-)
             - **TRANSFERENCIA**: Move entre unidades
             - **AJUSTE**: Correção manual de estoque
+        natureza:
+          type: string
+          enum:
+            [
+              COMPRA,
+              DEVOLUCAO_CLIENTE,
+              VENDA,
+              CONSUMO_INTERNO,
+              PERDA_AVARIA,
+              TRANSFERENCIA_INTERNA,
+              AJUSTE_INVENTARIO,
+              OUTROS,
+            ]
+          example: "COMPRA"
+          description: "Classificação operacional da movimentação para rastreabilidade ERP"
+        status_processamento:
+          type: string
+          enum: [EFETIVADA, CANCELADA]
+          example: "EFETIVADA"
         quantidade:
           type: integer
           minimum: 1
@@ -478,6 +500,47 @@ components:
         documento:
           type: string
           example: "NF-123456"
+        referencia_externa:
+          type: string
+          example: "PED-2026-000341"
+        tipo_documento_fiscal:
+          type: string
+          enum: [NF_E, NFS_E, NFCE, CTE, RECIBO, OUTRO]
+          example: "NF_E"
+        numero_documento_fiscal:
+          type: string
+          example: "123456"
+        serie_documento_fiscal:
+          type: string
+          example: "1"
+        chave_acesso_nfe:
+          type: string
+          example: "35260412345678000123550010000012341000012345"
+          description: "44 dígitos da chave de acesso NFe"
+        data_emissao_documento:
+          type: string
+          format: date
+          example: "2026-04-18"
+        tipo_pessoa_documento:
+          type: string
+          enum: [CPF, CNPJ]
+          example: "CNPJ"
+        documento_pessoa:
+          type: string
+          example: "12345678000190"
+        nome_pessoa_documento:
+          type: string
+          example: "Fornecedor XPTO LTDA"
+        custo_unitario:
+          type: number
+          format: decimal
+          minimum: 0
+          example: 145.30
+        valor_total:
+          type: number
+          format: decimal
+          minimum: 0
+          example: 7265.00
         produto_id:
           type: integer
           example: 1
@@ -512,6 +575,21 @@ components:
           type: string
           enum: [ENTRADA, SAIDA, TRANSFERENCIA, AJUSTE]
           example: "ENTRADA"
+        natureza:
+          type: string
+          enum:
+            [
+              COMPRA,
+              DEVOLUCAO_CLIENTE,
+              VENDA,
+              CONSUMO_INTERNO,
+              PERDA_AVARIA,
+              TRANSFERENCIA_INTERNA,
+              AJUSTE_INVENTARIO,
+              OUTROS,
+            ]
+          example: "COMPRA"
+          description: "Opcional. Quando não enviado, o backend aplica natureza padrão por tipo"
         quantidade:
           type: integer
           minimum: 1
@@ -522,6 +600,41 @@ components:
         documento:
           type: string
           example: "NF-123456"
+        referencia_externa:
+          type: string
+          example: "PED-2026-000341"
+        tipo_documento_fiscal:
+          type: string
+          enum: [NF_E, NFS_E, NFCE, CTE, RECIBO, OUTRO]
+          example: "NF_E"
+        numero_documento_fiscal:
+          type: string
+          example: "123456"
+        serie_documento_fiscal:
+          type: string
+          example: "1"
+        chave_acesso_nfe:
+          type: string
+          example: "35260412345678000123550010000012341000012345"
+        data_emissao_documento:
+          type: string
+          format: date
+          example: "2026-04-18"
+        tipo_pessoa_documento:
+          type: string
+          enum: [CPF, CNPJ]
+          example: "CNPJ"
+        documento_pessoa:
+          type: string
+          example: "12345678000190"
+        nome_pessoa_documento:
+          type: string
+          example: "Fornecedor XPTO LTDA"
+        custo_unitario:
+          type: number
+          format: decimal
+          minimum: 0
+          example: 145.30
         produto_id:
           type: integer
           example: 1
@@ -539,6 +652,8 @@ components:
         - **SAIDA**: Reduz estoque. Verifica se há estoque suficiente.
         - **TRANSFERENCIA**: Requer unidade_origem_id e unidade_destino_id. Origem ≠ Destino.
         - **AJUSTE**: Define quantidade exata no estoque. Uso restrito a gerentes.
+        - **Rastreabilidade ENTRADA/SAIDA**: exige tipo de documento fiscal, número/chave e CPF/CNPJ da contraparte.
+        - **Rastreabilidade TRANSFERENCIA**: exige Documento ou Referência Externa.
         
         **Permissões:**
         - Estoquista: Apenas na própria unidade
@@ -1544,6 +1659,49 @@ paths:
             enum: [ENTRADA, SAIDA, TRANSFERENCIA, AJUSTE]
           description: Filtrar por tipo
         - in: query
+          name: natureza
+          schema:
+            type: string
+            enum:
+              [
+                COMPRA,
+                DEVOLUCAO_CLIENTE,
+                VENDA,
+                CONSUMO_INTERNO,
+                PERDA_AVARIA,
+                TRANSFERENCIA_INTERNA,
+                AJUSTE_INVENTARIO,
+                OUTROS,
+              ]
+          description: Filtrar por natureza operacional
+        - in: query
+          name: status_processamento
+          schema:
+            type: string
+            enum: [EFETIVADA, CANCELADA]
+          description: Filtrar por status de processamento
+        - in: query
+          name: documento
+          schema:
+            type: string
+          description: Filtrar por trecho do documento
+        - in: query
+          name: tipo_documento_fiscal
+          schema:
+            type: string
+            enum: [NF_E, NFS_E, NFCE, CTE, RECIBO, OUTRO]
+          description: Filtrar por tipo de documento fiscal
+        - in: query
+          name: numero_documento_fiscal
+          schema:
+            type: string
+          description: Filtrar por número do documento fiscal
+        - in: query
+          name: documento_pessoa
+          schema:
+            type: string
+          description: Filtrar por CPF/CNPJ da contraparte
+        - in: query
           name: data_inicio
           schema:
             type: string
@@ -1589,6 +1747,9 @@ paths:
         - Quantidade sempre > 0
         - Estoque nunca fica negativo
         - Para TRANSFERENCIA: origem ≠ destino
+        - ENTRADA/SAIDA exigem tipo de documento fiscal, número/chave e CPF/CNPJ da contraparte
+        - TRANSFERENCIA exige documento ou referência externa
+        - Natureza operacional validada por tipo
       security:
         - BearerAuth: []
       requestBody:
@@ -1706,13 +1867,13 @@ paths:
           schema:
             type: string
             format: date
-          description: Data inicial (padrão: 90 dias atrás)
+            description: "Data final (padrão: hoje)"
         - in: query
           name: data_fim
           schema:
             type: string
             format: date
-          description: Data final (padrão: hoje)
+            description: "Data final (padrão: hoje)"
         - in: query
           name: unidade_id
           schema:
