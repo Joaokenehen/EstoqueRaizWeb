@@ -140,7 +140,7 @@ const handleAprovar = async (id: number) => {
       return;
     }
     
-    if (cargoSelecionado !== 'financeiro' && !unidadeSelecionada) {
+    if (cargoSelecionado !== 'financeiro' && cargoSelecionado !== 'gerente' && !unidadeSelecionada) {
       alert('Por favor, selecione a UNIDADE (Filial) do usuário antes de aprovar.');
       return;
     }
@@ -148,18 +148,13 @@ const handleAprovar = async (id: number) => {
     try {
       setProcessandoId(id);
       
-      const unidadeParaEnviar = cargoSelecionado === 'financeiro' ? null : Number(unidadeSelecionada);
+      const unidadeParaEnviar = (cargoSelecionado === 'financeiro' || cargoSelecionado === 'gerente') ? null : Number(unidadeSelecionada);
 
       await usuarioService.aprovar(id, { 
         cargo: cargoSelecionado, 
         unidade_id: unidadeParaEnviar as any 
       });
 
-      await usuarioService.atualizar(id, {
-        cargo: cargoSelecionado as any,
-        unidade_id: unidadeParaEnviar as any
-      });
-      
       alert('Usuário aprovado com sucesso!');
     } catch (error) {
       alert('Erro ao aprovar usuário. Verifique sua conexão.');
