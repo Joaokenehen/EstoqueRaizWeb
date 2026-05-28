@@ -2,6 +2,8 @@ export interface CurvaABCDTO {
   data_inicio?: string;
   data_fim?: string;
   unidade_id?: number;
+  pagina?: number;
+  limite?: number;
 }
 
 export interface ProdutoCurvaABC {
@@ -26,4 +28,6 @@ export interface ResumoCurvaABC {
 
 export interface EstatisticasDTO {
   unidade_id?: number;
+  data_inicio?: string;
+  data_fim?: string;
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { relatorioService, type ResultadoCurvaABC, type ResultadoEstatisticas } from '../services/relatorioService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
-import { TrendingUp, Filter, FileSpreadsheet } from 'lucide-react';
+import { TrendingUp, Filter, FileSpreadsheet, PlusCircle } from 'lucide-react';
 import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
 import Layout from '../components/Layout';
 
@@ -10,6 +10,8 @@ export const Relatorios = () => {
   const [estatisticas, setEstatisticas] = useState<ResultadoEstatisticas | null>(null);
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [carregando, setCarregando] = useState(false);
+  const [limiteVisivel, setLimiteVisivel] = useState(10);
+  const [limiteVisivelTendencia, setLimiteVisivelTendencia] = useState(6);
   const [erro, setErro] = useState('');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
@@ -31,17 +33,22 @@ export const Relatorios = () => {
   const gerarRelatorio = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setCarregando(true);
+    setDados(null);
     setErro('');
+    setLimiteVisivel(10);
+    setLimiteVisivelTendencia(6);
     try {
       const filtros = {
         data_inicio: dataInicio || undefined,
         data_fim: dataFim || undefined,
-        unidade_id: unidadeId ? Number(unidadeId) : undefined
+        unidade_id: unidadeId ? Number(unidadeId) : undefined,
+        pagina: 1,
+        limite: 9999,
       };
 
       const [resultadoCurva, resultadoEstatisticas] = await Promise.all([
         relatorioService.gerarCurvaABC(filtros),
-        relatorioService.obterEstatisticasGerais(filtros.unidade_id)
+        relatorioService.obterEstatisticasGerais(filtros)
       ]);
 
       setDados(resultadoCurva);
@@ -60,9 +67,18 @@ export const Relatorios = () => {
   const tendenciaMensal = useMemo(() => {
     if (!estatisticas?.movimentacoes_por_mes?.length) return [];
 
+    // Pega as datas que foram de fato aplicadas no botão "Gerar Relatório" (formato YYYY-MM)
+    const inicioAplicado = dados?.estatisticas?.periodo?.data_inicio?.substring(0, 7);
+    const fimAplicado = dados?.estatisticas?.periodo?.data_fim?.substring(0, 7);
+
     const agregado = estatisticas.movimentacoes_por_mes.reduce((acc: Record<string, any>, item: any) => {
       const data = new Date(item.mes);
       const chave = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`;
+      
+      // Ignora e não exibe no gráfico os meses que estiverem fora do intervalo
+      if (inicioAplicado && chave < inicioAplicado) return acc;
+      if (fimAplicado && chave > fimAplicado) return acc;
+
       const total = Number(item.total || 0);
 
       if (!acc[chave]) {
@@ -87,8 +103,9 @@ export const Relatorios = () => {
       return acc;
     }, {});
 
-    return Object.values(agregado).sort((a: any, b: any) => a.chave.localeCompare(b.chave));
-  }, [estatisticas]);
+    // Ordena de forma decrescente: meses mais recentes no topo
+    return Object.values(agregado).sort((a: any, b: any) => b.chave.localeCompare(a.chave));
+  }, [estatisticas, dados]);
 
   const insights = useMemo(() => {
     if (!dados || !estatisticas) return [];
@@ -126,6 +143,15 @@ export const Relatorios = () => {
       default: return null;
     }
   };
+
+  const produtosParaExibir = dados?.produtos.slice(0, limiteVisivel) || [];
+  const temMais = dados ? dados.produtos.length > limiteVisivel : false;
+  const temMenos = limiteVisivel > 10;
+
+  // Como agora está ordenado do mais recente para o mais antigo, pegamos sempre do início do array
+  const tendenciaParaExibir = tendenciaMensal.slice(0, limiteVisivelTendencia);
+  const temMaisTendencia = tendenciaMensal.length > limiteVisivelTendencia;
+  const temMenosTendencia = limiteVisivelTendencia > 6;
 
   return (
   <Layout>
@@ -191,9 +217,9 @@ export const Relatorios = () => {
             {tendenciaMensal.length === 0 ? (
               <p className="text-sm text-gray-500">Sem dados mensais para o período selecionado.</p>
             ) : (
-              <div className="space-y-3">
-                {tendenciaMensal.map((item: any) => {
-                  const maximo = Math.max(...tendenciaMensal.map((m: any) => m.total), 1);
+              <div className="space-y-3 pb-2">
+                {tendenciaParaExibir.map((item: any) => {
+                  const maximo = Math.max(...tendenciaParaExibir.map((m: any) => m.total), 1);
                   const largura = (item.total / maximo) * 100;
 
                   return (
@@ -214,6 +240,27 @@ export const Relatorios = () => {
                     </div>
                   );
                 })}
+              </div>
+            )}
+            
+            {!carregando && (temMaisTendencia || temMenosTendencia) && (
+              <div className="pt-4 mt-2 flex items-center justify-center gap-4 border-t border-gray-200">
+                {temMaisTendencia && (
+                  <button
+                    onClick={() => setLimiteVisivelTendencia(prev => prev + 6)}
+                    className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm"
+                  >
+                    <PlusCircle size={18} /> Ver mais meses
+                  </button>
+                )}
+                {temMenosTendencia && (
+                  <button
+                    onClick={() => setLimiteVisivelTendencia(6)}
+                    className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm"
+                  >
+                    Ver menos
+                  </button>
+                )}
               </div>
             )}
           </section>
@@ -239,7 +286,7 @@ export const Relatorios = () => {
               <FileSpreadsheet size={48} className="text-gray-300 mb-3" />
               <p>Nenhuma venda registrada para os filtros aplicados.</p>
             </div>
-          ) : (
+          ) : (<>
             <div className="overflow-x-auto max-h-600px overflow-y-auto">
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
@@ -248,12 +295,13 @@ export const Relatorios = () => {
                     <th className="p-4 font-semibold">Unidade/Cat</th>
                     <th className="p-4 font-semibold text-right">Qtd. Vendida</th>
                     <th className="p-4 font-semibold text-right">Valor Total (R$)</th>
+                    <th className="p-4 font-semibold text-center">Participação (%)</th>
                     <th className="p-4 font-semibold text-center">% Acumulado</th>
                     <th className="p-4 font-semibold text-center">Classificação</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {dados.produtos.map((p, index) => (
+                  {produtosParaExibir.map((p, index) => (
                     <tr key={`${p.produto_id}-${index}`} className="hover:bg-gray-50 transition-colors">
                       <td className="p-4 font-medium text-gray-900">{p.nome}</td>
                       <td className="p-4 text-sm text-gray-500">
@@ -262,6 +310,9 @@ export const Relatorios = () => {
                       <td className="p-4 text-right text-gray-700 font-semibold">{p.quantidade_vendida}</td>
                       <td className="p-4 text-right text-gray-700 font-semibold">
                         R$ {p.valor_total.toFixed(2)}
+                      </td>
+                      <td className="p-4 text-center text-gray-700 font-semibold">
+                        {(p.percentual_participacao || 0).toFixed(1)}%
                       </td>
                       <td className="p-4 text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -282,6 +333,27 @@ export const Relatorios = () => {
                 </tbody>
               </table>
             </div>
+            {!carregando && (temMais || temMenos) && (
+              <div className="p-4 flex items-center justify-center gap-4 border-t border-gray-200 bg-gray-50">
+                {temMais && (
+                  <button
+                    onClick={() => setLimiteVisivel(prev => prev + 10)}
+                    className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm"
+                  >
+                    <PlusCircle size={18} /> Ver mais
+                  </button>
+                )}
+                {temMenos && (
+                  <button
+                    onClick={() => setLimiteVisivel(10)}
+                    className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm"
+                  >
+                    Ver menos
+                  </button>
+                )}
+              </div>
+            )}
+          </>
           )}
         </div>
 

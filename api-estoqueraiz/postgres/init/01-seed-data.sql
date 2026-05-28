@@ -150,13 +150,80 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO movimentacoes (id, tipo, quantidade, data_movimentacao, observacao, documento, produto_id, usuario_id, unidade_origem_id, unidade_destino_id, criado_em, atualizado_em)
 VALUES
   (1, 'ENTRADA', 200, NOW() - INTERVAL '30 days', 'Entrada inicial de estoque.', NULL, 1, 2, NULL, NULL, NOW() - INTERVAL '30 days', NOW() - INTERVAL '30 days'),
-  (2, 'SAIDA', 15, NOW() - INTERVAL '10 days', 'Venda a um cliente.', NULL, 1, 2, NULL, NULL, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
-  (3, 'SAIDA', 40, NOW() - INTERVAL '5 days', 'Retirada para aplicação de defensivo.', NULL, 2, 2, NULL, NULL, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'),
+  (2, 'SAIDA', 20, NOW() - INTERVAL '10 days', 'Venda corporativa.', 'NF-001', 1, 2, NULL, NULL, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
+  (3, 'SAIDA', 50, NOW() - INTERVAL '5 days', 'Venda safra grande.', 'NF-002', 4, 2, NULL, NULL, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'),
   (4, 'ENTRADA', 300, NOW() - INTERVAL '25 days', 'Reposição de fertilizante.', NULL, 3, 2, NULL, NULL, NOW() - INTERVAL '25 days', NOW() - INTERVAL '25 days'),
   (5, 'AJUSTE', 5, NOW() - INTERVAL '2 days', 'Ajuste de contagem de inventário.', NULL, 7, 1, NULL, NULL, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
   (6, 'ENTRADA', 8, NOW() - INTERVAL '10 days', 'Compra de adubo orgânico.', NULL, 9, 2, NULL, NULL, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
   (7, 'ENTRADA', 150, NOW() - INTERVAL '20 days', 'Compra de sementes de trigo.', NULL, 10, 2, NULL, NULL, NOW() - INTERVAL '20 days', NOW() - INTERVAL '20 days'),
-  (8, 'ENTRADA', 15, NOW() - INTERVAL '50 days', 'Entrada de ração.', NULL, 11, 2, NULL, NULL, NOW() - INTERVAL '50 days', NOW() - INTERVAL '50 days')
+  (8, 'ENTRADA', 15, NOW() - INTERVAL '50 days', 'Entrada de ração.', NULL, 11, 2, NULL, NULL, NOW() - INTERVAL '50 days', NOW() - INTERVAL '50 days'),
+  (9, 'SAIDA', 25, NOW() - INTERVAL '12 days', 'Venda varejo.', 'NF-003', 7, 2, NULL, NULL, NOW() - INTERVAL '12 days', NOW() - INTERVAL '12 days'),
+  (10, 'SAIDA', 10, NOW() - INTERVAL '15 days', 'Venda balcão.', 'NF-004', 3, 2, NULL, NULL, NOW() - INTERVAL '15 days', NOW() - INTERVAL '15 days'),
+  (11, 'SAIDA', 5, NOW() - INTERVAL '18 days', 'Venda pequena.', 'NF-005', 5, 2, NULL, NULL, NOW() - INTERVAL '18 days', NOW() - INTERVAL '18 days'),
+  (12, 'SAIDA', 3, NOW() - INTERVAL '22 days', 'Venda avulsa.', 'NF-006', 6, 2, NULL, NULL, NOW() - INTERVAL '22 days', NOW() - INTERVAL '22 days'),
+  (13, 'SAIDA', 1, NOW() - INTERVAL '28 days', 'Venda unitária.', 'NF-007', 8, 2, NULL, NULL, NOW() - INTERVAL '28 days', NOW() - INTERVAL '28 days'),
+  (14, 'SAIDA', 2, NOW() - INTERVAL '3 days', 'Venda rápida.', 'NF-008', 11, 2, NULL, NULL, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days')
+ON CONFLICT (id) DO NOTHING;
+
+-- Gerando produtos adicionais em lote para testar a paginação da Curva ABC (Produtos 12 a 40)
+INSERT INTO produtos (id, nome, descricao, codigo_barras, preco_custo, preco_venda, quantidade_estoque, quantidade_minima, data_validade, lote, localizacao, imagem_url, ativo, "statusProduto", categoria_id, unidade_id, usuario_id, criado_em, atualizado_em)
+SELECT 
+  i, 
+  'Produto Dinâmico ' || i, 
+  'Produto gerado para testes de paginação', 
+  '7891000000' || LPAD(i::text, 3, '0'), 
+  10.00, 
+  25.50, 
+  100, 
+  5, 
+  NULL, 
+  'L-TESTE', 
+  'Prateleira ' || i, 
+  NULL, 
+  true, 
+  'aprovado', 
+  (i % 5) + 1, 
+  1, 
+  1, 
+  NOW(), 
+  NOW()
+FROM generate_series(12, 40) AS i
+ON CONFLICT (id) DO NOTHING;
+
+-- Adicionando saídas para esses produtos dinâmicos para que apareçam no relatório
+INSERT INTO movimentacoes (id, tipo, quantidade, data_movimentacao, observacao, documento, produto_id, usuario_id, unidade_origem_id, unidade_destino_id, criado_em, atualizado_em)
+SELECT 
+  i + 50, -- Usando IDs a partir de 62 para não dar conflito com os de cima
+  'SAIDA', 
+  (i % 3) + 1, 
+  NOW() - ((i * 7) % 120) * INTERVAL '1 day', 
+  'Venda teste paginação', 
+  'NF-TESTE-' || i, 
+  i, 
+  2, 
+  NULL, 
+  NULL, 
+  NOW() - ((i * 7) % 120) * INTERVAL '1 day', 
+  NOW() - ((i * 7) % 120) * INTERVAL '1 day'
+FROM generate_series(12, 40) AS i
+ON CONFLICT (id) DO NOTHING;
+
+-- Gerando histórico longo de movimentações (últimos 2 anos) variando os tipos
+INSERT INTO movimentacoes (id, tipo, quantidade, data_movimentacao, observacao, documento, produto_id, usuario_id, unidade_origem_id, unidade_destino_id, criado_em, atualizado_em)
+SELECT 
+  i + 100, 
+  (ARRAY['SAIDA', 'ENTRADA', 'TRANSFERENCIA', 'AJUSTE', 'SAIDA'])[ (i % 5) + 1 ]::enum_movimentacoes_tipo, 
+  (i % 10) + 2, 
+  NOW() - (i * 4) * INTERVAL '1 day', 
+  'Movimentação histórica automatizada', 
+  'DOC-HIST-' || i, 
+  (i % 10) + 1, 
+  2, 
+  CASE WHEN (i % 5) + 1 = 3 THEN 1 ELSE NULL END, -- Se for transferência, origem é Matriz
+  CASE WHEN (i % 5) + 1 = 3 THEN 2 ELSE NULL END, -- Se for transferência, destino é Filial SP
+  NOW() - (i * 4) * INTERVAL '1 day', 
+  NOW() - (i * 4) * INTERVAL '1 day'
+FROM generate_series(1, 200) AS i
 ON CONFLICT (id) DO NOTHING;
 
 SELECT setval('unidades_id_seq', COALESCE((SELECT MAX(id) FROM unidades), 1), true);
