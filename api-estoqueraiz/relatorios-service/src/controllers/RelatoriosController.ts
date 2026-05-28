@@ -5,7 +5,7 @@ import { logger } from "../../../shared/utils/logger";
 
 export const gerarCurvaABC = asyncHandler(
   async (req: Request, res: Response) => {
-    const { data_inicio, data_fim, unidade_id } = req.query;
+    const { data_inicio, data_fim, unidade_id, pagina, limite } = req.query;
 
     logger.info(`Gerando Curva ABC`);
 
@@ -13,6 +13,8 @@ export const gerarCurvaABC = asyncHandler(
       data_inicio: data_inicio as string,
       data_fim: data_fim as string,
       unidade_id: unidade_id ? parseInt(unidade_id as string) : undefined,
+      pagina: pagina ? parseInt(pagina as string) : undefined,
+      limite: limite ? parseInt(limite as string) : undefined,
     });
 
     res.json({
@@ -24,12 +26,14 @@ export const gerarCurvaABC = asyncHandler(
 
 export const obterEstatisticas = asyncHandler(
   async (req: Request, res: Response) => {
-    const { unidade_id } = req.query;
+    const { unidade_id, data_inicio, data_fim } = req.query;
 
     logger.info(`Obtendo estatísticas gerais`);
 
     const resultado = await relatoriosService.obterEstatisticasGerais({
       unidade_id: unidade_id ? parseInt(unidade_id as string) : undefined,
+      data_inicio: data_inicio as string,
+      data_fim: data_fim as string,
     });
 
     res.json(resultado);

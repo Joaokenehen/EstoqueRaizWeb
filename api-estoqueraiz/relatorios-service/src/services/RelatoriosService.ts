@@ -11,11 +11,14 @@ import {
 
 export class RelatoriosService {
   async gerarCurvaABC(filtros: CurvaABCDTO): Promise<any> {
-    const { data_inicio, data_fim, unidade_id } = filtros;
+    let { data_inicio, data_fim, unidade_id, pagina = 1, limite = 25 } = filtros;
 
-    const cacheKey = `curvaABC:${JSON.stringify(filtros)}`;
+    if (data_fim && data_fim.length === 10) data_fim += " 23:59:59";
 
-    return await cacheService.buscarOuExecutar(
+    const cacheFiltros = { data_inicio, data_fim, unidade_id };
+    const cacheKey = `curvaABC:${JSON.stringify(cacheFiltros)}`;
+
+    const dadosCompletos = await cacheService.buscarOuExecutar(
       cacheKey,
       async () => {
         const query = `
@@ -130,21 +133,44 @@ export class RelatoriosService {
       },
       { ttl: 1800, namespace: "relatorios" }
     );
+
+    if (!dadosCompletos || dadosCompletos.produtos.length === 0) {
+      return dadosCompletos;
+    }
+
+    const totalProdutos = dadosCompletos.produtos.length;
+    
+    // Converte explicitamente para número para evitar concatenação (ex: 25 + "25" viraria "2525")
+    const limiteNum = Number(limite);
+    const paginaNum = Number(pagina);
+    const indiceInicial = (paginaNum - 1) * limiteNum;
+    const produtosPaginados = dadosCompletos.produtos.slice(indiceInicial, indiceInicial + limiteNum);
+
+    return {
+      ...dadosCompletos,
+      produtos: produtosPaginados,
+      estatisticas: {
+        ...dadosCompletos.estatisticas,
+        total_produtos: totalProdutos,
+      },
+    };
   }
 
   async obterEstatisticasGerais(filtros: EstatisticasDTO): Promise<any> {
-    const { unidade_id } = filtros;
+    let { unidade_id, data_inicio, data_fim } = filtros;
 
-    const cacheKey = `estatisticas:${unidade_id || "todas"}`;
+    if (data_fim && data_fim.length === 10) data_fim += " 23:59:59";
+
+    const cacheKey = `estatisticas:${unidade_id || "todas"}:${data_inicio || "sem-inicio"}:${data_fim || "sem-fim"}`;
 
     return await cacheService.buscarOuExecutar(
       cacheKey,
       async () => {
-        const whereClause: any = {};
-
-        if (unidade_id) {
-          whereClause.unidade_origem_id = unidade_id;
-        }
+        let whereCond = "";
+        if (unidade_id) whereCond += " AND unidade_origem_id = :unidade_id";
+        if (data_inicio && data_fim) whereCond += " AND data_movimentacao BETWEEN :data_inicio AND :data_fim";
+        else if (data_inicio) whereCond += " AND data_movimentacao >= :data_inicio";
+        else if (data_fim) whereCond += " AND data_movimentacao <= :data_fim";
 
         const query = `
           SELECT 
@@ -154,16 +180,23 @@ export class RelatoriosService {
             SUM(CASE WHEN tipo = 'TRANSFERENCIA' THEN 1 ELSE 0 END) as total_transferencias,
             SUM(CASE WHEN tipo = 'AJUSTE' THEN 1 ELSE 0 END) as total_ajustes
           FROM movimentacoes
-          ${unidade_id ? `WHERE unidade_origem_id = :unidade_id` : ""}
+          WHERE 1=1 ${whereCond}
         `;
 
         const [estatisticas]: any = await sequelize.query(query, {
-          replacements: { unidade_id },
+          replacements: { unidade_id, data_inicio, data_fim },
           type: QueryTypes.SELECT,
         });
 
-        const seiseMesesAtras = new Date();
-        seiseMesesAtras.setMonth(seiseMesesAtras.getMonth() - 6);
+        let dataInicioTendencia = data_inicio;
+        let dataFimTendencia = data_fim;
+        let whereMensal = "";
+        if (unidade_id) whereMensal += " AND unidade_origem_id = :unidade_id";
+
+        // Se tiver datas, aplica os filtros. Caso contrário, puxa todo o histórico.
+        if (data_inicio && data_fim) whereMensal += " AND data_movimentacao BETWEEN :data_inicio_tendencia AND :data_fim_tendencia";
+        else if (data_inicio) whereMensal += " AND data_movimentacao >= :data_inicio_tendencia";
+        else if (data_fim) whereMensal += " AND data_movimentacao <= :data_fim_tendencia";
 
         const queryMensal = `
           SELECT 
@@ -171,14 +204,17 @@ export class RelatoriosService {
             tipo,
             COUNT(*) as total
           FROM movimentacoes
-          WHERE data_movimentacao >= :data_inicio
-            ${unidade_id ? `AND unidade_origem_id = :unidade_id` : ""}
+          WHERE 1=1 ${whereMensal}
           GROUP BY mes, tipo
           ORDER BY mes ASC
         `;
 
         const movimentacoesPorMes = await sequelize.query(queryMensal, {
-          replacements: { data_inicio: seiseMesesAtras, unidade_id },
+          replacements: { 
+            unidade_id, 
+            data_inicio_tendencia: dataInicioTendencia, 
+            data_fim_tendencia: dataFimTendencia 
+          },
           type: QueryTypes.SELECT,
         });
 
