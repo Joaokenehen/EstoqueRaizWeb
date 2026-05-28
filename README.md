@@ -266,6 +266,16 @@ npm run dev
 
 Acesse: **http://localhost:5173**
 
+### 5. Usuários de Teste (Seed)
+
+Após rodar o comando para subir o backend, o banco de dados será populado automaticamente com os seguintes usuários (todos com a mesma senha padrão):
+
+| Perfil | E-mail | Senha |
+| --- | --- | --- |
+| **Gerente** | `gerente@estoqueraiz.com` | `Senha123!` |
+| **Estoquista** | `estoquista@estoqueraiz.com` | `Senha123!` |
+| **Financeiro** | `financeiro@estoqueraiz.com` | `Senha123!` |
+
 ---
 
 ## Endereços Úteis
