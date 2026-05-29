@@ -149,20 +149,20 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO movimentacoes (id, tipo, quantidade, data_movimentacao, observacao, documento, produto_id, usuario_id, unidade_origem_id, unidade_destino_id, criado_em, atualizado_em)
 VALUES
-  (1, 'ENTRADA', 200, NOW() - INTERVAL '30 days', 'Entrada inicial de estoque.', NULL, 1, 2, NULL, NULL, NOW() - INTERVAL '30 days', NOW() - INTERVAL '30 days'),
-  (2, 'SAIDA', 20, NOW() - INTERVAL '10 days', 'Venda corporativa.', 'NF-001', 1, 2, NULL, NULL, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
-  (3, 'SAIDA', 50, NOW() - INTERVAL '5 days', 'Venda safra grande.', 'NF-002', 4, 2, NULL, NULL, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'),
-  (4, 'ENTRADA', 300, NOW() - INTERVAL '25 days', 'Reposição de fertilizante.', NULL, 3, 2, NULL, NULL, NOW() - INTERVAL '25 days', NOW() - INTERVAL '25 days'),
-  (5, 'AJUSTE', 5, NOW() - INTERVAL '2 days', 'Ajuste de contagem de inventário.', NULL, 7, 1, NULL, NULL, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
-  (6, 'ENTRADA', 8, NOW() - INTERVAL '10 days', 'Compra de adubo orgânico.', NULL, 9, 2, NULL, NULL, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
-  (7, 'ENTRADA', 150, NOW() - INTERVAL '20 days', 'Compra de sementes de trigo.', NULL, 10, 2, NULL, NULL, NOW() - INTERVAL '20 days', NOW() - INTERVAL '20 days'),
-  (8, 'ENTRADA', 15, NOW() - INTERVAL '50 days', 'Entrada de ração.', NULL, 11, 2, NULL, NULL, NOW() - INTERVAL '50 days', NOW() - INTERVAL '50 days'),
-  (9, 'SAIDA', 25, NOW() - INTERVAL '12 days', 'Venda varejo.', 'NF-003', 7, 2, NULL, NULL, NOW() - INTERVAL '12 days', NOW() - INTERVAL '12 days'),
-  (10, 'SAIDA', 10, NOW() - INTERVAL '15 days', 'Venda balcão.', 'NF-004', 3, 2, NULL, NULL, NOW() - INTERVAL '15 days', NOW() - INTERVAL '15 days'),
-  (11, 'SAIDA', 5, NOW() - INTERVAL '18 days', 'Venda pequena.', 'NF-005', 5, 2, NULL, NULL, NOW() - INTERVAL '18 days', NOW() - INTERVAL '18 days'),
-  (12, 'SAIDA', 3, NOW() - INTERVAL '22 days', 'Venda avulsa.', 'NF-006', 6, 2, NULL, NULL, NOW() - INTERVAL '22 days', NOW() - INTERVAL '22 days'),
-  (13, 'SAIDA', 1, NOW() - INTERVAL '28 days', 'Venda unitária.', 'NF-007', 8, 2, NULL, NULL, NOW() - INTERVAL '28 days', NOW() - INTERVAL '28 days'),
-  (14, 'SAIDA', 2, NOW() - INTERVAL '3 days', 'Venda rápida.', 'NF-008', 11, 2, NULL, NULL, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days')
+  (1, 'ENTRADA', 200, NOW() - INTERVAL '30 days', 'Entrada inicial de estoque.', NULL, 1, 2, NULL, 1, NOW() - INTERVAL '30 days', NOW() - INTERVAL '30 days'),
+  (2, 'SAIDA', 20, NOW() - INTERVAL '10 days', 'Venda corporativa.', 'NF-001', 1, 2, 1, NULL, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
+  (3, 'SAIDA', 50, NOW() - INTERVAL '5 days', 'Venda safra grande.', 'NF-002', 4, 2, 2, NULL, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'),
+  (4, 'ENTRADA', 300, NOW() - INTERVAL '25 days', 'Reposição de fertilizante.', NULL, 3, 2, NULL, 1, NOW() - INTERVAL '25 days', NOW() - INTERVAL '25 days'),
+  (5, 'AJUSTE', 5, NOW() - INTERVAL '2 days', 'Ajuste de contagem de inventário.', NULL, 7, 1, 3, NULL, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
+  (6, 'ENTRADA', 8, NOW() - INTERVAL '10 days', 'Compra de adubo orgânico.', NULL, 9, 2, NULL, 1, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
+  (7, 'ENTRADA', 150, NOW() - INTERVAL '20 days', 'Compra de sementes de trigo.', NULL, 10, 2, NULL, 2, NOW() - INTERVAL '20 days', NOW() - INTERVAL '20 days'),
+  (8, 'ENTRADA', 15, NOW() - INTERVAL '50 days', 'Entrada de ração.', NULL, 11, 2, NULL, 3, NOW() - INTERVAL '50 days', NOW() - INTERVAL '50 days'),
+  (9, 'SAIDA', 25, NOW() - INTERVAL '12 days', 'Venda varejo.', 'NF-003', 7, 2, 3, NULL, NOW() - INTERVAL '12 days', NOW() - INTERVAL '12 days'),
+  (10, 'SAIDA', 10, NOW() - INTERVAL '15 days', 'Venda balcão.', 'NF-004', 3, 2, 1, NULL, NOW() - INTERVAL '15 days', NOW() - INTERVAL '15 days'),
+  (11, 'SAIDA', 5, NOW() - INTERVAL '18 days', 'Venda pequena.', 'NF-005', 5, 2, 1, NULL, NOW() - INTERVAL '18 days', NOW() - INTERVAL '18 days'),
+  (12, 'SAIDA', 3, NOW() - INTERVAL '22 days', 'Venda avulsa.', 'NF-006', 6, 2, 1, NULL, NOW() - INTERVAL '22 days', NOW() - INTERVAL '22 days'),
+  (13, 'SAIDA', 1, NOW() - INTERVAL '28 days', 'Venda unitária.', 'NF-007', 8, 2, 2, NULL, NOW() - INTERVAL '28 days', NOW() - INTERVAL '28 days'),
+  (14, 'SAIDA', 2, NOW() - INTERVAL '3 days', 'Venda rápida.', 'NF-008', 11, 2, 3, NULL, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days')
 ON CONFLICT (id) DO NOTHING;
 
 -- Gerando produtos adicionais em lote para testar a paginação da Curva ABC (Produtos 12 a 40)
@@ -201,7 +201,7 @@ SELECT
   'NF-TESTE-' || i, 
   i, 
   2, 
-  NULL, 
+  1, 
   NULL, 
   NOW() - ((i * 7) % 120) * INTERVAL '1 day', 
   NOW() - ((i * 7) % 120) * INTERVAL '1 day'
@@ -219,8 +219,8 @@ SELECT
   'DOC-HIST-' || i, 
   (i % 10) + 1, 
   2, 
-  CASE WHEN (i % 5) + 1 = 3 THEN 1 ELSE NULL END, -- Se for transferência, origem é Matriz
-  CASE WHEN (i % 5) + 1 = 3 THEN 2 ELSE NULL END, -- Se for transferência, destino é Filial SP
+  CASE WHEN (i % 5) + 1 IN (1, 3, 4, 5) THEN 1 ELSE NULL END, 
+  CASE WHEN (i % 5) + 1 = 3 THEN 2 WHEN (i % 5) + 1 = 2 THEN 1 ELSE NULL END, 
   NOW() - (i * 4) * INTERVAL '1 day', 
   NOW() - (i * 4) * INTERVAL '1 day'
 FROM generate_series(1, 200) AS i
