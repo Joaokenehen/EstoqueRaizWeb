@@ -27,7 +27,7 @@ export const BarraFiltros = ({
           maxLength={100}
           data-testid="barra-filtro-input-busca"
           placeholder={placeholderBusca}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-raiz-verde outline-none text-sm"
           value={buscaTexto}
           onChange={(e) => onBuscaChange(e.target.value)}
         />
@@ -41,7 +41,7 @@ export const BarraFiltros = ({
           <div className="relative md:w-36 shrink-0">
             <ListOrdered className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <select
-              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm appearance-none bg-gray-50 font-medium"
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-raiz-verde outline-none text-sm appearance-none bg-gray-50 font-medium"
               value={itensPorPagina}
               onChange={(e) => onItensPorPaginaChange(Number(e.target.value))}
             >

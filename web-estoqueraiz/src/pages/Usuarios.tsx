@@ -8,6 +8,8 @@ import Layout from '../components/Layout';
 import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
 import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
+import { Paginacao } from '../components/Paginacao';
+import toast from 'react-hot-toast';
 
 export const Usuarios = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -104,31 +106,37 @@ export const Usuarios = () => {
     setCargosSelecionados(prev => ({ ...prev, [id]: novoCargo }));
   };
 
-  const handleDeletarLote = async () => {
+  const handleDeletarLote = () => {
     if (selecionados.length === 0) return;
 
     if (usuarioLogado && selecionados.includes(usuarioLogado.id)) {
-      alert('Você não pode excluir a sua própria conta! Desmarque o seu usuário e tente novamente.');
+      toast.error('Você não pode excluir a sua própria conta! Desmarque o seu usuário e tente novamente.');
       return;
     }
 
-    if (!window.confirm(`Atenção: Você está prestes a excluir ${selecionados.length} usuário(s). Esta ação é irreversível. Deseja continuar?`)) {
-      return;
-    }
-
-    try {
-      setCarregando(true);
-      await Promise.all(selecionados.map(id => usuarioService.deletar(id)));
-      
-      alert(`${selecionados.length} usuário(s) excluído(s) com sucesso!`);
-      limparSelecao(); 
-      await carregarDados();
-    } catch (error) {
-      alert('Erro ao excluir alguns usuários. A tela será atualizada para exibir o estado atual.');
-      await carregarDados();
-    } finally {
-      setCarregando(false);
-    }
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="font-semibold text-gray-800 text-sm">Excluir {selecionados.length} usuário(s)? Ação irreversível.</p>
+        <div className="flex gap-2 justify-end">
+          <button className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-300" onClick={() => toast.dismiss(t.id)}>Cancelar</button>
+          <button className="bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-red-700" onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              setCarregando(true);
+              await Promise.all(selecionados.map(id => usuarioService.deletar(id)));
+              toast.success(`${selecionados.length} usuário(s) excluído(s)!`);
+              limparSelecao(); 
+              await carregarDados();
+            } catch (error) {
+              toast.error('Erro ao excluir alguns usuários.');
+              await carregarDados();
+            } finally {
+              setCarregando(false);
+            }
+          }}>Excluir Selecionados</button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
 const handleAprovar = async (id: number) => {
@@ -136,12 +144,12 @@ const handleAprovar = async (id: number) => {
     const unidadeSelecionada = unidadesSelecionadas[id];
 
     if (!cargoSelecionado || cargoSelecionado === 'nenhum') {
-      alert('Por favor, selecione o CARGO antes de aprovar.');
+      toast.error('Por favor, selecione o CARGO antes de aprovar.');
       return;
     }
     
     if (cargoSelecionado !== 'financeiro' && cargoSelecionado !== 'gerente' && !unidadeSelecionada) {
-      alert('Por favor, selecione a UNIDADE (Filial) do usuário antes de aprovar.');
+      toast.error('Por favor, selecione a UNIDADE (Filial) do usuário antes de aprovar.');
       return;
     }
 
@@ -155,27 +163,38 @@ const handleAprovar = async (id: number) => {
         unidade_id: unidadeParaEnviar as any 
       });
 
-      alert('Usuário aprovado com sucesso!');
+      toast.success('Usuário aprovado com sucesso!');
     } catch (error) {
-      alert('Erro ao aprovar usuário. Verifique sua conexão.');
+      toast.error('Erro ao aprovar usuário. Verifique sua conexão.');
     } finally {
       setProcessandoId(null);
       await carregarDados();
     }
   };
 
-  const handleRejeitar = async (id: number) => {
-    if (!window.confirm('Tem certeza que deseja rejeitar este acesso?')) return;
-      try {
-        setProcessandoId(id);
-        await usuarioService.rejeitar(id);
-      } catch (error) {
-        alert('Erro ao rejeitar usuário. A tela será atualizada.');
-      } finally {
-        setProcessandoId(null);
-        await carregarDados(); 
-      }
-    };
+  const handleRejeitar = (id: number) => {
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="font-semibold text-gray-800 text-sm">Tem certeza que deseja rejeitar este acesso?</p>
+        <div className="flex gap-2 justify-end">
+          <button className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-300" onClick={() => toast.dismiss(t.id)}>Cancelar</button>
+          <button className="bg-yellow-500 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-yellow-600" onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              setProcessandoId(id);
+              await usuarioService.rejeitar(id);
+              toast.success('Acesso rejeitado!');
+            } catch (error) {
+              toast.error('Erro ao rejeitar usuário.');
+            } finally {
+              setProcessandoId(null);
+              await carregarDados(); 
+            }
+          }}>Rejeitar</button>
+        </div>
+      </div>
+    ), { duration: Infinity });
+  };
 
   const handleSalvarAlteracoes = async (id: number) => {
     const cargoSelecionado = cargosSelecionados[id];
@@ -203,9 +222,9 @@ const handleAprovar = async (id: number) => {
         localStorage.setItem('@EstoqueRaiz:usuario', JSON.stringify(usuarioAtualizado));
       }
 
-      alert('Permissões e unidade atualizadas com sucesso!');
+      toast.success('Permissões e unidade atualizadas com sucesso!');
     } catch (error) {
-      alert('Erro ao guardar as alterações. A tela será atualizada.');
+      toast.error('Erro ao guardar as alterações.');
       console.error(error);
     } finally {
       setProcessandoId(null);
@@ -213,22 +232,33 @@ const handleAprovar = async (id: number) => {
     }
   };
 
-  const handleDeletar = async (id: number) => {
+  const handleDeletar = (id: number) => {
     if (usuarioLogado && id === usuarioLogado.id) {
-      alert('Você não pode excluir sua própria conta. É necessário que outro administrador realize esta ação.');
+      toast.error('Você não pode excluir sua própria conta. Outro administrador deve realizar esta ação.');
       return;
     }
 
-    if (!window.confirm('Atenção: Esta ação é irreversível. Deseja excluir este usuário do sistema?')) return;
-    try {
-      setProcessandoId(id);
-      await usuarioService.deletar(id);
-      await carregarDados();
-    } catch (error) {
-      alert('Erro ao deletar usuário.');
-    } finally {
-      setProcessandoId(null);
-    }
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="font-semibold text-gray-800 text-sm">Desejas excluir este usuário do sistema?</p>
+        <div className="flex gap-2 justify-end">
+          <button className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-300" onClick={() => toast.dismiss(t.id)}>Cancelar</button>
+          <button className="bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-red-700" onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              setProcessandoId(id);
+              await usuarioService.deletar(id);
+              toast.success('Usuário excluído!');
+              await carregarDados();
+            } catch (error) {
+              toast.error('Erro ao deletar usuário.');
+            } finally {
+              setProcessandoId(null);
+            }
+          }}>Excluir</button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
   const getStatusBadge = (status: string) => {
@@ -454,38 +484,12 @@ const handleAprovar = async (id: number) => {
               </table>
             </div>
 
-            {usuariosFiltrados.length > 0 && (
-              <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      Mostrando <span className="font-medium">{indicePrimeiroItem + 1}</span> a <span className="font-medium">{Math.min(indiceUltimoItem, usuariosFiltrados.length)}</span> de <span className="font-medium">{usuariosFiltrados.length}</span> resultados
-                    </p>
-                  </div>
-                  <div>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                      <button
-                        onClick={() => setPaginaAtual(prev => Math.max(prev - 1, 1))}
-                        disabled={paginaAtual === 1}
-                        className="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Anterior
-                      </button>
-                      <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                        Página {paginaAtual} de {totalPaginas}
-                      </span>
-                      <button
-                        onClick={() => setPaginaAtual(prev => Math.min(prev + 1, totalPaginas))}
-                        disabled={paginaAtual === totalPaginas}
-                        className="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Próxima
-                      </button>
-                    </nav>
-                  </div>
-                </div>
-              </div>
-            )}
+            <Paginacao
+              totalItens={usuariosFiltrados.length}
+              itensPorPagina={itensPorPagina}
+              paginaAtual={paginaAtual}
+              setPaginaAtual={setPaginaAtual}
+            />
           </div>
         )}
       </div>

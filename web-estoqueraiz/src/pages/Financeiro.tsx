@@ -8,6 +8,8 @@ import { LoadingSpinner } from '../components/Feedbacks';
 import Layout from '../components/Layout';
 import { Modal } from '../components/Modal';
 import { FormularioBase } from '../components/FormularioBase';
+import { Paginacao } from '../components/Paginacao';
+import toast from 'react-hot-toast';
 
 export const Financeiro = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -61,7 +63,7 @@ export const Financeiro = () => {
     const venda = Number(precos.preco_venda);
 
     if (venda < custo) {
-      alert('O valor de venda não pode ser menor que o valor de custo.');
+      toast.error('O valor de venda não pode ser menor que o valor de custo.');
       return;
     }
 
@@ -71,11 +73,11 @@ export const Financeiro = () => {
         preco_custo: custo,
         preco_venda: venda
       });
-      alert('Produto Aprovado e Precificado!');
+      toast.success('Produto Aprovado e Precificado!');
       setModalAprovacaoAberto(false);
       await carregarDados();
     } catch (error) {
-      alert('Erro ao aprovar produto.');
+      toast.error('Erro ao aprovar produto.');
     } finally {
       setProcessandoAcao(false);
     }
@@ -89,7 +91,7 @@ export const Financeiro = () => {
     const venda = Number(precos.preco_venda);
 
     if (venda < custo) {
-      alert('O valor de venda não pode ser menor que o valor de custo.');
+      toast.error('O valor de venda não pode ser menor que o valor de custo.');
       return;
     }
 
@@ -99,24 +101,35 @@ export const Financeiro = () => {
         preco_custo: custo,
         preco_venda: venda
       });
-      alert('Preços atualizados com sucesso!');
+      toast.success('Preços atualizados com sucesso!');
       setModalEdicaoAberto(false);
       await carregarDados();
     } catch (error) {
-      alert('Erro ao atualizar preços.');
+      toast.error('Erro ao atualizar preços.');
     } finally {
       setProcessandoAcao(false);
     }
   };
 
-  const handleRejeitar = async (id: number) => {
-    if (!window.confirm('Rejeitar este produto? O item não será ativado no catálogo.')) return;
-    try {
-      await produtoService.rejeitar(id);
-      await carregarDados();
-    } catch (error) {
-      alert('Erro ao rejeitar produto.');
-    }
+  const handleRejeitar = (id: number) => {
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="font-semibold text-gray-800 text-sm">Rejeitar este produto? Ele não será ativado no catálogo.</p>
+        <div className="flex gap-2 justify-end">
+          <button className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-300" onClick={() => toast.dismiss(t.id)}>Cancelar</button>
+          <button className="bg-yellow-500 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-yellow-600" onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              await produtoService.rejeitar(id);
+              toast.success('Produto rejeitado!');
+              await carregarDados();
+            } catch (error) {
+              toast.error('Erro ao rejeitar produto.');
+            }
+          }}>Rejeitar</button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
   const abrirModalAprovacao = (prod: Produto) => {
@@ -148,7 +161,7 @@ export const Financeiro = () => {
               onClick={() => setAbaAtiva('pendentes')}
               className={`pb-4 px-2 text-sm font-medium border-b-2 transition-colors ${
                 abaAtiva === 'pendentes'
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-raiz-verde text-raiz-verde'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -158,7 +171,7 @@ export const Financeiro = () => {
               onClick={() => setAbaAtiva('aprovados')}
               className={`pb-4 px-2 text-sm font-medium border-b-2 transition-colors ${
                 abaAtiva === 'aprovados'
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-raiz-verde text-raiz-verde'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -236,13 +249,12 @@ export const Financeiro = () => {
               </table>
             </div>
 
-            <div className="bg-gray-50 px-4 py-3 border-t flex items-center justify-between sm:px-6">
-              <p className="text-sm text-gray-700">Mostrando {produtosFiltrados.length} itens - Página {paginaAtual} de {totalPaginas}</p>
-              <nav className="inline-flex -space-x-px shadow-sm rounded-md">
-                <button onClick={() => setPaginaAtual(p => Math.max(p - 1, 1))} disabled={paginaAtual === 1} className="px-4 py-2 border bg-white rounded-l-md hover:bg-gray-50 disabled:opacity-50">Anterior</button>
-                <button onClick={() => setPaginaAtual(p => Math.min(p + 1, totalPaginas))} disabled={paginaAtual === totalPaginas} className="px-4 py-2 border bg-white rounded-r-md hover:bg-gray-50 disabled:opacity-50">Próxima</button>
-              </nav>
-            </div>
+            <Paginacao
+              totalItens={produtosFiltrados.length}
+              itensPorPagina={itensPorPagina}
+              paginaAtual={paginaAtual}
+              setPaginaAtual={setPaginaAtual}
+            />
           </div>
         )}
       </div>
@@ -276,7 +288,7 @@ export const Financeiro = () => {
         onClose={() => setModalEdicaoAberto(false)} 
         titulo={<span className="flex items-center gap-2"><DollarSign /> Editar Preços</span>} 
         maxWidth="max-w-md"
-        headerClasses="bg-indigo-50 text-indigo-800 border-indigo-200"
+        headerClasses="bg-green-50 text-green-800 border-green-200"
       >
         <FormularioBase 
           onSubmit={handleAtualizarPrecos} 
@@ -285,11 +297,11 @@ export const Financeiro = () => {
         >
           <div>
             <label className="block text-sm font-medium mb-1">Custo Unitário (R$)</label>
-            <input required type="number" step="0.01" value={precos.preco_custo} onChange={e => setPrecos({...precos, preco_custo: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="0.00" />
+            <input required type="number" step="0.01" value={precos.preco_custo} onChange={e => setPrecos({...precos, preco_custo: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" placeholder="0.00" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Venda Unitária (R$)</label>
-            <input required type="number" step="0.01" value={precos.preco_venda} onChange={e => setPrecos({...precos, preco_venda: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="0.00" />
+            <input required type="number" step="0.01" value={precos.preco_venda} onChange={e => setPrecos({...precos, preco_venda: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" placeholder="0.00" />
           </div>
         </FormularioBase>
       </Modal>

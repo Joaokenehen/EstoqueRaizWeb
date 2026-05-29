@@ -34,7 +34,7 @@ export const FormularioBase = ({
           type="submit"
           disabled={processando}
           data-testid={`${testId}-submit`}
-          className="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold shadow-md hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+          className="w-full py-3 bg-raiz-verde text-white rounded-lg font-bold shadow-md hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
         >
           {processando ? (
             <>

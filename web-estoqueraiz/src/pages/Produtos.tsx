@@ -12,6 +12,8 @@ import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import Layout from '../components/Layout';
 import { Modal } from '../components/Modal';
 import { FormularioBase } from '../components/FormularioBase';
+import { Paginacao } from '../components/Paginacao';
+import toast from 'react-hot-toast';
 
 export const Produtos = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -85,55 +87,72 @@ export const Produtos = () => {
     try {
       if (produtoAtivo) {
         await produtoService.atualizar(produtoAtivo.id, formData);
-        alert('Produto atualizado!');
+        toast.success('Produto atualizado!');
       } else {
         await produtoService.criar(formData);
-        alert('Produto criado! Aguardando aprovação.');
+        toast.success('Produto criado! Aguardando aprovação.');
       }
       setModalAberto(false);
       await carregarDados();
     } catch (error) {
-      alert('Erro ao salvar.');
+      toast.error('Erro ao salvar.');
     } finally {
       setProcessandoAcao(false);
     }
   };
 
-  const handleDeletar = async (id: number) => {
-    if (!window.confirm('Excluir produto?')) return;
-    try {
-      await produtoService.deletar(id);
-      await carregarDados();
-    } catch (error) {
-      alert('Erro ao excluir.');
-    }
+  const handleDeletar = (id: number) => {
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="font-semibold text-gray-800 text-sm">Desejas realmente excluir este produto?</p>
+        <div className="flex gap-2 justify-end">
+          <button className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-300" onClick={() => toast.dismiss(t.id)}>Cancelar</button>
+          <button className="bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-red-700" onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              await produtoService.deletar(id);
+              await carregarDados();
+              toast.success('Produto excluído!');
+            } catch (error) {
+              toast.error('Erro ao excluir.');
+            }
+          }}>Excluir</button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
-  const handleDeletarLote = async () => {
+  const handleDeletarLote = () => {
     if (selecionados.length === 0) return;
 
     if (!isGerente) {
-      alert('Apenas gerentes podem excluir produtos em lote.');
+      toast.error('Apenas gerentes podem excluir produtos em lote.');
       return;
     }
 
-    if (!window.confirm(`Atenção: Você está prestes a excluir ${selecionados.length} produto(s). Esta ação é irreversível. Deseja continuar?`)) {
-      return;
-    }
-
-    try {
-      setCarregando(true);
-      await Promise.all(selecionados.map(id => produtoService.deletar(id)));
-      
-      alert(`${selecionados.length} produto(s) excluído(s) com sucesso!`);
-      limparSelecao();
-      await carregarDados();
-    } catch (error) {
-      alert('Erro ao excluir alguns produtos. A tela será atualizada para exibir o estado atual.');
-      await carregarDados();
-    } finally {
-      setCarregando(false);
-    }
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="font-semibold text-gray-800 text-sm">Excluir {selecionados.length} produto(s)? Ação irreversível.</p>
+        <div className="flex gap-2 justify-end">
+          <button className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-300" onClick={() => toast.dismiss(t.id)}>Cancelar</button>
+          <button className="bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-red-700" onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              setCarregando(true);
+              await Promise.all(selecionados.map(id => produtoService.deletar(id)));
+              toast.success(`${selecionados.length} produto(s) excluído(s)!`);
+              limparSelecao();
+              await carregarDados();
+            } catch (error) {
+              toast.error('Erro ao excluir alguns produtos.');
+              await carregarDados();
+            } finally {
+              setCarregando(false);
+            }
+          }}>Excluir Selecionados</button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
   const StatusBadge = ({ status }: { status?: string }) => {
@@ -146,13 +165,13 @@ export const Produtos = () => {
     const arquivo = e.target.files?.[0];
     if (arquivo) {
       if (!arquivo.type.startsWith('image/')) {
-        alert('Por favor, selecione apenas arquivos de imagem.');
+        toast.error('Por favor, selecione apenas arquivos de imagem.');
         e.target.value = '';
         return;
       }
 
       if (arquivo.size > 5 * 1024 * 1024) {
-        alert('A imagem deve ter no máximo 5MB.');
+        toast.error('A imagem deve ter no máximo 5MB.');
         e.target.value = '';
         return;
       }
@@ -198,7 +217,7 @@ export const Produtos = () => {
           {podeCriar && (
             <button 
           onClick={() => abrirModal()}
-              className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all shadow-md"
+              className="flex items-center gap-2 bg-raiz-verde text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all shadow-md"
             >
               <Plus size={20} /> Novo Produto
             </button>
@@ -215,7 +234,7 @@ export const Produtos = () => {
           <div className="relative md:w-48 shrink-0">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <select
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm appearance-none bg-gray-50 font-medium"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-raiz-verde outline-none text-sm appearance-none bg-gray-50 font-medium"
               value={statusFiltro}
               onChange={(e) => setStatusFiltro(e.target.value)}
             >
@@ -345,13 +364,12 @@ export const Produtos = () => {
               </table>
             </div>
 
-            <div className="bg-gray-50 px-4 py-3 border-t flex items-center justify-between sm:px-6">
-              <p className="text-sm text-gray-700">Mostrando {produtosFiltrados.length} itens - Página {paginaAtual} de {totalPaginas}</p>
-              <nav className="inline-flex -space-x-px shadow-sm rounded-md">
-                <button onClick={() => setPaginaAtual(p => Math.max(p - 1, 1))} disabled={paginaAtual === 1} className="px-4 py-2 border bg-white rounded-l-md hover:bg-gray-50 disabled:opacity-50">Anterior</button>
-                <button onClick={() => setPaginaAtual(p => Math.min(p + 1, totalPaginas))} disabled={paginaAtual === totalPaginas} className="px-4 py-2 border bg-white rounded-r-md hover:bg-gray-50 disabled:opacity-50">Próxima</button>
-              </nav>
-            </div>
+            <Paginacao
+              totalItens={produtosFiltrados.length}
+              itensPorPagina={itensPorPagina}
+              paginaAtual={paginaAtual}
+              setPaginaAtual={setPaginaAtual}
+            />
           </div>
         )}
       </div>
@@ -371,22 +389,22 @@ export const Produtos = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Produto *</label>
-              <input required name="nome" type="text" data-testid="produtos-input-nome" defaultValue={produtoAtivo?.nome} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input required name="nome" type="text" data-testid="produtos-input-nome" defaultValue={produtoAtivo?.nome} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Código de Barras</label>
-                <input name="codigo_barras" type="text" data-testid="produtos-input-codigo" defaultValue={produtoAtivo?.codigo_barras} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <input name="codigo_barras" type="text" data-testid="produtos-input-codigo" defaultValue={produtoAtivo?.codigo_barras} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Qtd Mínima</label>
-                <input name="quantidade_minima" type="number" data-testid="produtos-input-estoque" defaultValue={produtoAtivo?.quantidade_minima} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <input name="quantidade_minima" type="number" data-testid="produtos-input-estoque" defaultValue={produtoAtivo?.quantidade_minima} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
-                <select required name="categoria_id" data-testid="produtos-select-categoria" defaultValue={produtoAtivo?.categoria_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                  <select required name="categoria_id" data-testid="produtos-select-categoria" defaultValue={produtoAtivo?.categoria_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde">
                     <option value="">Selecione...</option>
                     {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                   </select>
@@ -410,7 +428,7 @@ export const Produtos = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-              <textarea name="descricao" data-testid="produtos-input-descricao" defaultValue={produtoAtivo?.descricao} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" rows={3} />
+                <textarea name="descricao" data-testid="produtos-input-descricao" defaultValue={produtoAtivo?.descricao} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" rows={3} />
               </div>
             </div>
             
@@ -439,7 +457,7 @@ export const Produtos = () => {
                     ref={fileInputRef}
                     data-testid="produtos-input-imagem"
                     onChange={handleAlterarImagem} 
-                    className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer" 
+                      className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer" 
                   />
                 </div>
               </div>

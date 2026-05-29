@@ -44,7 +44,7 @@ export const BotaoEditar = ({ onClick, disabled, title = "Editar", className = "
   <button
     onClick={onClick}
     disabled={disabled}
-    className={`p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+    className={`p-2 bg-green-50 text-raiz-verde rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     title={title}
   >
     <Edit size={18} />
@@ -57,7 +57,7 @@ export const BotaoSalvarPermissao = ({ onClick, disabled, title = "Salvar novo c
     disabled={disabled}
     className={`p-2 rounded-lg transition-colors ${
       !disabled
-        ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+        ? 'bg-green-100 text-raiz-verde hover:bg-green-200'
         : 'bg-gray-100 text-gray-400 cursor-not-allowed'
     } ${className}`}
     title={title}

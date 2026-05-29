@@ -142,9 +142,9 @@ VALUES
   (6, 'Enxada Larga 2.5', 'Enxada forjada em aço carbono.', '7891234500067', 25.00, 49.90, 50, 1, NULL, 'L006', 'Ferramentaria', NULL, true, 'aprovado', 4, 1, 2, NOW(), NOW()),
   (7, 'Ração para Bovinos de Corte', 'Ração balanceada para ganho de peso.', '7891234500074', 55.00, 95.00, 200, 20, NULL, 'L007', 'Estoque F1', NULL, true, 'aprovado', 5, 3, 2, NOW(), NOW()),
   (8, 'Pulverizador Costal 20L', 'Pulverizador para aplicação de defensivos.', '7891234500081', 90.00, 179.00, 30, 1, NULL, 'L008', 'Ferramentaria', NULL, true, 'aprovado', 4, 2, 2, NOW(), NOW()),
-  (9, 'Adubo Orgânico Líquido', 'Fertilizante orgânico de rápida absorção.', '7891234500098', 40.00, 75.00, 8, 20, NULL, 'L009', 'Estoque C2', NULL, true, 'aprovado', 1, 1, 2, NOW(), NOW()),
-  (10, 'Semente de Trigo TR 120', 'Sementes de trigo de inverno.', '7891234500104', 110.00, 190.00, 150, 10, NOW() + INTERVAL '15 days', 'L010', 'Estoque A2', NULL, true, 'aprovado', 3, 2, 2, NOW(), NOW()),
-  (11, 'Ração Suína Crescimento', 'Ração para suínos na fase de crescimento.', '7891234500111', 60.00, 110.00, 15, 50, NOW() + INTERVAL '5 days', 'L011', 'Estoque F2', NULL, true, 'aprovado', 5, 3, 2, NOW(), NOW())
+  (9, 'Adubo Orgânico Líquido', 'Fertilizante orgânico de rápida absorção.', '7891234500098', 40.00, 75.00, 8, 20, NULL, 'L009', 'Estoque C2', NULL, true, 'pendente', 1, 1, 2, NOW(), NOW()),
+  (10, 'Semente de Trigo TR 120', 'Sementes de trigo de inverno.', '7891234500104', 110.00, 190.00, 150, 10, NOW() + INTERVAL '15 days', 'L010', 'Estoque A2', NULL, true, 'pendente', 3, 2, 2, NOW(), NOW()),
+  (11, 'Ração Suína Crescimento', 'Ração para suínos na fase de crescimento.', '7891234500111', 60.00, 110.00, 15, 50, NOW() + INTERVAL '5 days', 'L011', 'Estoque F2', NULL, true, 'pendente', 5, 3, 2, NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO movimentacoes (id, tipo, quantidade, data_movimentacao, observacao, documento, produto_id, usuario_id, unidade_origem_id, unidade_destino_id, criado_em, atualizado_em)
@@ -181,7 +181,7 @@ SELECT
   'Prateleira ' || i, 
   NULL, 
   true, 
-  'aprovado', 
+  CASE WHEN i % 4 = 0 THEN 'pendente' ELSE 'aprovado' END::"enum_produtos_statusProduto", 
   (i % 5) + 1, 
   1, 
   1, 

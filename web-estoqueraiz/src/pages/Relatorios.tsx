@@ -159,7 +159,7 @@ export const Relatorios = () => {
         
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <TrendingUp className="text-indigo-600" /> Relatório Curva ABC
+            <TrendingUp className="text-raiz-verde" /> Relatório Curva ABC
           </h1>
           <p className="text-gray-500 mt-2">Analise a relevância dos seus produtos baseada no valor total de saídas.</p>
         </header>
@@ -167,20 +167,20 @@ export const Relatorios = () => {
         <form onSubmit={gerarRelatorio} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row items-end gap-4 mb-6">
           <div className="w-full md:w-auto flex-1">
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Data Início</label>
-            <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
           </div>
           <div className="w-full md:w-auto flex-1">
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Data Fim</label>
-            <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
           </div>
           <div className="w-full md:w-auto flex-1">
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Unidade</label>
-            <select value={unidadeId} onChange={e => setUnidadeId(e.target.value)} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+            <select value={unidadeId} onChange={e => setUnidadeId(e.target.value)} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde bg-white">
               <option value="">Todas as Unidades</option>
               {unidades.map(u => <option key={u.id} value={u.id}>{u.nome}</option>)}
             </select>
           </div>
-          <button type="submit" disabled={carregando} className="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+          <button type="submit" disabled={carregando} className="w-full md:w-auto px-6 py-2 bg-raiz-verde text-white rounded-lg font-medium hover:opacity-90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
             <Filter size={18} /> {carregando ? 'Gerando...' : 'Gerar Relatório'}
           </button>
         </form>
@@ -229,7 +229,7 @@ export const Relatorios = () => {
                         <span className="font-semibold text-gray-900">{item.total} mov.</span>
                       </div>
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-2">
-                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${largura}%` }} />
+                        <div className="h-full bg-raiz-verde rounded-full" style={{ width: `${largura}%` }} />
                       </div>
                       <div className="flex flex-wrap gap-2 text-xs">
                         <span className="px-2 py-1 rounded bg-emerald-100 text-emerald-800">Entrada: {item.entrada}</span>

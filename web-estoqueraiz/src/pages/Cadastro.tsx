@@ -5,6 +5,7 @@ import logoEstoque from '../assets/LogoEstoqueRaiz.png';
 import { usuarioService } from '../services/usuarioService';
 import { CheckCircle } from 'lucide-react';
 import { Modal } from '../components/Modal';
+import toast from 'react-hot-toast';
 
 export const Cadastro = () => {
   const navigate = useNavigate();
@@ -12,7 +13,6 @@ export const Cadastro = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
-  const [mensagem, setMensagem] = useState({ texto: "", cor: "" });
   const [cpf, setCpf] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
@@ -22,7 +22,7 @@ export const Cadastro = () => {
     e.preventDefault();
 
     if (senha !== confirmarSenha) {
-      setMensagem({ texto: 'As senhas não coincidem!', cor: 'red' });
+      toast.error('As senhas não coincidem!');
       return;
     }
 
@@ -35,13 +35,12 @@ export const Cadastro = () => {
       });
 
       if (response.status === 201) {
-        setMensagem({ texto: '', cor: '' });
         setModalSucessoAberto(true);
         setNome(''); setEmail(''); setSenha(''); setConfirmarSenha(''); setCpf('');
       }
     } catch (error: any) {
       const erroBackend = error.response?.data?.message || 'Erro ao cadastrar';
-      setMensagem({ texto: erroBackend, cor: 'red' });
+      toast.error(erroBackend);
     }
   };
 
@@ -63,15 +62,6 @@ export const Cadastro = () => {
           </h1>
           <div className="h-1 w-12 bg-raiz-verde mx-auto mt-2 rounded-full"></div>
         </header>
-
-        {mensagem.texto && (
-          <div 
-            className={`p-3 mb-4 text-center rounded-lg font-semibold text-white ${mensagem.cor === 'green' ? 'bg-green-500' : 'bg-red-500'}`}
-            data-testid="mensagem-feedback"
-          >
-            {mensagem.texto}
-          </div>
-        )}
 
         <form onSubmit={handleCadastro} className="space-y-4">
 

@@ -15,6 +15,8 @@ import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { Modal } from '../components/Modal';
 import { FormularioBase } from '../components/FormularioBase';
+import { Paginacao } from '../components/Paginacao';
+import toast from 'react-hot-toast';
 
 type TipoMovimentacao = 'ENTRADA' | 'SAIDA' | 'TRANSFERENCIA' | 'AJUSTE';
 
@@ -28,6 +30,8 @@ export const Movimentacoes = () => {
   const [filtro, setFiltro] = useState('');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
+  const [itensPorPagina, setItensPorPagina] = useState(10);
+  const [paginaAtual, setPaginaAtual] = useState(1);
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
   const isEstoquista = usuarioLogado?.cargo === 'estoquista';
@@ -75,6 +79,10 @@ export const Movimentacoes = () => {
     carregarDados();
   }, []);
 
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [filtro, dataInicio, dataFim, itensPorPagina]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     setProcessando(true);
 
@@ -90,7 +98,7 @@ export const Movimentacoes = () => {
 
     try {
       await movimentacaoService.registrarMovimentacao(payload);
-      alert(`Movimentação de ${form.tipo} registrada com sucesso!`);
+      toast.success(`Movimentação de ${form.tipo} registrada com sucesso!`);
       setModalAberto(false);
       setForm({ ...form, quantidade: '', documento: '', observacao: '' });
       await carregarDados();
@@ -99,7 +107,7 @@ export const Movimentacoes = () => {
         (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         'Erro ao registrar movimentação. Verifique os dados informados.';
 
-      alert(mensagemErro);
+      toast.error(mensagemErro);
       console.error(error);
     } finally {
       setProcessando(false);
@@ -175,6 +183,11 @@ export const Movimentacoes = () => {
   return matchTexto && matchData;
 });
 
+  const movimentacoesPaginadas = movimentacoesFiltradas.slice(
+    (paginaAtual - 1) * itensPorPagina, 
+    paginaAtual * itensPorPagina
+  );
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">
@@ -186,7 +199,7 @@ export const Movimentacoes = () => {
           <button
             onClick={() => setModalAberto(true)}
             disabled={carregando}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors shadow-sm font-medium text-white ${carregando ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors shadow-sm font-medium text-white ${carregando ? 'bg-green-400 cursor-not-allowed' : 'bg-raiz-verde hover:opacity-90'}`}
           >
             <Plus size={20} /> Registrar Movimento
           </button>
@@ -196,13 +209,15 @@ export const Movimentacoes = () => {
           buscaTexto={filtro} 
           onBuscaChange={setFiltro} 
           placeholderBusca="Buscar por NF, Produto ou Observação..."
+          itensPorPagina={itensPorPagina}
+          onItensPorPaginaChange={setItensPorPagina}
         >
           <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0">
             <input 
               type="date" 
               value={dataInicio} 
               onChange={(e) => setDataInicio(e.target.value)} 
-              className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-gray-600 bg-white"
+              className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-raiz-verde outline-none text-gray-600 bg-white"
               title="Data inicial"
             />
             <span className="text-gray-400 text-sm hidden sm:block">até</span>
@@ -210,7 +225,7 @@ export const Movimentacoes = () => {
               type="date" 
               value={dataFim} 
               onChange={(e) => setDataFim(e.target.value)} 
-              className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-gray-600 bg-white"
+              className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-raiz-verde outline-none text-gray-600 bg-white"
               title="Data final"
             />
           </div>
@@ -233,7 +248,7 @@ export const Movimentacoes = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   
-                  {movimentacoesFiltradas.map((movimentacao) => (
+                  {movimentacoesPaginadas.map((movimentacao) => (
                     <tr key={movimentacao.id} className="hover:bg-gray-50">
                       <td className="p-4 text-sm text-gray-600 whitespace-nowrap">
                         {new Date(movimentacao.data_movimentacao).toLocaleDateString('pt-BR')} <br />
@@ -255,7 +270,7 @@ export const Movimentacoes = () => {
                       <td className="p-4 text-gray-900 font-bold">{movimentacao.quantidade}</td>
                       <td className="p-4 text-sm text-gray-600">
                         {movimentacao.documento && (
-                          <div className="flex items-center gap-1 text-indigo-600">
+                          <div className="flex items-center gap-1 text-raiz-verde">
                             <FileText size={14} /> {movimentacao.documento}
                           </div>
                         )}
@@ -282,6 +297,12 @@ export const Movimentacoes = () => {
                 </tbody>
               </table>
             </div>
+            <Paginacao
+              totalItens={movimentacoesFiltradas.length}
+              itensPorPagina={itensPorPagina}
+              paginaAtual={paginaAtual}
+              setPaginaAtual={setPaginaAtual}
+            />
           </div>
         )}
       </div>
@@ -308,7 +329,7 @@ export const Movimentacoes = () => {
                     key={tipo}
                     className={`flex items-center justify-center py-2 px-1 border rounded-lg cursor-pointer text-xs font-bold transition-all ${
                       form.tipo === tipo
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                        ? 'bg-raiz-verde text-white border-raiz-verde shadow-md'
                         : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
                     }`}
                   >
@@ -347,7 +368,7 @@ export const Movimentacoes = () => {
                   onChange={(e) =>
                     setForm({ ...form, unidade_origem_id: e.target.value, produto_id: '' })
                   }
-                  className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde ${
                     isEstoquista ? 'bg-gray-100 text-gray-600' : 'bg-white'
                   }`}
                 >
@@ -378,7 +399,7 @@ export const Movimentacoes = () => {
                       produto_id: form.tipo === 'ENTRADA' ? '' : form.produto_id,
                     })
                   }
-                  className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde ${
                     isEstoquista && form.tipo === 'ENTRADA'
                       ? 'bg-gray-100 text-gray-600'
                       : 'bg-white'
@@ -410,7 +431,7 @@ export const Movimentacoes = () => {
                 required
                 value={form.produto_id}
                 onChange={(e) => setForm({ ...form, produto_id: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={
                   (form.tipo === 'ENTRADA' && !form.unidade_destino_id) ||
                   (form.tipo !== 'ENTRADA' && !form.unidade_origem_id)
@@ -440,7 +461,7 @@ export const Movimentacoes = () => {
                 data-testid="movimentacoes-input-quantidade"
                 value={form.quantidade}
                 onChange={(e) => setForm({ ...form, quantidade: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde"
                 placeholder="Ex: 50"
               />
             </div>
@@ -457,7 +478,7 @@ export const Movimentacoes = () => {
                 data-testid="movimentacoes-input-documento"
                 value={form.documento}
                 onChange={(e) => setForm({ ...form, documento: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde"
                 placeholder="Ex: NF-123456"
               />
             </div>
@@ -471,7 +492,7 @@ export const Movimentacoes = () => {
                 data-testid="movimentacoes-input-observacao"
                 value={form.observacao}
                 onChange={(e) => setForm({ ...form, observacao: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde"
                 placeholder="Motivo da movimentação"
               />
             </div>
