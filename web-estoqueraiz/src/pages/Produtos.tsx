@@ -4,7 +4,7 @@ import { categoriaService, type Categoria } from '../services/categoriaService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { api } from '../services/api';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { Plus, X, Image as ImageIcon, Filter } from 'lucide-react';
+import { Plus, X, Image as ImageIcon, Filter, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
 import { LoadingSpinner } from '../components/Feedbacks';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
@@ -14,6 +14,8 @@ import { Modal } from '../components/Modal';
 import { FormularioBase } from '../components/FormularioBase';
 import { Paginacao } from '../components/Paginacao';
 import toast from 'react-hot-toast';
+
+type CampoOrdenacaoProdutos = 'nome' | 'quantidade_estoque' | 'preco_venda' | 'statusProduto' | null;
 
 export const Produtos = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -35,6 +37,8 @@ export const Produtos = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagemPreview, setImagemPreview] = useState<string | null>(null);
   const [produtoZoom, setProdutoZoom] = useState<Produto | null>(null);
+  const [campoOrdenacao, setCampoOrdenacao] = useState<CampoOrdenacaoProdutos>('nome');
+  const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<'asc' | 'desc'>('asc');
   const { 
     selecionados, 
     alternarSelecao, 
@@ -78,8 +82,38 @@ export const Produtos = () => {
     return matchesNome && matchesStatus;
   });
 
-  const totalPaginas = Math.max(1, Math.ceil(produtosFiltrados.length / itensPorPagina));
-  const produtosPaginados = produtosFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
+  const handleOrdenar = (campo: CampoOrdenacaoProdutos) => {
+    if (campoOrdenacao === campo) {
+      setDirecaoOrdenacao(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setCampoOrdenacao(campo);
+      setDirecaoOrdenacao('asc');
+    }
+  };
+
+  const renderIconeOrdenacao = (campo: CampoOrdenacaoProdutos) => {
+    if (campoOrdenacao !== campo) return <ChevronsUpDown size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />;
+    return direcaoOrdenacao === 'asc' ? <ChevronUp size={14} className="text-raiz-verde" /> : <ChevronDown size={14} className="text-raiz-verde" />;
+  };
+
+  const produtosOrdenados = [...produtosFiltrados].sort((a, b) => {
+    if (!campoOrdenacao) return 0;
+    let valorA: any = a[campoOrdenacao];
+    let valorB: any = b[campoOrdenacao];
+    if (campoOrdenacao === 'nome' || campoOrdenacao === 'statusProduto') {
+      valorA = String(valorA || '').toLowerCase();
+      valorB = String(valorB || '').toLowerCase();
+    } else {
+      valorA = Number(valorA || 0);
+      valorB = Number(valorB || 0);
+    }
+    if (valorA < valorB) return direcaoOrdenacao === 'asc' ? -1 : 1;
+    if (valorA > valorB) return direcaoOrdenacao === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const totalPaginas = Math.max(1, Math.ceil(produtosOrdenados.length / itensPorPagina));
+  const produtosPaginados = produtosOrdenados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
 
   const handleSubmitProduto = async (e: React.FormEvent) => {
     setProcessandoAcao(true);
@@ -282,10 +316,26 @@ export const Produtos = () => {
                         />
                       </th>
                     )}
-                    <th className="p-4 font-semibold">Produto</th>
-                    <th className="p-4 font-semibold">Estoque</th>
-                    <th className="p-4 font-semibold">Status</th>
-                    <th className="p-4 font-semibold">Venda (R$)</th>
+                    <th className="p-4 font-semibold">
+                      <button onClick={() => handleOrdenar('nome')} className="flex items-center gap-1 hover:text-gray-900 group font-semibold">
+                        Produto {renderIconeOrdenacao('nome')}
+                      </button>
+                    </th>
+                    <th className="p-4 font-semibold">
+                      <button onClick={() => handleOrdenar('quantidade_estoque')} className="flex items-center gap-1 hover:text-gray-900 group font-semibold">
+                        Estoque {renderIconeOrdenacao('quantidade_estoque')}
+                      </button>
+                    </th>
+                    <th className="p-4 font-semibold">
+                      <button onClick={() => handleOrdenar('statusProduto')} className="flex items-center gap-1 hover:text-gray-900 group font-semibold">
+                        Status {renderIconeOrdenacao('statusProduto')}
+                      </button>
+                    </th>
+                    <th className="p-4 font-semibold">
+                      <button onClick={() => handleOrdenar('preco_venda')} className="flex items-center gap-1 hover:text-gray-900 group font-semibold">
+                        Venda (R$) {renderIconeOrdenacao('preco_venda')}
+                      </button>
+                    </th>
                     <th className="p-4 font-semibold text-right">Ações</th>
                   </tr>
                 </thead>

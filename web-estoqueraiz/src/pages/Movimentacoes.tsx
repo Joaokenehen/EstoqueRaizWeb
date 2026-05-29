@@ -6,6 +6,9 @@ import {
   FileText,
   Plus,
   Settings,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
 } from 'lucide-react';
 import { LoadingSpinner } from '../components/Feedbacks';
 import Layout from '../components/Layout';
@@ -19,6 +22,9 @@ import { Paginacao } from '../components/Paginacao';
 import toast from 'react-hot-toast';
 
 type TipoMovimentacao = 'ENTRADA' | 'SAIDA' | 'TRANSFERENCIA' | 'AJUSTE';
+
+type CampoOrdenacao = 'data_movimentacao' | 'tipo' | 'produto' | 'quantidade' | null;
+type DirecaoOrdenacao = 'asc' | 'desc';
 
 export const Movimentacoes = () => {
   const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
@@ -35,6 +41,8 @@ export const Movimentacoes = () => {
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
   const isEstoquista = usuarioLogado?.cargo === 'estoquista';
+  const [campoOrdenacao, setCampoOrdenacao] = useState<CampoOrdenacao>('data_movimentacao');
+  const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<DirecaoOrdenacao>('desc');
 
   const [form, setForm] = useState({
     tipo: 'ENTRADA' as TipoMovimentacao,
@@ -183,7 +191,36 @@ export const Movimentacoes = () => {
   return matchTexto && matchData;
 });
 
-  const movimentacoesPaginadas = movimentacoesFiltradas.slice(
+  const handleOrdenar = (campo: CampoOrdenacao) => {
+    if (campoOrdenacao === campo) {
+      setDirecaoOrdenacao(direcaoOrdenacao === 'asc' ? 'desc' : 'asc');
+    } else {
+      setCampoOrdenacao(campo);
+      setDirecaoOrdenacao('asc');
+    }
+  };
+
+  const renderIconeOrdenacao = (campo: CampoOrdenacao) => {
+    if (campoOrdenacao !== campo) return <ChevronsUpDown size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />;
+    return direcaoOrdenacao === 'asc' ? <ChevronUp size={14} className="text-raiz-verde" /> : <ChevronDown size={14} className="text-raiz-verde" />;
+  };
+
+  const movimentacoesOrdenadas = [...movimentacoesFiltradas].sort((a, b) => {
+    if (!campoOrdenacao) return 0;
+    let valorA: any; let valorB: any;
+    switch (campoOrdenacao) {
+      case 'data_movimentacao': valorA = new Date(a.data_movimentacao).getTime(); valorB = new Date(b.data_movimentacao).getTime(); break;
+      case 'tipo': valorA = a.tipo; valorB = b.tipo; break;
+      case 'produto': valorA = a.Produto?.nome || ''; valorB = b.Produto?.nome || ''; break;
+      case 'quantidade': valorA = a.quantidade; valorB = b.quantidade; break;
+      default: return 0;
+    }
+    if (valorA < valorB) return direcaoOrdenacao === 'asc' ? -1 : 1;
+    if (valorA > valorB) return direcaoOrdenacao === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const movimentacoesPaginadas = movimentacoesOrdenadas.slice(
     (paginaAtual - 1) * itensPorPagina, 
     paginaAtual * itensPorPagina
   );
@@ -239,10 +276,26 @@ export const Movimentacoes = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
-                    <th className="p-4 font-semibold">Data</th>
-                    <th className="p-4 font-semibold">Tipo</th>
-                    <th className="p-4 font-semibold">Produto</th>
-                    <th className="p-4 font-semibold">Qtd</th>
+                    <th className="p-4 font-semibold">
+                      <button onClick={() => handleOrdenar('data_movimentacao')} className="flex items-center gap-1 hover:text-gray-900 group font-semibold">
+                        Data {renderIconeOrdenacao('data_movimentacao')}
+                      </button>
+                    </th>
+                    <th className="p-4 font-semibold">
+                      <button onClick={() => handleOrdenar('tipo')} className="flex items-center gap-1 hover:text-gray-900 group font-semibold">
+                        Tipo {renderIconeOrdenacao('tipo')}
+                      </button>
+                    </th>
+                    <th className="p-4 font-semibold">
+                      <button onClick={() => handleOrdenar('produto')} className="flex items-center gap-1 hover:text-gray-900 group font-semibold">
+                        Produto {renderIconeOrdenacao('produto')}
+                      </button>
+                    </th>
+                    <th className="p-4 font-semibold">
+                      <button onClick={() => handleOrdenar('quantidade')} className="flex items-center gap-1 hover:text-gray-900 group font-semibold">
+                        Qtd {renderIconeOrdenacao('quantidade')}
+                      </button>
+                    </th>
                     <th className="p-4 font-semibold">Doc / Obs</th>
                   </tr>
                 </thead>
