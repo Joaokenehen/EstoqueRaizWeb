@@ -118,6 +118,20 @@ export const Produtos = () => {
   const handleSubmitProduto = async (e: React.FormEvent) => {
     setProcessandoAcao(true);
     const formData = new FormData(e.target as HTMLFormElement);
+
+    const dataValidadeStr = formData.get('data_validade') as string;
+    if (dataValidadeStr) {
+      const dataValidade = new Date(dataValidadeStr + 'T00:00:00');
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      
+      if (dataValidade <= hoje) {
+        toast.error('A data de validade deve ser uma data futura.');
+        setProcessandoAcao(false);
+        return;
+      }
+    }
+
     try {
       if (produtoAtivo) {
         await produtoService.atualizar(produtoAtivo.id, formData);
@@ -378,6 +392,15 @@ export const Produtos = () => {
                       <td className="p-4">
                          <div className="text-sm font-medium text-gray-900">{prod.quantidade_estoque} un</div>
                          <div className="text-xs text-gray-500">Mín: {prod.quantidade_minima || 0}</div>
+                         {prod.data_validade && (
+                           <div className={`text-[10px] mt-1 font-bold ${
+                              new Date(prod.data_validade) < new Date() ? 'text-red-600' :
+                              new Date(prod.data_validade) <= new Date(new Date().setDate(new Date().getDate() + 30)) ? 'text-amber-600' : 
+                              'text-gray-400'
+                           }`}>
+                             {new Date(prod.data_validade) < new Date() ? 'Vencido: ' : 'Vence: '} {new Date(prod.data_validade).toLocaleDateString('pt-BR')}
+                           </div>
+                         )}
                       </td>
                       
                       <td className="p-4"><StatusBadge status={prod.statusProduto} /></td>
@@ -449,6 +472,16 @@ export const Produtos = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Qtd Mínima</label>
                   <input name="quantidade_minima" type="number" data-testid="produtos-input-estoque" defaultValue={produtoAtivo?.quantidade_minima} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Lote</label>
+                  <input name="lote" type="text" data-testid="produtos-input-lote" defaultValue={produtoAtivo?.lote} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" placeholder="Ex: LOTE-2023" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Data de Validade</label>
+                  <input name="data_validade" type="date" data-testid="produtos-input-validade" defaultValue={produtoAtivo?.data_validade ? new Date(produtoAtivo.data_validade).toISOString().split('T')[0] : ''} min={new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">

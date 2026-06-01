@@ -135,10 +135,10 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO produtos (id, nome, descricao, codigo_barras, preco_custo, preco_venda, quantidade_estoque, quantidade_minima, data_validade, lote, localizacao, imagem_url, ativo, "statusProduto", categoria_id, unidade_id, usuario_id, criado_em, atualizado_em)
 VALUES
   (1, 'Semente de Soja TMG 7062 IPRO', 'Semente de soja de alto potencial produtivo.', '7891234500012', 150.00, 280.00, 1000, 10, NOW() + INTERVAL '180 days', 'L001', 'Estoque A1', NULL, true, 'aprovado', 3, 1, 2, NOW(), NOW()),
-  (2, 'Herbicida Glifosato Atar', 'Herbicida sistêmico de amplo espectro.', '7891234500029', 45.50, 89.90, 500, 5, NULL, 'L002', 'Estoque B1', NULL, true, 'aprovado', 2, 1, 2, NOW(), NOW()),
+  (2, 'Herbicida Glifosato Atar', 'Herbicida sistêmico de amplo espectro.', '7891234500029', 45.50, 89.90, 500, 5, NOW() - INTERVAL '10 days', 'L002', 'Estoque B1', NULL, true, 'aprovado', 2, 1, 2, NOW(), NOW()),
   (3, 'Fertilizante NPK 20-05-20', 'Fórmula para crescimento e floração.', '7891234500036', 80.00, 150.00, 800, 5, NULL, 'L003', 'Estoque C1', NULL, true, 'aprovado', 1, 1, 2, NOW(), NOW()),
   (4, 'Semente de Milho Híbrido AG 8088', 'Milho de alta produtividade e sanidade.', '7891234500043', 120.00, 220.00, 300, 10, NOW() + INTERVAL '240 days', 'L004', 'Estoque D1', NULL, true, 'aprovado', 3, 2, 2, NOW(), NOW()),
-  (5, 'Fungicida Mancozeb', 'Fungicida protetor multissítio.', '7891234500050', 30.00, 65.00, 600, 5, NULL, 'L005', 'Estoque E1', NULL, true, 'aprovado', 2, 1, 2, NOW(), NOW()),
+  (5, 'Fungicida Mancozeb', 'Fungicida protetor multissítio.', '7891234500050', 30.00, 65.00, 600, 5, NOW() - INTERVAL '2 days', 'L005', 'Estoque E1', NULL, true, 'aprovado', 2, 1, 2, NOW(), NOW()),
   (6, 'Enxada Larga 2.5', 'Enxada forjada em aço carbono.', '7891234500067', 25.00, 49.90, 50, 1, NULL, 'L006', 'Ferramentaria', NULL, true, 'aprovado', 4, 1, 2, NOW(), NOW()),
   (7, 'Ração para Bovinos de Corte', 'Ração balanceada para ganho de peso.', '7891234500074', 55.00, 95.00, 200, 20, NULL, 'L007', 'Estoque F1', NULL, true, 'aprovado', 5, 3, 2, NOW(), NOW()),
   (8, 'Pulverizador Costal 20L', 'Pulverizador para aplicação de defensivos.', '7891234500081', 90.00, 179.00, 30, 1, NULL, 'L008', 'Ferramentaria', NULL, true, 'aprovado', 4, 2, 2, NOW(), NOW()),

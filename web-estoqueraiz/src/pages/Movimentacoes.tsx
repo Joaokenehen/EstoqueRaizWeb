@@ -9,6 +9,7 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
+  Eye,
 } from 'lucide-react';
 import { LoadingSpinner } from '../components/Feedbacks';
 import Layout from '../components/Layout';
@@ -41,8 +42,10 @@ export const Movimentacoes = () => {
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
   const isEstoquista = usuarioLogado?.cargo === 'estoquista';
+
   const [campoOrdenacao, setCampoOrdenacao] = useState<CampoOrdenacao>('data_movimentacao');
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<DirecaoOrdenacao>('desc');
+  const [movimentacaoDetalhe, setMovimentacaoDetalhe] = useState<Movimentacao | null>(null);
 
   const [form, setForm] = useState({
     tipo: 'ENTRADA' as TipoMovimentacao,
@@ -168,7 +171,8 @@ export const Movimentacoes = () => {
   const movimentacoesFiltradas = movimentacoes.filter((mov) => {
   const termo = filtro.toLowerCase();
   const docMatches = mov.documento?.toLowerCase().includes(termo) || false;
-  const prodMatches = mov.Produto?.nome?.toLowerCase().includes(termo) || false;
+  const nomeProduto = mov.Produto?.nome || produtos.find(p => p.id === mov.produto_id)?.nome || '';
+  const prodMatches = nomeProduto.toLowerCase().includes(termo);
   const obsMatches = mov.observacao?.toLowerCase().includes(termo) || false;
   
   const matchTexto = docMatches || prodMatches || obsMatches;
@@ -211,7 +215,7 @@ export const Movimentacoes = () => {
     switch (campoOrdenacao) {
       case 'data_movimentacao': valorA = new Date(a.data_movimentacao).getTime(); valorB = new Date(b.data_movimentacao).getTime(); break;
       case 'tipo': valorA = a.tipo; valorB = b.tipo; break;
-      case 'produto': valorA = a.Produto?.nome || ''; valorB = b.Produto?.nome || ''; break;
+      case 'produto': valorA = a.Produto?.nome || produtos.find(p => p.id === a.produto_id)?.nome || ''; valorB = b.Produto?.nome || produtos.find(p => p.id === b.produto_id)?.nome || ''; break;
       case 'quantidade': valorA = a.quantidade; valorB = b.quantidade; break;
       default: return 0;
     }
@@ -297,6 +301,7 @@ export const Movimentacoes = () => {
                       </button>
                     </th>
                     <th className="p-4 font-semibold">Doc / Obs</th>
+                    <th className="p-4 font-semibold text-right">Detalhes</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -312,12 +317,12 @@ export const Movimentacoes = () => {
                       <td className="p-4">{renderBadgeTipo(movimentacao.tipo)}</td>
                       <td className="p-4">
                         <p className="font-medium text-gray-900">
-                          {movimentacao.Produto?.nome || `Prod #${movimentacao.produto_id}`}
+                          {movimentacao.Produto?.nome || produtos.find(p => p.id === movimentacao.produto_id)?.nome || `Prod #${movimentacao.produto_id}`}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {movimentacao.UnidadeOrigem && `De: ${movimentacao.UnidadeOrigem.nome}`}
-                          {movimentacao.UnidadeOrigem && movimentacao.UnidadeDestino && ' | '}
-                          {movimentacao.UnidadeDestino && `Para: ${movimentacao.UnidadeDestino.nome}`}
+                          {movimentacao.unidade_origem_id && `De: ${unidades.find(u => u.id === movimentacao.unidade_origem_id)?.nome || `Unidade #${movimentacao.unidade_origem_id}`}`}
+                          {movimentacao.unidade_origem_id && movimentacao.unidade_destino_id && ' | '}
+                          {movimentacao.unidade_destino_id && `Para: ${unidades.find(u => u.id === movimentacao.unidade_destino_id)?.nome || `Unidade #${movimentacao.unidade_destino_id}`}`}
                         </p>
                       </td>
                       <td className="p-4 text-gray-900 font-bold">{movimentacao.quantidade}</td>
@@ -333,6 +338,15 @@ export const Movimentacoes = () => {
                         >
                           {movimentacao.observacao || '---'}
                         </div>
+                      </td>
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => setMovimentacaoDetalhe(movimentacao)}
+                          className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors inline-flex"
+                          title="Ver Detalhes Completos"
+                        >
+                          <Eye size={18} />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -551,6 +565,78 @@ export const Movimentacoes = () => {
             </div>
           </div>
         </FormularioBase>
+      </Modal>
+
+      <Modal 
+        isOpen={!!movimentacaoDetalhe} 
+        onClose={() => setMovimentacaoDetalhe(null)} 
+        titulo="Detalhes da Movimentação" 
+        maxWidth="max-w-lg"
+      >
+        {movimentacaoDetalhe && (
+          <div className="p-6 space-y-5">
+            <div className="flex justify-between items-start border-b border-gray-100 pb-4">
+              <div>
+                <p className="text-sm text-gray-500 font-semibold mb-1">Produto Movimentado</p>
+                <p className="text-lg font-bold text-gray-900">{movimentacaoDetalhe.Produto?.nome || produtos.find(p => p.id === movimentacaoDetalhe.produto_id)?.nome || `Produto #${movimentacaoDetalhe.produto_id}`}</p>
+              </div>
+              <div className="mt-1">
+                {renderBadgeTipo(movimentacaoDetalhe.tipo)}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4">
+              <div>
+                <p className="text-sm text-gray-500 font-semibold mb-1">Data e Hora</p>
+                <p className="text-gray-900 font-medium">
+                  {new Date(movimentacaoDetalhe.data_movimentacao).toLocaleDateString('pt-BR')} <span className="text-gray-400 font-normal">às {new Date(movimentacaoDetalhe.data_movimentacao).toLocaleTimeString('pt-BR')}</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 font-semibold mb-1">Quantidade</p>
+                <p className="text-gray-900 font-bold">{movimentacaoDetalhe.quantidade} un</p>
+              </div>
+
+              {(movimentacaoDetalhe.tipo === 'SAIDA' || movimentacaoDetalhe.tipo === 'TRANSFERENCIA' || movimentacaoDetalhe.tipo === 'AJUSTE') && (
+                <div>
+                  <p className="text-sm text-gray-500 font-semibold mb-1">
+                    {movimentacaoDetalhe.tipo === 'SAIDA' ? 'Retirado de' : 
+                     movimentacaoDetalhe.tipo === 'AJUSTE' ? 'Unidade do Ajuste' : 
+                     'Unidade de Origem'}
+                  </p>
+                  <p className="text-gray-900 font-medium">{unidades.find(u => u.id === movimentacaoDetalhe.unidade_origem_id)?.nome || <span className="text-gray-400 italic font-normal">Não informada</span>}</p>
+                </div>
+              )}
+
+              {(movimentacaoDetalhe.tipo === 'ENTRADA' || movimentacaoDetalhe.tipo === 'TRANSFERENCIA') && (
+                <div>
+                  <p className="text-sm text-gray-500 font-semibold mb-1">
+                    {movimentacaoDetalhe.tipo === 'ENTRADA' ? 'Enviado para' : 'Unidade de Destino'}
+                  </p>
+                  <p className="text-gray-900 font-medium">{unidades.find(u => u.id === movimentacaoDetalhe.unidade_destino_id)?.nome || <span className="text-gray-400 italic font-normal">Não informada</span>}</p>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500 font-semibold mb-1">Documento / NF</p>
+              {movimentacaoDetalhe.documento ? (
+                <div className="flex items-center gap-2 text-raiz-verde font-medium bg-green-50 p-2 rounded-lg w-max">
+                  <FileText size={16} /> {movimentacaoDetalhe.documento}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic text-sm">Sem documento vinculado</p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500 font-semibold mb-1">Observação</p>
+              <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg text-gray-700 text-sm whitespace-pre-wrap leading-relaxed">
+                {movimentacaoDetalhe.observacao || <span className="italic text-gray-400">Nenhuma observação registrada para esta movimentação.</span>}
+              </div>
+            </div>
+          </div>
+        )}
       </Modal>
     </Layout>
   );
