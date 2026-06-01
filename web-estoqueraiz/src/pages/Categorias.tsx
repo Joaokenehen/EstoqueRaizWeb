@@ -9,6 +9,8 @@ import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import Layout from '../components/Layout';
 import { Modal } from '../components/Modal';
 import { FormularioBase } from '../components/FormularioBase';
+import { Paginacao } from '../components/Paginacao';
+import toast from 'react-hot-toast';
 
 export const Categorias = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -86,55 +88,72 @@ export const Categorias = () => {
     try {
       if (categoriaEditando) {
         await categoriaService.atualizar(categoriaEditando.id, formData);
-        alert('Categoria atualizada com sucesso!');
+        toast.success('Categoria atualizada com sucesso!');
       } else {
         await categoriaService.criar(formData);
-        alert('Categoria criada com sucesso!');
+        toast.success('Categoria criada com sucesso!');
       }
       fecharModal();
       await carregarCategorias();
     } catch (error) {
-      alert('Erro ao guardar a categoria. Tenta novamente.');
+      toast.error('Erro ao guardar a categoria. Tenta novamente.');
     } finally {
       setProcessandoAcao(false);
     }
   };
 
-  const handleDeletar = async (id: number) => {
-    if (!window.confirm('Atenção: Desejas realmente excluir esta categoria?')) return;
-    try {
-      await categoriaService.deletar(id);
-      await carregarCategorias();
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Erro ao excluir categoria.');
-    }
+  const handleDeletar = (id: number) => {
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="font-semibold text-gray-800 text-sm">Desejas realmente excluir esta categoria?</p>
+        <div className="flex gap-2 justify-end">
+          <button className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-300" onClick={() => toast.dismiss(t.id)}>Cancelar</button>
+          <button className="bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-red-700" onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              await categoriaService.deletar(id);
+              await carregarCategorias();
+              toast.success('Categoria excluída!');
+            } catch (error: any) {
+              toast.error(error.response?.data?.message || 'Erro ao excluir categoria.');
+            }
+          }}>Excluir</button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
-  const handleDeletarLote = async () => {
+  const handleDeletarLote = () => {
     if (selecionados.length === 0) return;
 
     if (!isGerente) {
-      alert('Apenas gerentes podem excluir categorias em lote.');
+      toast.error('Apenas gerentes podem excluir categorias em lote.');
       return;
     }
 
-    if (!window.confirm(`Atenção: Você está prestes a excluir ${selecionados.length} categoria(s). Esta ação é irreversível. Deseja continuar?`)) {
-      return;
-    }
-
-    try {
-      setCarregando(true);
-      await Promise.all(selecionados.map(id => categoriaService.deletar(id)));
-      
-      alert(`${selecionados.length} categoria(s) excluída(s) com sucesso!`);
-      limparSelecao();
-      await carregarCategorias();
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Erro ao excluir algumas categorias.');
-      await carregarCategorias();
-    } finally {
-      setCarregando(false);
-    }
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="font-semibold text-gray-800 text-sm">Excluir {selecionados.length} categoria(s)? Ação irreversível.</p>
+        <div className="flex gap-2 justify-end">
+          <button className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-300" onClick={() => toast.dismiss(t.id)}>Cancelar</button>
+          <button className="bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-red-700" onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              setCarregando(true);
+              await Promise.all(selecionados.map(id => categoriaService.deletar(id)));
+              toast.success(`${selecionados.length} categoria(s) excluída(s)!`);
+              limparSelecao();
+              await carregarCategorias();
+            } catch (error: any) {
+              toast.error(error.response?.data?.message || 'Erro ao excluir algumas categorias.');
+              await carregarCategorias();
+            } finally {
+              setCarregando(false);
+            }
+          }}>Excluir Selecionadas</button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
   return (
@@ -149,7 +168,7 @@ export const Categorias = () => {
           {isGerente && (
             <button 
               onClick={() => abrirModal()}
-              className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium"
+              className="flex items-center gap-2 bg-raiz-verde text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
             >
               <Plus size={20} /> Nova Categoria
             </button>
@@ -259,21 +278,12 @@ export const Categorias = () => {
               </table>
             </div>
 
-            {categoriasFiltradas.length > 0 && (
-              <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
-                <p className="text-sm text-gray-700">
-                  A mostrar <span className="font-medium">{indicePrimeiroItem + 1}</span> a <span className="font-medium">{Math.min(indiceUltimoItem, categoriasFiltradas.length)}</span> de <span className="font-medium">{categoriasFiltradas.length}</span> resultados
-                </p>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                  <button onClick={() => setPaginaAtual(p => Math.max(p - 1, 1))} disabled={paginaAtual === 1} className="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
-                    Anterior
-                  </button>
-                  <button onClick={() => setPaginaAtual(p => Math.min(p + 1, totalPaginas))} disabled={paginaAtual === totalPaginas} className="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
-                    Próxima
-                  </button>
-                </nav>
-              </div>
-            )}
+            <Paginacao
+              totalItens={categoriasFiltradas.length}
+              itensPorPagina={itensPorPagina}
+              paginaAtual={paginaAtual}
+              setPaginaAtual={setPaginaAtual}
+            />
           </div>
         )}
 
@@ -293,12 +303,12 @@ export const Categorias = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Categoria *</label>
-                  <input required type="text" maxLength={100} data-testid="categorias-input-nome" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={formData.nome} onChange={e => setFormData({...formData, nome: e.target.value})} placeholder="Ex: Ferramentas Elétricas" />
+                  <input required type="text" maxLength={100} data-testid="categorias-input-nome" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-raiz-verde outline-none" value={formData.nome} onChange={e => setFormData({...formData, nome: e.target.value})} placeholder="Ex: Ferramentas Elétricas" />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-                  <textarea rows={3} maxLength={500} data-testid="categorias-textarea-descricao" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none" value={formData.descricao} onChange={e => setFormData({...formData, descricao: e.target.value})} placeholder="Ex: Furadeiras, serras e equipamentos elétricos" />
+                  <textarea rows={3} maxLength={500} data-testid="categorias-textarea-descricao" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-raiz-verde outline-none resize-none" value={formData.descricao} onChange={e => setFormData({...formData, descricao: e.target.value})} placeholder="Ex: Furadeiras, serras e equipamentos elétricos" />
                 </div>
               </div>
         </FormularioBase>

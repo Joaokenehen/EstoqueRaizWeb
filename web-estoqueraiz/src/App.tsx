@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { LandingPage } from './pages/LandingPage';
 import { Login } from './pages/Login'; 
 import { Cadastro } from './pages/Cadastro';
@@ -12,10 +13,12 @@ import { Produtos } from './pages/Produtos';
 import { Movimentacoes } from './pages/Movimentacoes';
 import { Relatorios } from './pages/Relatorios'
 import { Financeiro } from './pages/Financeiro';
+import { Fornecedores } from './pages/Fornecedores';
 
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
@@ -90,6 +93,15 @@ function App() {
           element={
             <ProtectedRoute cargosPermitidos={['gerente', 'financeiro']}>
               <Financeiro />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/fornecedores" 
+          element={
+            <ProtectedRoute cargosPermitidos={['gerente', 'financeiro']}>
+              <Fornecedores />
             </ProtectedRoute>
           } 
         />

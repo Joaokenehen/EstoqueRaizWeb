@@ -3,18 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { authService } from '../services/authService';
 import logoEstoque from '../assets/LogoEstoqueRaiz.png';
+import toast from 'react-hot-toast';
 
 export const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
-  const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErro('');
     setCarregando(true);
 
     try {
@@ -30,16 +29,16 @@ export const Login = () => {
         const mensagemBackend = error.response.data.message;
 
         if (mensagemBackend.toLowerCase().includes('aprovada') || mensagemBackend.toLowerCase().includes('pendente')) {
-          setErro('Sua conta está em análise. Por favor, aguarde a aprovação de um gerente para acessar o sistema.');
+          toast.error('Sua conta está em análise. Aguarde a aprovação de um gerente.');
         }
         else if (mensagemBackend.toLowerCase().includes('rejeitada')) {
-          setErro('O acesso para esta conta foi negado. Contate o administrador.');
+          toast.error('O acesso para esta conta foi negado. Contate o administrador.');
         }
         else {
-          setErro(mensagemBackend); 
+          toast.error(mensagemBackend); 
         }
       } else {
-        setErro('Falha ao conectar com o servidor. Tente novamente mais tarde.');
+        toast.error('Falha ao conectar com o servidor. Tente novamente mais tarde.');
       }
     } finally {
       setCarregando(false);
@@ -121,12 +120,6 @@ export const Login = () => {
               </button>
             </div>
           </div>
-
-         {erro && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-semibold text-center border border-red-200 animate-in fade-in zoom-in duration-200">
-              {erro}
-            </div>
-          )}
 
           <button
             type="submit"

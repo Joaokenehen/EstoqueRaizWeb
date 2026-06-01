@@ -52,6 +52,23 @@ CREATE TABLE IF NOT EXISTS categorias (
   "atualizadoEm" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS fornecedores (
+  id SERIAL PRIMARY KEY,
+  razao_social VARCHAR(255) NOT NULL,
+  nome_fantasia VARCHAR(255),
+  cnpj VARCHAR(18) NOT NULL UNIQUE,
+  telefone VARCHAR(20),
+  email VARCHAR(255),
+  rua VARCHAR(255),
+  numero VARCHAR(50),
+  bairro VARCHAR(255),
+  cidade VARCHAR(255),
+  estado VARCHAR(2),
+  cep VARCHAR(10),
+  criado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS usuarios (
   id SERIAL PRIMARY KEY,
   nome VARCHAR(255) NOT NULL,
@@ -81,6 +98,7 @@ CREATE TABLE IF NOT EXISTS produtos (
   "statusProduto" "enum_produtos_statusProduto" NOT NULL DEFAULT 'pendente',
   categoria_id INTEGER NOT NULL,
   unidade_id INTEGER NOT NULL,
+  fornecedor_id INTEGER,
   usuario_id INTEGER NOT NULL,
   criado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   atualizado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -124,6 +142,15 @@ VALUES
   (5, 'Ração Animal', 'Alimentos para animais de fazenda.', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO fornecedores (id, razao_social, nome_fantasia, cnpj, telefone, email, cidade, estado)
+VALUES
+  (1, 'BAYER S.A.', 'BAYER', '04439071000130', '(11) 5694-5166', 'contato@bayer.com.br', 'São Paulo', 'SP'),
+  (2, 'SYNGENTA PROTECAO DE CULTIVOS LTDA', 'SYNGENTA', '60744463000190', '(11) 5643-2322', 'vendas@syngenta.com', 'São Paulo', 'SP'),
+  (3, 'BASF S.A.', 'BASF', '57508403000112', '(11) 2039-2273', 'comercial@basf.com', 'São Bernardo do Campo', 'SP'),
+  (4, 'JOHN DEERE BRASIL LTDA', 'JOHN DEERE', '89674782000196', '(19) 3311-8100', 'vendas@johndeere.com', 'Indaiatuba', 'SP'),
+  (5, 'CARGILL AGRICOLA S A', 'CARGILL', '60498706000157', '(11) 5099-3000', 'pedidos@cargill.com', 'São Paulo', 'SP')
+ON CONFLICT (id) DO NOTHING;
+
 -- Senha padrão para todos os usuários da seed: Senha123!
 INSERT INTO usuarios (id, nome, email, senha, cpf, status, cargo, unidade_id, criado_em)
 VALUES
@@ -132,41 +159,41 @@ VALUES
   (3, 'Carlos Financeiro', 'financeiro@estoqueraiz.com', crypt('Senha123!', gen_salt('bf', 10)), '84727540061', 'aprovado', 'financeiro', 1, NOW())
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO produtos (id, nome, descricao, codigo_barras, preco_custo, preco_venda, quantidade_estoque, quantidade_minima, data_validade, lote, localizacao, imagem_url, ativo, "statusProduto", categoria_id, unidade_id, usuario_id, criado_em, atualizado_em)
+INSERT INTO produtos (id, nome, descricao, codigo_barras, preco_custo, preco_venda, quantidade_estoque, quantidade_minima, data_validade, lote, localizacao, imagem_url, ativo, "statusProduto", categoria_id, unidade_id, fornecedor_id, usuario_id, criado_em, atualizado_em)
 VALUES
-  (1, 'Semente de Soja TMG 7062 IPRO', 'Semente de soja de alto potencial produtivo.', '7891234500012', 150.00, 280.00, 1000, 10, NOW() + INTERVAL '180 days', 'L001', 'Estoque A1', NULL, true, 'aprovado', 3, 1, 2, NOW(), NOW()),
-  (2, 'Herbicida Glifosato Atar', 'Herbicida sistêmico de amplo espectro.', '7891234500029', 45.50, 89.90, 500, 5, NULL, 'L002', 'Estoque B1', NULL, true, 'aprovado', 2, 1, 2, NOW(), NOW()),
-  (3, 'Fertilizante NPK 20-05-20', 'Fórmula para crescimento e floração.', '7891234500036', 80.00, 150.00, 800, 5, NULL, 'L003', 'Estoque C1', NULL, true, 'aprovado', 1, 1, 2, NOW(), NOW()),
-  (4, 'Semente de Milho Híbrido AG 8088', 'Milho de alta produtividade e sanidade.', '7891234500043', 120.00, 220.00, 300, 10, NOW() + INTERVAL '240 days', 'L004', 'Estoque D1', NULL, true, 'aprovado', 3, 2, 2, NOW(), NOW()),
-  (5, 'Fungicida Mancozeb', 'Fungicida protetor multissítio.', '7891234500050', 30.00, 65.00, 600, 5, NULL, 'L005', 'Estoque E1', NULL, true, 'aprovado', 2, 1, 2, NOW(), NOW()),
-  (6, 'Enxada Larga 2.5', 'Enxada forjada em aço carbono.', '7891234500067', 25.00, 49.90, 50, 1, NULL, 'L006', 'Ferramentaria', NULL, true, 'aprovado', 4, 1, 2, NOW(), NOW()),
-  (7, 'Ração para Bovinos de Corte', 'Ração balanceada para ganho de peso.', '7891234500074', 55.00, 95.00, 200, 20, NULL, 'L007', 'Estoque F1', NULL, true, 'aprovado', 5, 3, 2, NOW(), NOW()),
-  (8, 'Pulverizador Costal 20L', 'Pulverizador para aplicação de defensivos.', '7891234500081', 90.00, 179.00, 30, 1, NULL, 'L008', 'Ferramentaria', NULL, true, 'aprovado', 4, 2, 2, NOW(), NOW()),
-  (9, 'Adubo Orgânico Líquido', 'Fertilizante orgânico de rápida absorção.', '7891234500098', 40.00, 75.00, 8, 20, NULL, 'L009', 'Estoque C2', NULL, true, 'aprovado', 1, 1, 2, NOW(), NOW()),
-  (10, 'Semente de Trigo TR 120', 'Sementes de trigo de inverno.', '7891234500104', 110.00, 190.00, 150, 10, NOW() + INTERVAL '15 days', 'L010', 'Estoque A2', NULL, true, 'aprovado', 3, 2, 2, NOW(), NOW()),
-  (11, 'Ração Suína Crescimento', 'Ração para suínos na fase de crescimento.', '7891234500111', 60.00, 110.00, 15, 50, NOW() + INTERVAL '5 days', 'L011', 'Estoque F2', NULL, true, 'aprovado', 5, 3, 2, NOW(), NOW())
+  (1, 'Semente de Soja TMG 7062 IPRO', 'Semente de soja de alto potencial produtivo.', '7891234500012', 150.00, 280.00, 1000, 10, NOW() + INTERVAL '180 days', 'L001', 'Estoque A1', NULL, true, 'aprovado', 3, 1, 3, 2, NOW(), NOW()),
+  (2, 'Herbicida Glifosato Atar', 'Herbicida sistêmico de amplo espectro.', '7891234500029', 45.50, 89.90, 500, 5, NOW() - INTERVAL '10 days', 'L002', 'Estoque B1', NULL, true, 'aprovado', 2, 1, 1, 2, NOW(), NOW()),
+  (3, 'Fertilizante NPK 20-05-20', 'Fórmula para crescimento e floração.', '7891234500036', 80.00, 150.00, 800, 5, NULL, 'L003', 'Estoque C1', NULL, true, 'aprovado', 1, 1, 2, 2, NOW(), NOW()),
+  (4, 'Semente de Milho Híbrido AG 8088', 'Milho de alta produtividade e sanidade.', '7891234500043', 120.00, 220.00, 300, 10, NOW() + INTERVAL '240 days', 'L004', 'Estoque D1', NULL, true, 'aprovado', 3, 2, 3, 2, NOW(), NOW()),
+  (5, 'Fungicida Mancozeb', 'Fungicida protetor multissítio.', '7891234500050', 30.00, 65.00, 600, 5, NOW() - INTERVAL '2 days', 'L005', 'Estoque E1', NULL, true, 'aprovado', 2, 1, 4, 2, NOW(), NOW()),
+  (6, 'Enxada Larga 2.5', 'Enxada forjada em aço carbono.', '7891234500067', 25.00, 49.90, 50, 1, NULL, 'L006', 'Ferramentaria', NULL, true, 'aprovado', 4, 1, 5, 2, NOW(), NOW()),
+  (7, 'Ração para Bovinos de Corte', 'Ração balanceada para ganho de peso.', '7891234500074', 55.00, 95.00, 200, 20, NULL, 'L007', 'Estoque F1', NULL, true, 'aprovado', 5, 3, 1, 2, NOW(), NOW()),
+  (8, 'Pulverizador Costal 20L', 'Pulverizador para aplicação de defensivos.', '7891234500081', 90.00, 179.00, 30, 1, NULL, 'L008', 'Ferramentaria', NULL, true, 'aprovado', 4, 2, NULL, 2, NOW(), NOW()),
+  (9, 'Adubo Orgânico Líquido', 'Fertilizante orgânico de rápida absorção.', '7891234500098', 40.00, 75.00, 8, 20, NULL, 'L009', 'Estoque C2', NULL, true, 'pendente', 1, 1, 1, 2, NOW(), NOW()),
+  (10, 'Semente de Trigo TR 120', 'Sementes de trigo de inverno.', '7891234500104', 110.00, 190.00, 150, 10, NOW() + INTERVAL '15 days', 'L010', 'Estoque A2', NULL, true, 'pendente', 3, 2, 2, 2, NOW(), NOW()),
+  (11, 'Ração Suína Crescimento', 'Ração para suínos na fase de crescimento.', '7891234500111', 60.00, 110.00, 15, 50, NOW() + INTERVAL '5 days', 'L011', 'Estoque F2', NULL, true, 'pendente', 5, 3, NULL, 2, NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO movimentacoes (id, tipo, quantidade, data_movimentacao, observacao, documento, produto_id, usuario_id, unidade_origem_id, unidade_destino_id, criado_em, atualizado_em)
 VALUES
-  (1, 'ENTRADA', 200, NOW() - INTERVAL '30 days', 'Entrada inicial de estoque.', NULL, 1, 2, NULL, NULL, NOW() - INTERVAL '30 days', NOW() - INTERVAL '30 days'),
-  (2, 'SAIDA', 20, NOW() - INTERVAL '10 days', 'Venda corporativa.', 'NF-001', 1, 2, NULL, NULL, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
-  (3, 'SAIDA', 50, NOW() - INTERVAL '5 days', 'Venda safra grande.', 'NF-002', 4, 2, NULL, NULL, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'),
-  (4, 'ENTRADA', 300, NOW() - INTERVAL '25 days', 'Reposição de fertilizante.', NULL, 3, 2, NULL, NULL, NOW() - INTERVAL '25 days', NOW() - INTERVAL '25 days'),
-  (5, 'AJUSTE', 5, NOW() - INTERVAL '2 days', 'Ajuste de contagem de inventário.', NULL, 7, 1, NULL, NULL, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
-  (6, 'ENTRADA', 8, NOW() - INTERVAL '10 days', 'Compra de adubo orgânico.', NULL, 9, 2, NULL, NULL, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
-  (7, 'ENTRADA', 150, NOW() - INTERVAL '20 days', 'Compra de sementes de trigo.', NULL, 10, 2, NULL, NULL, NOW() - INTERVAL '20 days', NOW() - INTERVAL '20 days'),
-  (8, 'ENTRADA', 15, NOW() - INTERVAL '50 days', 'Entrada de ração.', NULL, 11, 2, NULL, NULL, NOW() - INTERVAL '50 days', NOW() - INTERVAL '50 days'),
-  (9, 'SAIDA', 25, NOW() - INTERVAL '12 days', 'Venda varejo.', 'NF-003', 7, 2, NULL, NULL, NOW() - INTERVAL '12 days', NOW() - INTERVAL '12 days'),
-  (10, 'SAIDA', 10, NOW() - INTERVAL '15 days', 'Venda balcão.', 'NF-004', 3, 2, NULL, NULL, NOW() - INTERVAL '15 days', NOW() - INTERVAL '15 days'),
-  (11, 'SAIDA', 5, NOW() - INTERVAL '18 days', 'Venda pequena.', 'NF-005', 5, 2, NULL, NULL, NOW() - INTERVAL '18 days', NOW() - INTERVAL '18 days'),
-  (12, 'SAIDA', 3, NOW() - INTERVAL '22 days', 'Venda avulsa.', 'NF-006', 6, 2, NULL, NULL, NOW() - INTERVAL '22 days', NOW() - INTERVAL '22 days'),
-  (13, 'SAIDA', 1, NOW() - INTERVAL '28 days', 'Venda unitária.', 'NF-007', 8, 2, NULL, NULL, NOW() - INTERVAL '28 days', NOW() - INTERVAL '28 days'),
-  (14, 'SAIDA', 2, NOW() - INTERVAL '3 days', 'Venda rápida.', 'NF-008', 11, 2, NULL, NULL, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days')
+  (1, 'ENTRADA', 200, NOW() - INTERVAL '30 days', 'Entrada inicial de estoque.', NULL, 1, 2, NULL, 1, NOW() - INTERVAL '30 days', NOW() - INTERVAL '30 days'),
+  (2, 'SAIDA', 20, NOW() - INTERVAL '10 days', 'Venda corporativa.', 'NF-001', 1, 2, 1, NULL, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
+  (3, 'SAIDA', 50, NOW() - INTERVAL '5 days', 'Venda safra grande.', 'NF-002', 4, 2, 2, NULL, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'),
+  (4, 'ENTRADA', 300, NOW() - INTERVAL '25 days', 'Reposição de fertilizante.', NULL, 3, 2, NULL, 1, NOW() - INTERVAL '25 days', NOW() - INTERVAL '25 days'),
+  (5, 'AJUSTE', 5, NOW() - INTERVAL '2 days', 'Ajuste de contagem de inventário.', NULL, 7, 1, 3, NULL, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
+  (6, 'ENTRADA', 8, NOW() - INTERVAL '10 days', 'Compra de adubo orgânico.', NULL, 12, 2, NULL, 1, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
+  (7, 'ENTRADA', 150, NOW() - INTERVAL '20 days', 'Compra de sementes de trigo.', NULL, 13, 2, NULL, 2, NOW() - INTERVAL '20 days', NOW() - INTERVAL '20 days'),
+  (8, 'ENTRADA', 15, NOW() - INTERVAL '50 days', 'Entrada de ração.', NULL, 14, 2, NULL, 3, NOW() - INTERVAL '50 days', NOW() - INTERVAL '50 days'),
+  (9, 'SAIDA', 25, NOW() - INTERVAL '12 days', 'Venda varejo.', 'NF-003', 7, 2, 3, NULL, NOW() - INTERVAL '12 days', NOW() - INTERVAL '12 days'),
+  (10, 'SAIDA', 10, NOW() - INTERVAL '15 days', 'Venda balcão.', 'NF-004', 3, 2, 1, NULL, NOW() - INTERVAL '15 days', NOW() - INTERVAL '15 days'),
+  (11, 'SAIDA', 5, NOW() - INTERVAL '18 days', 'Venda pequena.', 'NF-005', 5, 2, 1, NULL, NOW() - INTERVAL '18 days', NOW() - INTERVAL '18 days'),
+  (12, 'SAIDA', 3, NOW() - INTERVAL '22 days', 'Venda avulsa.', 'NF-006', 6, 2, 1, NULL, NOW() - INTERVAL '22 days', NOW() - INTERVAL '22 days'),
+  (13, 'SAIDA', 1, NOW() - INTERVAL '28 days', 'Venda unitária.', 'NF-007', 8, 2, 2, NULL, NOW() - INTERVAL '28 days', NOW() - INTERVAL '28 days'),
+  (14, 'SAIDA', 2, NOW() - INTERVAL '3 days', 'Venda rápida.', 'NF-008', 15, 2, 3, NULL, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days')
 ON CONFLICT (id) DO NOTHING;
 
 -- Gerando produtos adicionais em lote para testar a paginação da Curva ABC (Produtos 12 a 40)
-INSERT INTO produtos (id, nome, descricao, codigo_barras, preco_custo, preco_venda, quantidade_estoque, quantidade_minima, data_validade, lote, localizacao, imagem_url, ativo, "statusProduto", categoria_id, unidade_id, usuario_id, criado_em, atualizado_em)
+INSERT INTO produtos (id, nome, descricao, codigo_barras, preco_custo, preco_venda, quantidade_estoque, quantidade_minima, data_validade, lote, localizacao, imagem_url, ativo, "statusProduto", categoria_id, unidade_id, fornecedor_id, usuario_id, criado_em, atualizado_em)
 SELECT 
   i, 
   'Produto Dinâmico ' || i, 
@@ -181,9 +208,10 @@ SELECT
   'Prateleira ' || i, 
   NULL, 
   true, 
-  'aprovado', 
+  'aprovado'::"enum_produtos_statusProduto", 
   (i % 5) + 1, 
   1, 
+  CASE WHEN i % 3 = 0 THEN NULL ELSE (i % 5) + 1 END,
   1, 
   NOW(), 
   NOW()
@@ -201,7 +229,7 @@ SELECT
   'NF-TESTE-' || i, 
   i, 
   2, 
-  NULL, 
+  1, 
   NULL, 
   NOW() - ((i * 7) % 120) * INTERVAL '1 day', 
   NOW() - ((i * 7) % 120) * INTERVAL '1 day'
@@ -219,8 +247,8 @@ SELECT
   'DOC-HIST-' || i, 
   (i % 10) + 1, 
   2, 
-  CASE WHEN (i % 5) + 1 = 3 THEN 1 ELSE NULL END, -- Se for transferência, origem é Matriz
-  CASE WHEN (i % 5) + 1 = 3 THEN 2 ELSE NULL END, -- Se for transferência, destino é Filial SP
+  CASE WHEN (i % 5) + 1 IN (1, 3, 4, 5) THEN 1 ELSE NULL END, 
+  CASE WHEN (i % 5) + 1 = 3 THEN 2 WHEN (i % 5) + 1 = 2 THEN 1 ELSE NULL END, 
   NOW() - (i * 4) * INTERVAL '1 day', 
   NOW() - (i * 4) * INTERVAL '1 day'
 FROM generate_series(1, 200) AS i
@@ -228,6 +256,9 @@ ON CONFLICT (id) DO NOTHING;
 
 SELECT setval('unidades_id_seq', COALESCE((SELECT MAX(id) FROM unidades), 1), true);
 SELECT setval('categorias_id_seq', COALESCE((SELECT MAX(id) FROM categorias), 1), true);
+SELECT setval('fornecedores_id_seq', COALESCE((SELECT MAX(id) FROM fornecedores), 1), true);
 SELECT setval('usuarios_id_seq', COALESCE((SELECT MAX(id) FROM usuarios), 1), true);
 SELECT setval('produtos_id_seq', COALESCE((SELECT MAX(id) FROM produtos), 1), true);
 SELECT setval('movimentacoes_id_seq', COALESCE((SELECT MAX(id) FROM movimentacoes), 1), true);
+
+

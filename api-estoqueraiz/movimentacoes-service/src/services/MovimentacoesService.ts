@@ -61,7 +61,7 @@ export class MovimentacoesService {
             const movJson = mov.toJSON();
 
             const produto = await sequelize.query(
-              "SELECT id, nome FROM produtos WHERE id = :produto_id LIMIT 1",
+              "SELECT id, nome, fornecedor_id FROM produtos WHERE id = :produto_id LIMIT 1",
               {
                 replacements: { produto_id: mov.produto_id },
                 type: QueryTypes.SELECT,
@@ -131,7 +131,25 @@ export class MovimentacoesService {
         "Unidade de origem deve ser diferente da de destino"
       );
     }
-    
+
+    const [produtoStatus]: any = await sequelize.query(
+      "SELECT \"statusProduto\" FROM produtos WHERE id = :produto_id LIMIT 1",
+      {
+        replacements: { produto_id },
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    if (!produtoStatus) {
+      throw new ErroNaoEncontrado("Produto não encontrado no banco de dados.");
+    }
+
+    if (produtoStatus.statusProduto !== "aprovado") {
+      throw new ErroValidacao(
+        "Produto pendente ou rejeitado não pode ser movimentado."
+      );
+    }
+
     // VERIFICAÇÃO DE ESTOQUE REAL ANTES DA MOVIMENTAÇÃO
     if (tipo === "SAIDA" || tipo === "TRANSFERENCIA") {
       const [produtoStock]: any = await sequelize.query(

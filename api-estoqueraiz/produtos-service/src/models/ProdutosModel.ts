@@ -18,6 +18,7 @@ class ProdutosModel extends Model {
   public statusProduto!: "pendente" | "aprovado" | "rejeitado";
   public categoria_id!: number;
   public unidade_id!: number;
+  public fornecedor_id?: number;
   public usuario_id!: number;
 
   public toJSON(): object {
@@ -98,6 +99,10 @@ ProdutosModel.init(
     unidade_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+    },
+    fornecedor_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
     usuario_id: {
       type: DataTypes.INTEGER,

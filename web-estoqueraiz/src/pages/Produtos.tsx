@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { produtoService, type Produto } from '../services/produtoService';
 import { categoriaService, type Categoria } from '../services/categoriaService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
+import { fornecedorService, type Fornecedor } from '../services/fornecedorService';
 import { api } from '../services/api';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { Plus, X, Image as ImageIcon, Filter } from 'lucide-react';
+import { Plus, X, Image as ImageIcon, Filter, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
 import { LoadingSpinner } from '../components/Feedbacks';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
@@ -12,11 +13,16 @@ import { useSelecaoLote } from '../hooks/useSelecaoLote';
 import Layout from '../components/Layout';
 import { Modal } from '../components/Modal';
 import { FormularioBase } from '../components/FormularioBase';
+import { Paginacao } from '../components/Paginacao';
+import toast from 'react-hot-toast';
+
+type CampoOrdenacaoProdutos = 'nome' | 'quantidade_estoque' | 'preco_venda' | 'statusProduto' | null;
 
 export const Produtos = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [unidades, setUnidades] = useState<Unidade[]>([]);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [carregando, setCarregando] = useState(true);
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
@@ -33,6 +39,8 @@ export const Produtos = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagemPreview, setImagemPreview] = useState<string | null>(null);
   const [produtoZoom, setProdutoZoom] = useState<Produto | null>(null);
+  const [campoOrdenacao, setCampoOrdenacao] = useState<CampoOrdenacaoProdutos>('nome');
+  const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<'asc' | 'desc'>('asc');
   const { 
     selecionados, 
     alternarSelecao, 
@@ -44,15 +52,17 @@ export const Produtos = () => {
   const carregarDados = async () => {
     try {
       setCarregando(true);
-      const [dadosProdutos, dadosCategorias, dadosUnidades] = await Promise.all([
+      const [dadosProdutos, dadosCategorias, dadosUnidades, dadosFornecedores] = await Promise.all([
         produtoService.listarTodos(), 
         categoriaService.listarTodas(),
-        unidadeService.listarTodas()
+        unidadeService.listarTodas(),
+        fornecedorService.listarTodos()
       ]);
 
       setProdutos(Array.isArray(dadosProdutos) ? dadosProdutos : []);
       setCategorias(Array.isArray(dadosCategorias) ? dadosCategorias : []);
       setUnidades(Array.isArray(dadosUnidades) ? dadosUnidades : []);
+      setFornecedores(Array.isArray(dadosFornecedores) ? dadosFornecedores : []);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       setProdutos([]); 
@@ -76,64 +86,130 @@ export const Produtos = () => {
     return matchesNome && matchesStatus;
   });
 
-  const totalPaginas = Math.max(1, Math.ceil(produtosFiltrados.length / itensPorPagina));
-  const produtosPaginados = produtosFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
+  const handleOrdenar = (campo: CampoOrdenacaoProdutos) => {
+    if (campoOrdenacao === campo) {
+      setDirecaoOrdenacao(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setCampoOrdenacao(campo);
+      setDirecaoOrdenacao('asc');
+    }
+  };
+
+  const renderIconeOrdenacao = (campo: CampoOrdenacaoProdutos) => {
+    if (campoOrdenacao !== campo) return <ChevronsUpDown size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />;
+    return direcaoOrdenacao === 'asc' ? <ChevronUp size={14} className="text-raiz-verde" /> : <ChevronDown size={14} className="text-raiz-verde" />;
+  };
+
+  const produtosOrdenados = [...produtosFiltrados].sort((a, b) => {
+    if (!campoOrdenacao) return 0;
+    let valorA: any = a[campoOrdenacao];
+    let valorB: any = b[campoOrdenacao];
+    if (campoOrdenacao === 'nome' || campoOrdenacao === 'statusProduto') {
+      valorA = String(valorA || '').toLowerCase();
+      valorB = String(valorB || '').toLowerCase();
+    } else {
+      valorA = Number(valorA || 0);
+      valorB = Number(valorB || 0);
+    }
+    if (valorA < valorB) return direcaoOrdenacao === 'asc' ? -1 : 1;
+    if (valorA > valorB) return direcaoOrdenacao === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const totalPaginas = Math.max(1, Math.ceil(produtosOrdenados.length / itensPorPagina));
+  const produtosPaginados = produtosOrdenados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
 
   const handleSubmitProduto = async (e: React.FormEvent) => {
     setProcessandoAcao(true);
     const formData = new FormData(e.target as HTMLFormElement);
+
+    const dataValidadeStr = formData.get('data_validade') as string;
+    if (dataValidadeStr) {
+      const dataValidade = new Date(dataValidadeStr + 'T00:00:00');
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      
+      if (dataValidade <= hoje) {
+        toast.error('A data de validade deve ser uma data futura.');
+        setProcessandoAcao(false);
+        return;
+      }
+    }
+
+    // Evita o envio de texto vazio para o banco de dados, permitindo que o Sequelize grave como NULL
+    if (!formData.get('fornecedor_id')) {
+      formData.delete('fornecedor_id');
+    }
+
     try {
       if (produtoAtivo) {
         await produtoService.atualizar(produtoAtivo.id, formData);
-        alert('Produto atualizado!');
+        toast.success('Produto atualizado!');
       } else {
         await produtoService.criar(formData);
-        alert('Produto criado! Aguardando aprovação.');
+        toast.success('Produto criado! Aguardando aprovação.');
       }
       setModalAberto(false);
       await carregarDados();
     } catch (error) {
-      alert('Erro ao salvar.');
+      toast.error('Erro ao salvar.');
     } finally {
       setProcessandoAcao(false);
     }
   };
 
-  const handleDeletar = async (id: number) => {
-    if (!window.confirm('Excluir produto?')) return;
-    try {
-      await produtoService.deletar(id);
-      await carregarDados();
-    } catch (error) {
-      alert('Erro ao excluir.');
-    }
+  const handleDeletar = (id: number) => {
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="font-semibold text-gray-800 text-sm">Desejas realmente excluir este produto?</p>
+        <div className="flex gap-2 justify-end">
+          <button className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-300" onClick={() => toast.dismiss(t.id)}>Cancelar</button>
+          <button className="bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-red-700" onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              await produtoService.deletar(id);
+              await carregarDados();
+              toast.success('Produto excluído!');
+            } catch (error) {
+              toast.error('Erro ao excluir.');
+            }
+          }}>Excluir</button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
-  const handleDeletarLote = async () => {
+  const handleDeletarLote = () => {
     if (selecionados.length === 0) return;
 
     if (!isGerente) {
-      alert('Apenas gerentes podem excluir produtos em lote.');
+      toast.error('Apenas gerentes podem excluir produtos em lote.');
       return;
     }
 
-    if (!window.confirm(`Atenção: Você está prestes a excluir ${selecionados.length} produto(s). Esta ação é irreversível. Deseja continuar?`)) {
-      return;
-    }
-
-    try {
-      setCarregando(true);
-      await Promise.all(selecionados.map(id => produtoService.deletar(id)));
-      
-      alert(`${selecionados.length} produto(s) excluído(s) com sucesso!`);
-      limparSelecao();
-      await carregarDados();
-    } catch (error) {
-      alert('Erro ao excluir alguns produtos. A tela será atualizada para exibir o estado atual.');
-      await carregarDados();
-    } finally {
-      setCarregando(false);
-    }
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="font-semibold text-gray-800 text-sm">Excluir {selecionados.length} produto(s)? Ação irreversível.</p>
+        <div className="flex gap-2 justify-end">
+          <button className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-300" onClick={() => toast.dismiss(t.id)}>Cancelar</button>
+          <button className="bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-red-700" onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              setCarregando(true);
+              await Promise.all(selecionados.map(id => produtoService.deletar(id)));
+              toast.success(`${selecionados.length} produto(s) excluído(s)!`);
+              limparSelecao();
+              await carregarDados();
+            } catch (error) {
+              toast.error('Erro ao excluir alguns produtos.');
+              await carregarDados();
+            } finally {
+              setCarregando(false);
+            }
+          }}>Excluir Selecionados</button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
   const StatusBadge = ({ status }: { status?: string }) => {
@@ -146,13 +222,13 @@ export const Produtos = () => {
     const arquivo = e.target.files?.[0];
     if (arquivo) {
       if (!arquivo.type.startsWith('image/')) {
-        alert('Por favor, selecione apenas arquivos de imagem.');
+        toast.error('Por favor, selecione apenas arquivos de imagem.');
         e.target.value = '';
         return;
       }
 
       if (arquivo.size > 5 * 1024 * 1024) {
-        alert('A imagem deve ter no máximo 5MB.');
+        toast.error('A imagem deve ter no máximo 5MB.');
         e.target.value = '';
         return;
       }
@@ -198,7 +274,7 @@ export const Produtos = () => {
           {podeCriar && (
             <button 
           onClick={() => abrirModal()}
-              className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all shadow-md"
+              className="flex items-center gap-2 bg-raiz-verde text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all shadow-md"
             >
               <Plus size={20} /> Novo Produto
             </button>
@@ -215,7 +291,7 @@ export const Produtos = () => {
           <div className="relative md:w-48 shrink-0">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <select
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm appearance-none bg-gray-50 font-medium"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-raiz-verde outline-none text-sm appearance-none bg-gray-50 font-medium"
               value={statusFiltro}
               onChange={(e) => setStatusFiltro(e.target.value)}
             >
@@ -263,10 +339,26 @@ export const Produtos = () => {
                         />
                       </th>
                     )}
-                    <th className="p-4 font-semibold">Produto</th>
-                    <th className="p-4 font-semibold">Estoque</th>
-                    <th className="p-4 font-semibold">Status</th>
-                    <th className="p-4 font-semibold">Venda (R$)</th>
+                    <th className="p-4 font-semibold">
+                      <button onClick={() => handleOrdenar('nome')} className="flex items-center gap-1 hover:text-gray-900 group font-semibold">
+                        Produto {renderIconeOrdenacao('nome')}
+                      </button>
+                    </th>
+                    <th className="p-4 font-semibold">
+                      <button onClick={() => handleOrdenar('quantidade_estoque')} className="flex items-center gap-1 hover:text-gray-900 group font-semibold">
+                        Estoque {renderIconeOrdenacao('quantidade_estoque')}
+                      </button>
+                    </th>
+                    <th className="p-4 font-semibold">
+                      <button onClick={() => handleOrdenar('statusProduto')} className="flex items-center gap-1 hover:text-gray-900 group font-semibold">
+                        Status {renderIconeOrdenacao('statusProduto')}
+                      </button>
+                    </th>
+                    <th className="p-4 font-semibold">
+                      <button onClick={() => handleOrdenar('preco_venda')} className="flex items-center gap-1 hover:text-gray-900 group font-semibold">
+                        Venda (R$) {renderIconeOrdenacao('preco_venda')}
+                      </button>
+                    </th>
                     <th className="p-4 font-semibold text-right">Ações</th>
                   </tr>
                 </thead>
@@ -304,11 +396,23 @@ export const Produtos = () => {
                         <div>
                           <p className="font-semibold text-gray-900">{prod.nome}</p>
                           <p className="text-xs text-gray-500">SKU: {prod.codigo_barras || 'Sem código'}</p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            <span className="font-medium">Forn:</span> {fornecedores.find(f => f.id === Number(prod.fornecedor_id))?.nome_fantasia || 'Não Mapeado'}
+                          </p>
                         </div>
                       </td>
                       <td className="p-4">
                          <div className="text-sm font-medium text-gray-900">{prod.quantidade_estoque} un</div>
                          <div className="text-xs text-gray-500">Mín: {prod.quantidade_minima || 0}</div>
+                         {prod.data_validade && (
+                           <div className={`text-[10px] mt-1 font-bold ${
+                              new Date(prod.data_validade) < new Date() ? 'text-red-600' :
+                              new Date(prod.data_validade) <= new Date(new Date().setDate(new Date().getDate() + 30)) ? 'text-amber-600' : 
+                              'text-gray-400'
+                           }`}>
+                             {new Date(prod.data_validade) < new Date() ? 'Vencido: ' : 'Vence: '} {new Date(prod.data_validade).toLocaleDateString('pt-BR')}
+                           </div>
+                         )}
                       </td>
                       
                       <td className="p-4"><StatusBadge status={prod.statusProduto} /></td>
@@ -345,13 +449,12 @@ export const Produtos = () => {
               </table>
             </div>
 
-            <div className="bg-gray-50 px-4 py-3 border-t flex items-center justify-between sm:px-6">
-              <p className="text-sm text-gray-700">Mostrando {produtosFiltrados.length} itens - Página {paginaAtual} de {totalPaginas}</p>
-              <nav className="inline-flex -space-x-px shadow-sm rounded-md">
-                <button onClick={() => setPaginaAtual(p => Math.max(p - 1, 1))} disabled={paginaAtual === 1} className="px-4 py-2 border bg-white rounded-l-md hover:bg-gray-50 disabled:opacity-50">Anterior</button>
-                <button onClick={() => setPaginaAtual(p => Math.min(p + 1, totalPaginas))} disabled={paginaAtual === totalPaginas} className="px-4 py-2 border bg-white rounded-r-md hover:bg-gray-50 disabled:opacity-50">Próxima</button>
-              </nav>
-            </div>
+            <Paginacao
+              totalItens={produtosFiltrados.length}
+              itensPorPagina={itensPorPagina}
+              paginaAtual={paginaAtual}
+              setPaginaAtual={setPaginaAtual}
+            />
           </div>
         )}
       </div>
@@ -371,30 +474,43 @@ export const Produtos = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Produto *</label>
-              <input required name="nome" type="text" data-testid="produtos-input-nome" defaultValue={produtoAtivo?.nome} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input required name="nome" type="text" data-testid="produtos-input-nome" defaultValue={produtoAtivo?.nome} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Código de Barras</label>
-                <input name="codigo_barras" type="text" data-testid="produtos-input-codigo" defaultValue={produtoAtivo?.codigo_barras} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <input name="codigo_barras" type="text" data-testid="produtos-input-codigo" defaultValue={produtoAtivo?.codigo_barras} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Estoque Inicial *</label>
+                  <input required name="quantidade_estoque" type="number" min="0" data-testid="produtos-input-estoque-inicial" defaultValue={produtoAtivo?.quantidade_estoque ?? 0} className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde ${produtoAtivo ? 'bg-gray-100 text-gray-500' : ''}`} readOnly={!!produtoAtivo} title={produtoAtivo ? "O estoque só pode ser alterado via Movimentações" : "Defina o saldo inicial"} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Qtd Mínima</label>
-                <input name="quantidade_minima" type="number" data-testid="produtos-input-estoque" defaultValue={produtoAtivo?.quantidade_minima} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <input name="quantidade_minima" type="number" data-testid="produtos-input-estoque" defaultValue={produtoAtivo?.quantidade_minima} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Lote</label>
+                  <input name="lote" type="text" data-testid="produtos-input-lote" defaultValue={produtoAtivo?.lote} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" placeholder="Ex: LOTE-2023" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Data de Validade</label>
+                  <input name="data_validade" type="date" data-testid="produtos-input-validade" defaultValue={produtoAtivo?.data_validade ? new Date(produtoAtivo.data_validade).toISOString().split('T')[0] : ''} min={new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
-                <select required name="categoria_id" data-testid="produtos-select-categoria" defaultValue={produtoAtivo?.categoria_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                  <select required name="categoria_id" data-testid="produtos-select-categoria" defaultValue={produtoAtivo?.categoria_id || ''} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde">
                     <option value="">Selecione...</option>
                     {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                   </select>
                 </div>
                 <div>
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Unidade Base *</label>
-                  <select required name="unidade_id" data-testid="produtos-select-unidade" defaultValue={produtoAtivo?.unidade_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                  <select required name="unidade_id" data-testid="produtos-select-unidade" defaultValue={produtoAtivo?.unidade_id || ''} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde">
                     <option value="">Selecione...</option>
                     
                     {unidades
@@ -406,11 +522,17 @@ export const Produtos = () => {
 
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Fornecedor Preferencial</label>
+                  <select name="fornecedor_id" data-testid="produtos-select-fornecedor" defaultValue={produtoAtivo?.fornecedor_id || ''} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde">
+                    <option value="">Diversos / Não Mapeado</option>
+                    {fornecedores.map(f => <option key={f.id} value={f.id}>{f.nome_fantasia || f.razao_social}</option>)}
+                  </select>
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-              <textarea name="descricao" data-testid="produtos-input-descricao" defaultValue={produtoAtivo?.descricao} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" rows={3} />
+                <textarea name="descricao" data-testid="produtos-input-descricao" defaultValue={produtoAtivo?.descricao} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" rows={3} />
               </div>
             </div>
             
@@ -439,7 +561,7 @@ export const Produtos = () => {
                     ref={fileInputRef}
                     data-testid="produtos-input-imagem"
                     onChange={handleAlterarImagem} 
-                    className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer" 
+                      className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer" 
                   />
                 </div>
               </div>

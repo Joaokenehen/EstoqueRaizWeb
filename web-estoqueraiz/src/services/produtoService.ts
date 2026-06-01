@@ -22,6 +22,7 @@ export interface Produto {
   ativo: boolean;
   categoria_id: number;
   unidade_id: number;
+  fornecedor_id?: number;
   usuario_id: number;
   criado_em?: string;    
   atualizado_em?: string; 
