@@ -11,6 +11,7 @@ services:
       - usuarios-service
       - unidades-service
       - categorias-service
+      - fornecedores-service
       - produtos-service
       - movimentacoes-service
       - relatorios-service
@@ -197,6 +198,42 @@ services:
           memory: 256M
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  fornecedores-service:
+    build:
+      context: .
+      dockerfile: ./fornecedores-service/Dockerfile
+    container_name: fornecedores-service
+    ports:
+      - "${FORNECEDORES_SERVICE_PORT:-3008}:3008"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3008
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3008/health"]
       interval: 30s
       timeout: 5s
       retries: 3

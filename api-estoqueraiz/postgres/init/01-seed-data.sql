@@ -52,6 +52,23 @@ CREATE TABLE IF NOT EXISTS categorias (
   "atualizadoEm" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS fornecedores (
+  id SERIAL PRIMARY KEY,
+  razao_social VARCHAR(255) NOT NULL,
+  nome_fantasia VARCHAR(255),
+  cnpj VARCHAR(18) NOT NULL UNIQUE,
+  telefone VARCHAR(20),
+  email VARCHAR(255),
+  rua VARCHAR(255),
+  numero VARCHAR(50),
+  bairro VARCHAR(255),
+  cidade VARCHAR(255),
+  estado VARCHAR(2),
+  cep VARCHAR(10),
+  criado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS usuarios (
   id SERIAL PRIMARY KEY,
   nome VARCHAR(255) NOT NULL,
@@ -122,6 +139,15 @@ VALUES
   (3, 'Sementes', 'Sementes de alta qualidade para plantio.', NOW(), NOW()),
   (4, 'Ferramentas', 'Ferramentas manuais e equipamentos para o campo.', NOW(), NOW()),
   (5, 'Ração Animal', 'Alimentos para animais de fazenda.', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO fornecedores (id, razao_social, nome_fantasia, cnpj, telefone, email, cidade, estado)
+VALUES
+  (1, 'BAYER S.A.', 'BAYER', '04439071000130', '(11) 5694-5166', 'contato@bayer.com.br', 'São Paulo', 'SP'),
+  (2, 'SYNGENTA PROTECAO DE CULTIVOS LTDA', 'SYNGENTA', '60744463000190', '(11) 5643-2322', 'vendas@syngenta.com', 'São Paulo', 'SP'),
+  (3, 'BASF S.A.', 'BASF', '57508403000112', '(11) 2039-2273', 'comercial@basf.com', 'São Bernardo do Campo', 'SP'),
+  (4, 'JOHN DEERE BRASIL LTDA', 'JOHN DEERE', '89674782000196', '(19) 3311-8100', 'vendas@johndeere.com', 'Indaiatuba', 'SP'),
+  (5, 'CARGILL AGRICOLA S A', 'CARGILL', '60498706000157', '(11) 5099-3000', 'pedidos@cargill.com', 'São Paulo', 'SP')
 ON CONFLICT (id) DO NOTHING;
 
 -- Senha padrão para todos os usuários da seed: Senha123!
@@ -228,6 +254,7 @@ ON CONFLICT (id) DO NOTHING;
 
 SELECT setval('unidades_id_seq', COALESCE((SELECT MAX(id) FROM unidades), 1), true);
 SELECT setval('categorias_id_seq', COALESCE((SELECT MAX(id) FROM categorias), 1), true);
+SELECT setval('fornecedores_id_seq', COALESCE((SELECT MAX(id) FROM fornecedores), 1), true);
 SELECT setval('usuarios_id_seq', COALESCE((SELECT MAX(id) FROM usuarios), 1), true);
 SELECT setval('produtos_id_seq', COALESCE((SELECT MAX(id) FROM produtos), 1), true);
 SELECT setval('movimentacoes_id_seq', COALESCE((SELECT MAX(id) FROM movimentacoes), 1), true);

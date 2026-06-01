@@ -5,7 +5,8 @@ import {
   Building2, 
   Users, 
   BarChart3,
-  DollarSign
+  DollarSign,
+  Truck,
 } from 'lucide-react';
 
 export type CargoPermitido = 'gerente' | 'estoquista' | 'financeiro';
@@ -84,5 +85,14 @@ export const modulos: ModuloProps[] = [
     corIcone: 'text-green-600', 
     corFundo: 'bg-green-100',
     cargosPermitidos: ['gerente', 'financeiro'] 
-  }
+  },
+   {
+    nome: 'Fornecedores',
+    descricao: 'Gestão de fornecedores, parceiros de negócios e dados de faturamento.',
+    rota: '/fornecedores',
+    icon: Truck,
+    corFundo: 'bg-emerald-100',
+    corIcone: 'text-emerald-600',
+    cargosPermitidos: ['gerente', 'financeiro']
+  },
 ];

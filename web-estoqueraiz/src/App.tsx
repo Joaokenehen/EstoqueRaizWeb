@@ -13,6 +13,7 @@ import { Produtos } from './pages/Produtos';
 import { Movimentacoes } from './pages/Movimentacoes';
 import { Relatorios } from './pages/Relatorios'
 import { Financeiro } from './pages/Financeiro';
+import { Fornecedores } from './pages/Fornecedores';
 
 function App() {
   return (
@@ -92,6 +93,15 @@ function App() {
           element={
             <ProtectedRoute cargosPermitidos={['gerente', 'financeiro']}>
               <Financeiro />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/fornecedores" 
+          element={
+            <ProtectedRoute cargosPermitidos={['gerente', 'financeiro']}>
+              <Fornecedores />
             </ProtectedRoute>
           } 
         />
