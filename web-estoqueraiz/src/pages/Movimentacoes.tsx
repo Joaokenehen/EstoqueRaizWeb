@@ -106,6 +106,17 @@ export const Movimentacoes = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     setProcessando(true);
 
+    if (form.tipo === 'SAIDA' || form.tipo === 'TRANSFERENCIA') {
+      const produtoSelecionado = produtos.find(p => p.id === Number(form.produto_id));
+      const qtdDesejada = Number(form.quantidade);
+      
+      if (produtoSelecionado && qtdDesejada > (produtoSelecionado.quantidade_estoque || 0)) {
+        toast.error(`Estoque insuficiente! O produto possui apenas ${produtoSelecionado.quantidade_estoque || 0} un. disponíveis.`);
+        setProcessando(false);
+        return;
+      }
+    }
+
     const payload = {
       tipo: form.tipo,
       produto_id: Number(form.produto_id),
@@ -327,7 +338,7 @@ export const Movimentacoes = () => {
                       <td className="p-4">{renderBadgeTipo(movimentacao.tipo)}</td>
                       <td className="p-4">
                         <p className="font-medium text-gray-900">
-                          {movimentacao.Produto?.nome || produtos.find(p => p.id === movimentacao.produto_id)?.nome || `Prod #${movimentacao.produto_id}`}
+                          {movimentacao.produto?.nome || movimentacao.Produto?.nome || produtos.find(p => p.id === movimentacao.produto_id)?.nome || `Prod #${movimentacao.produto_id}`}
                         </p>
                         <p className="text-xs text-gray-500">
                           {movimentacao.unidade_origem_id && `De: ${unidades.find(u => u.id === movimentacao.unidade_origem_id)?.nome || `Unidade #${movimentacao.unidade_origem_id}`}`}
@@ -335,7 +346,7 @@ export const Movimentacoes = () => {
                           {movimentacao.unidade_destino_id && `Para: ${unidades.find(u => u.id === movimentacao.unidade_destino_id)?.nome || `Unidade #${movimentacao.unidade_destino_id}`}`}
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5" title="Fornecedor do Produto">
-                          <span className="font-semibold">Forn:</span> {fornecedores.find(f => f.id === produtos.find(p => p.id === movimentacao.produto_id)?.fornecedor_id)?.nome_fantasia || 'Não Mapeado'}
+                          <span className="font-semibold">Forn:</span> {fornecedores.find(f => f.id === Number(produtos.find(p => p.id === movimentacao.produto_id)?.fornecedor_id ?? movimentacao.produto?.fornecedor_id ?? ''))?.nome_fantasia || 'Não Mapeado'}
                         </p>
                       </td>
                       <td className="p-4 text-gray-900 font-bold">{movimentacao.quantidade}</td>
@@ -594,8 +605,8 @@ export const Movimentacoes = () => {
         {movimentacaoDetalhe && (
           (() => {
             const produtoMov = produtos.find(p => p.id === movimentacaoDetalhe.produto_id);
-            const fornecedor = fornecedores.find(f => f.id === produtoMov?.fornecedor_id);
-            
+          const fornecedorId = produtoMov?.fornecedor_id ?? movimentacaoDetalhe.produto?.fornecedor_id;
+          const fornecedor = fornecedores.find(f => f.id === Number(fornecedorId));
             return (
           <div className="p-6 space-y-5">
             <div className="flex justify-between items-start border-b border-gray-100 pb-4">

@@ -396,6 +396,9 @@ export const Produtos = () => {
                         <div>
                           <p className="font-semibold text-gray-900">{prod.nome}</p>
                           <p className="text-xs text-gray-500">SKU: {prod.codigo_barras || 'Sem código'}</p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            <span className="font-medium">Forn:</span> {fornecedores.find(f => f.id === Number(prod.fornecedor_id))?.nome_fantasia || 'Não Mapeado'}
+                          </p>
                         </div>
                       </td>
                       <td className="p-4">
@@ -473,10 +476,14 @@ export const Produtos = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Produto *</label>
                 <input required name="nome" type="text" data-testid="produtos-input-nome" defaultValue={produtoAtivo?.nome} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Código de Barras</label>
                   <input name="codigo_barras" type="text" data-testid="produtos-input-codigo" defaultValue={produtoAtivo?.codigo_barras} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Estoque Inicial *</label>
+                  <input required name="quantidade_estoque" type="number" min="0" data-testid="produtos-input-estoque-inicial" defaultValue={produtoAtivo?.quantidade_estoque ?? 0} className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde ${produtoAtivo ? 'bg-gray-100 text-gray-500' : ''}`} readOnly={!!produtoAtivo} title={produtoAtivo ? "O estoque só pode ser alterado via Movimentações" : "Defina o saldo inicial"} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Qtd Mínima</label>

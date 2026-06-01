@@ -4,13 +4,12 @@ import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
 
-// Aplica a verificação de Token em todas as rotas abaixo:
-// Apenas gerentes e financeiros podem gerenciar ou ler a lista de fornecedores.
-router.use(authMiddleware(['gerente', 'financeiro']));
+const apenasGestao = authMiddleware(['gerente', 'financeiro']);
+const leituraGeral = authMiddleware(['gerente', 'financeiro', 'estoquista']);
 
-router.get('/', FornecedorController.listar);
-router.post('/', FornecedorController.criar);
-router.put('/:id', FornecedorController.atualizar);
-router.delete('/:id', FornecedorController.deletar);
+router.get('/', leituraGeral, FornecedorController.listar);
+router.post('/', apenasGestao, FornecedorController.criar);
+router.put('/:id', apenasGestao, FornecedorController.atualizar);
+router.delete('/:id', apenasGestao, FornecedorController.deletar);
 
 export default router;
