@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { produtoService, type Produto } from '../services/produtoService';
 import { categoriaService, type Categoria } from '../services/categoriaService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
+import { fornecedorService, type Fornecedor } from '../services/fornecedorService';
 import { api } from '../services/api';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { Plus, X, Image as ImageIcon, Filter, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
@@ -21,6 +22,7 @@ export const Produtos = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [unidades, setUnidades] = useState<Unidade[]>([]);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [carregando, setCarregando] = useState(true);
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
@@ -50,15 +52,17 @@ export const Produtos = () => {
   const carregarDados = async () => {
     try {
       setCarregando(true);
-      const [dadosProdutos, dadosCategorias, dadosUnidades] = await Promise.all([
+      const [dadosProdutos, dadosCategorias, dadosUnidades, dadosFornecedores] = await Promise.all([
         produtoService.listarTodos(), 
         categoriaService.listarTodas(),
-        unidadeService.listarTodas()
+        unidadeService.listarTodas(),
+        fornecedorService.listarTodos()
       ]);
 
       setProdutos(Array.isArray(dadosProdutos) ? dadosProdutos : []);
       setCategorias(Array.isArray(dadosCategorias) ? dadosCategorias : []);
       setUnidades(Array.isArray(dadosUnidades) ? dadosUnidades : []);
+      setFornecedores(Array.isArray(dadosFornecedores) ? dadosFornecedores : []);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       setProdutos([]); 
@@ -130,6 +134,11 @@ export const Produtos = () => {
         setProcessandoAcao(false);
         return;
       }
+    }
+
+    // Evita o envio de texto vazio para o banco de dados, permitindo que o Sequelize grave como NULL
+    if (!formData.get('fornecedor_id')) {
+      formData.delete('fornecedor_id');
     }
 
     try {
@@ -484,18 +493,17 @@ export const Produtos = () => {
                   <input name="data_validade" type="date" data-testid="produtos-input-validade" defaultValue={produtoAtivo?.data_validade ? new Date(produtoAtivo.data_validade).toISOString().split('T')[0] : ''} min={new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
-                  <select required name="categoria_id" data-testid="produtos-select-categoria" defaultValue={produtoAtivo?.categoria_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde">
+                  <select required name="categoria_id" data-testid="produtos-select-categoria" defaultValue={produtoAtivo?.categoria_id || ''} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde">
                     <option value="">Selecione...</option>
                     {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                   </select>
                 </div>
                 <div>
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Unidade Base *</label>
-                  <select required name="unidade_id" data-testid="produtos-select-unidade" defaultValue={produtoAtivo?.unidade_id} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                  <select required name="unidade_id" data-testid="produtos-select-unidade" defaultValue={produtoAtivo?.unidade_id || ''} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde">
                     <option value="">Selecione...</option>
                     
                     {unidades
@@ -507,6 +515,12 @@ export const Produtos = () => {
 
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Fornecedor Preferencial</label>
+                  <select name="fornecedor_id" data-testid="produtos-select-fornecedor" defaultValue={produtoAtivo?.fornecedor_id || ''} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde">
+                    <option value="">Diversos / Não Mapeado</option>
+                    {fornecedores.map(f => <option key={f.id} value={f.id}>{f.nome_fantasia || f.razao_social}</option>)}
+                  </select>
                 </div>
               </div>
               <div>

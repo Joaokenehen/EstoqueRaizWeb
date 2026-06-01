@@ -10,6 +10,7 @@ export interface CriarProdutoDTO {
   imagem_url?: string;
   categoria_id: number;
   unidade_id: number;
+  fornecedor_id?: number;
   usuario_id: number;
 }
 
@@ -25,6 +26,7 @@ export interface AtualizarProdutoDTO {
   imagem_url?: string;
   ativo?: boolean;
   categoria_id?: number;
+  fornecedor_id?: number;
 }
 
 export interface AprovarProdutoDTO {

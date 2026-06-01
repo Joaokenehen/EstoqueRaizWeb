@@ -16,6 +16,8 @@ import Layout from '../components/Layout';
 import { movimentacaoService, type Movimentacao } from '../services/movimentacaoService';
 import { produtoService, type Produto } from '../services/produtoService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
+import { fornecedorService, type Fornecedor } from '../services/fornecedorService';
+import { usuarioService, type Usuario } from '../services/usuarioService';
 import { BarraFiltros } from '../components/BarraFiltro';
 import { Modal } from '../components/Modal';
 import { FormularioBase } from '../components/FormularioBase';
@@ -31,6 +33,8 @@ export const Movimentacoes = () => {
   const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [unidades, setUnidades] = useState<Unidade[]>([]);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
   const [processando, setProcessando] = useState(false);
@@ -42,6 +46,7 @@ export const Movimentacoes = () => {
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
   const isEstoquista = usuarioLogado?.cargo === 'estoquista';
+  const isGerente = usuarioLogado?.cargo === 'gerente';
 
   const [campoOrdenacao, setCampoOrdenacao] = useState<CampoOrdenacao>('data_movimentacao');
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<DirecaoOrdenacao>('desc');
@@ -60,10 +65,12 @@ export const Movimentacoes = () => {
   const carregarDados = async () => {
     try {
       setCarregando(true);
-      const [dadosMov, dadosProd, dadosUnid] = await Promise.all([
+      const [dadosMov, dadosProd, dadosUnid, dadosForn, dadosUsr] = await Promise.all([
         movimentacaoService.listarTodas(),
         produtoService.listarTodos(),
         unidadeService.listarTodas(),
+        fornecedorService.listarTodos(),
+        isGerente ? usuarioService.listarTodos().catch(() => []) : Promise.resolve([]),
       ]);
 
       setMovimentacoes(Array.isArray(dadosMov) ? dadosMov : []);
@@ -79,6 +86,8 @@ export const Movimentacoes = () => {
       );
 
       setUnidades(Array.isArray(dadosUnid) ? dadosUnid : []);
+      setFornecedores(Array.isArray(dadosForn) ? dadosForn : []);
+      setUsuarios(Array.isArray(dadosUsr) ? dadosUsr : []);
     } catch (error) {
       console.error('Erro ao carregar movimentações:', error);
     } finally {
@@ -300,6 +309,7 @@ export const Movimentacoes = () => {
                         Qtd {renderIconeOrdenacao('quantidade')}
                       </button>
                     </th>
+                    {isGerente && <th className="p-4 font-semibold">Responsável</th>}
                     <th className="p-4 font-semibold">Doc / Obs</th>
                     <th className="p-4 font-semibold text-right">Detalhes</th>
                   </tr>
@@ -324,8 +334,16 @@ export const Movimentacoes = () => {
                           {movimentacao.unidade_origem_id && movimentacao.unidade_destino_id && ' | '}
                           {movimentacao.unidade_destino_id && `Para: ${unidades.find(u => u.id === movimentacao.unidade_destino_id)?.nome || `Unidade #${movimentacao.unidade_destino_id}`}`}
                         </p>
+                        <p className="text-xs text-gray-400 mt-0.5" title="Fornecedor do Produto">
+                          <span className="font-semibold">Forn:</span> {fornecedores.find(f => f.id === produtos.find(p => p.id === movimentacao.produto_id)?.fornecedor_id)?.nome_fantasia || 'Não Mapeado'}
+                        </p>
                       </td>
                       <td className="p-4 text-gray-900 font-bold">{movimentacao.quantidade}</td>
+                      {isGerente && (
+                        <td className="p-4 text-sm text-gray-700 font-medium">
+                          {usuarios.find(u => u.id === movimentacao.usuario_id)?.nome || `Usuário #${movimentacao.usuario_id}`}
+                        </td>
+                      )}
                       <td className="p-4 text-sm text-gray-600">
                         {movimentacao.documento && (
                           <div className="flex items-center gap-1 text-raiz-verde">
@@ -574,6 +592,11 @@ export const Movimentacoes = () => {
         maxWidth="max-w-lg"
       >
         {movimentacaoDetalhe && (
+          (() => {
+            const produtoMov = produtos.find(p => p.id === movimentacaoDetalhe.produto_id);
+            const fornecedor = fornecedores.find(f => f.id === produtoMov?.fornecedor_id);
+            
+            return (
           <div className="p-6 space-y-5">
             <div className="flex justify-between items-start border-b border-gray-100 pb-4">
               <div>
@@ -616,7 +639,21 @@ export const Movimentacoes = () => {
                   <p className="text-gray-900 font-medium">{unidades.find(u => u.id === movimentacaoDetalhe.unidade_destino_id)?.nome || <span className="text-gray-400 italic font-normal">Não informada</span>}</p>
                 </div>
               )}
+
+              {isGerente && (
+                <div>
+                  <p className="text-sm text-gray-500 font-semibold mb-1">Usuário Responsável</p>
+                  <p className="text-gray-900 font-medium">{usuarios.find(u => u.id === movimentacaoDetalhe.usuario_id)?.nome || `Usuário #${movimentacaoDetalhe.usuario_id}`}</p>
+                </div>
+              )}
             </div>
+
+            {produtoMov && (
+              <div>
+                <p className="text-sm text-gray-500 font-semibold mb-1">Fornecedor Preferencial</p>
+                <p className="text-gray-900 font-medium">{fornecedor ? (fornecedor.nome_fantasia || fornecedor.razao_social) : <span className="text-gray-400 italic font-normal">Diversos / Não Mapeado</span>}</p>
+              </div>
+            )}
 
             <div>
               <p className="text-sm text-gray-500 font-semibold mb-1">Documento / NF</p>
@@ -636,6 +673,8 @@ export const Movimentacoes = () => {
               </div>
             </div>
           </div>
+            );
+          })()
         )}
       </Modal>
     </Layout>

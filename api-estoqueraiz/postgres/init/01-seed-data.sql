@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS produtos (
   "statusProduto" "enum_produtos_statusProduto" NOT NULL DEFAULT 'pendente',
   categoria_id INTEGER NOT NULL,
   unidade_id INTEGER NOT NULL,
+  fornecedor_id INTEGER,
   usuario_id INTEGER NOT NULL,
   criado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   atualizado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -158,19 +159,19 @@ VALUES
   (3, 'Carlos Financeiro', 'financeiro@estoqueraiz.com', crypt('Senha123!', gen_salt('bf', 10)), '84727540061', 'aprovado', 'financeiro', 1, NOW())
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO produtos (id, nome, descricao, codigo_barras, preco_custo, preco_venda, quantidade_estoque, quantidade_minima, data_validade, lote, localizacao, imagem_url, ativo, "statusProduto", categoria_id, unidade_id, usuario_id, criado_em, atualizado_em)
+INSERT INTO produtos (id, nome, descricao, codigo_barras, preco_custo, preco_venda, quantidade_estoque, quantidade_minima, data_validade, lote, localizacao, imagem_url, ativo, "statusProduto", categoria_id, unidade_id, fornecedor_id, usuario_id, criado_em, atualizado_em)
 VALUES
-  (1, 'Semente de Soja TMG 7062 IPRO', 'Semente de soja de alto potencial produtivo.', '7891234500012', 150.00, 280.00, 1000, 10, NOW() + INTERVAL '180 days', 'L001', 'Estoque A1', NULL, true, 'aprovado', 3, 1, 2, NOW(), NOW()),
-  (2, 'Herbicida Glifosato Atar', 'Herbicida sistêmico de amplo espectro.', '7891234500029', 45.50, 89.90, 500, 5, NOW() - INTERVAL '10 days', 'L002', 'Estoque B1', NULL, true, 'aprovado', 2, 1, 2, NOW(), NOW()),
-  (3, 'Fertilizante NPK 20-05-20', 'Fórmula para crescimento e floração.', '7891234500036', 80.00, 150.00, 800, 5, NULL, 'L003', 'Estoque C1', NULL, true, 'aprovado', 1, 1, 2, NOW(), NOW()),
-  (4, 'Semente de Milho Híbrido AG 8088', 'Milho de alta produtividade e sanidade.', '7891234500043', 120.00, 220.00, 300, 10, NOW() + INTERVAL '240 days', 'L004', 'Estoque D1', NULL, true, 'aprovado', 3, 2, 2, NOW(), NOW()),
-  (5, 'Fungicida Mancozeb', 'Fungicida protetor multissítio.', '7891234500050', 30.00, 65.00, 600, 5, NOW() - INTERVAL '2 days', 'L005', 'Estoque E1', NULL, true, 'aprovado', 2, 1, 2, NOW(), NOW()),
-  (6, 'Enxada Larga 2.5', 'Enxada forjada em aço carbono.', '7891234500067', 25.00, 49.90, 50, 1, NULL, 'L006', 'Ferramentaria', NULL, true, 'aprovado', 4, 1, 2, NOW(), NOW()),
-  (7, 'Ração para Bovinos de Corte', 'Ração balanceada para ganho de peso.', '7891234500074', 55.00, 95.00, 200, 20, NULL, 'L007', 'Estoque F1', NULL, true, 'aprovado', 5, 3, 2, NOW(), NOW()),
-  (8, 'Pulverizador Costal 20L', 'Pulverizador para aplicação de defensivos.', '7891234500081', 90.00, 179.00, 30, 1, NULL, 'L008', 'Ferramentaria', NULL, true, 'aprovado', 4, 2, 2, NOW(), NOW()),
-  (9, 'Adubo Orgânico Líquido', 'Fertilizante orgânico de rápida absorção.', '7891234500098', 40.00, 75.00, 8, 20, NULL, 'L009', 'Estoque C2', NULL, true, 'pendente', 1, 1, 2, NOW(), NOW()),
-  (10, 'Semente de Trigo TR 120', 'Sementes de trigo de inverno.', '7891234500104', 110.00, 190.00, 150, 10, NOW() + INTERVAL '15 days', 'L010', 'Estoque A2', NULL, true, 'pendente', 3, 2, 2, NOW(), NOW()),
-  (11, 'Ração Suína Crescimento', 'Ração para suínos na fase de crescimento.', '7891234500111', 60.00, 110.00, 15, 50, NOW() + INTERVAL '5 days', 'L011', 'Estoque F2', NULL, true, 'pendente', 5, 3, 2, NOW(), NOW())
+  (1, 'Semente de Soja TMG 7062 IPRO', 'Semente de soja de alto potencial produtivo.', '7891234500012', 150.00, 280.00, 1000, 10, NOW() + INTERVAL '180 days', 'L001', 'Estoque A1', NULL, true, 'aprovado', 3, 1, 3, 2, NOW(), NOW()),
+  (2, 'Herbicida Glifosato Atar', 'Herbicida sistêmico de amplo espectro.', '7891234500029', 45.50, 89.90, 500, 5, NOW() - INTERVAL '10 days', 'L002', 'Estoque B1', NULL, true, 'aprovado', 2, 1, 1, 2, NOW(), NOW()),
+  (3, 'Fertilizante NPK 20-05-20', 'Fórmula para crescimento e floração.', '7891234500036', 80.00, 150.00, 800, 5, NULL, 'L003', 'Estoque C1', NULL, true, 'aprovado', 1, 1, 2, 2, NOW(), NOW()),
+  (4, 'Semente de Milho Híbrido AG 8088', 'Milho de alta produtividade e sanidade.', '7891234500043', 120.00, 220.00, 300, 10, NOW() + INTERVAL '240 days', 'L004', 'Estoque D1', NULL, true, 'aprovado', 3, 2, 3, 2, NOW(), NOW()),
+  (5, 'Fungicida Mancozeb', 'Fungicida protetor multissítio.', '7891234500050', 30.00, 65.00, 600, 5, NOW() - INTERVAL '2 days', 'L005', 'Estoque E1', NULL, true, 'aprovado', 2, 1, 1, 2, NOW(), NOW()),
+  (6, 'Enxada Larga 2.5', 'Enxada forjada em aço carbono.', '7891234500067', 25.00, 49.90, 50, 1, NULL, 'L006', 'Ferramentaria', NULL, true, 'aprovado', 4, 1, 4, 2, NOW(), NOW()),
+  (7, 'Ração para Bovinos de Corte', 'Ração balanceada para ganho de peso.', '7891234500074', 55.00, 95.00, 200, 20, NULL, 'L007', 'Estoque F1', NULL, true, 'aprovado', 5, 3, 5, 2, NOW(), NOW()),
+  (8, 'Pulverizador Costal 20L', 'Pulverizador para aplicação de defensivos.', '7891234500081', 90.00, 179.00, 30, 1, NULL, 'L008', 'Ferramentaria', NULL, true, 'aprovado', 4, 2, 4, 2, NOW(), NOW()),
+  (9, 'Adubo Orgânico Líquido', 'Fertilizante orgânico de rápida absorção.', '7891234500098', 40.00, 75.00, 8, 20, NULL, 'L009', 'Estoque C2', NULL, true, 'pendente', 1, 1, 2, 2, NOW(), NOW()),
+  (10, 'Semente de Trigo TR 120', 'Sementes de trigo de inverno.', '7891234500104', 110.00, 190.00, 150, 10, NOW() + INTERVAL '15 days', 'L010', 'Estoque A2', NULL, true, 'pendente', 3, 2, 3, 2, NOW(), NOW()),
+  (11, 'Ração Suína Crescimento', 'Ração para suínos na fase de crescimento.', '7891234500111', 60.00, 110.00, 15, 50, NOW() + INTERVAL '5 days', 'L011', 'Estoque F2', NULL, true, 'pendente', 5, 3, 5, 2, NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO movimentacoes (id, tipo, quantidade, data_movimentacao, observacao, documento, produto_id, usuario_id, unidade_origem_id, unidade_destino_id, criado_em, atualizado_em)
@@ -192,7 +193,7 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- Gerando produtos adicionais em lote para testar a paginação da Curva ABC (Produtos 12 a 40)
-INSERT INTO produtos (id, nome, descricao, codigo_barras, preco_custo, preco_venda, quantidade_estoque, quantidade_minima, data_validade, lote, localizacao, imagem_url, ativo, "statusProduto", categoria_id, unidade_id, usuario_id, criado_em, atualizado_em)
+INSERT INTO produtos (id, nome, descricao, codigo_barras, preco_custo, preco_venda, quantidade_estoque, quantidade_minima, data_validade, lote, localizacao, imagem_url, ativo, "statusProduto", categoria_id, unidade_id, fornecedor_id, usuario_id, criado_em, atualizado_em)
 SELECT 
   i, 
   'Produto Dinâmico ' || i, 
@@ -210,6 +211,7 @@ SELECT
   CASE WHEN i % 4 = 0 THEN 'pendente' ELSE 'aprovado' END::"enum_produtos_statusProduto", 
   (i % 5) + 1, 
   1, 
+  (i % 5) + 1,
   1, 
   NOW(), 
   NOW()
