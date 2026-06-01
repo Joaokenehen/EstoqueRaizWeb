@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Package, Building2, Tags, AlertTriangle, Clock, ArrowRight, DollarSign } from 'lucide-react';
+import { Lock, Package, Building2, Tags, AlertTriangle, Clock, ArrowRight, DollarSign, ArrowRightLeft } from 'lucide-react';
 import Layout from '../components/Layout';
 import { Modal } from '../components/Modal';
 import { modulos } from '../data/modulos';
 import { produtoService } from '../services/produtoService';
 import { unidadeService } from '../services/unidadeService';
 import { categoriaService } from '../services/categoriaService';
+import { movimentacaoService } from '../services/movimentacaoService';
 
 // Componente reutilizável para exibir estatísticas
 export const StatCard = ({ titulo, valor, icone: Icone, corFundo, corIcone, carregando }: any) => (
@@ -31,7 +32,8 @@ export function Dashboard() {
   const [stats, setStats] = useState({
     totalProdutos: 0,
     totalUnidades: 0,
-    totalCategorias: 0
+    totalCategorias: 0,
+    totalMovimentacoes: 0
   });
   const [carregandoStats, setCarregandoStats] = useState(true);
   const [produtosEstoqueBaixo, setProdutosEstoqueBaixo] = useState<any[]>([]);
@@ -53,10 +55,11 @@ export function Dashboard() {
 
     const carregarEstatisticas = async () => {
       try {
-        const [produtos, unidades, categorias] = await Promise.all([
+        const [produtos, unidades, categorias, movimentacoes] = await Promise.all([
           produtoService.listarTodos(),
           unidadeService.listarTodas(),
-          categoriaService.listarTodas()
+          categoriaService.listarTodas(),
+          movimentacaoService.listarTodas()
         ]);
 
         const produtosArray = Array.isArray(produtos) ? produtos : [];
@@ -73,7 +76,8 @@ export function Dashboard() {
         setStats({
           totalProdutos: produtosArray.length,
           totalUnidades: Array.isArray(unidades) ? unidades.length : 0,
-          totalCategorias: Array.isArray(categorias) ? categorias.length : 0
+          totalCategorias: Array.isArray(categorias) ? categorias.length : 0,
+          totalMovimentacoes: Array.isArray(movimentacoes) ? movimentacoes.length : 0
         });
       } catch (error) {
         console.error('Erro ao carregar estatísticas do dashboard:', error);
@@ -110,7 +114,7 @@ export function Dashboard() {
         </div>
 
         {/* Cards de Estatísticas Principais */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard 
             titulo="Total de Produtos" 
             valor={stats.totalProdutos} 
@@ -133,6 +137,14 @@ export function Dashboard() {
             icone={Building2} 
             corFundo="bg-purple-100" 
             corIcone="text-purple-600" 
+            carregando={carregandoStats} 
+          />
+          <StatCard 
+            titulo="Movimentações" 
+            valor={stats.totalMovimentacoes} 
+            icone={ArrowRightLeft} 
+            corFundo="bg-emerald-100" 
+            corIcone="text-emerald-600" 
             carregando={carregandoStats} 
           />
         </div>
