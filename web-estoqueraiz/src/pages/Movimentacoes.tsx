@@ -709,6 +709,7 @@ export const Movimentacoes = () => {
         onClose={() => setMovimentacaoDetalhe(null)} 
         titulo="Detalhes da Movimentação" 
         maxWidth="max-w-lg"
+        closeOnClickOutside={true}
       >
         {movimentacaoDetalhe && (
           (() => {

@@ -9,6 +9,7 @@ interface ModalProps {
   maxWidth?: string;
   testId?: string;
   headerClasses?: string;
+  closeOnClickOutside?: boolean;
 }
 
 export const Modal = ({
@@ -18,12 +19,18 @@ export const Modal = ({
   children,
   maxWidth = 'max-w-2xl',
   headerClasses = 'bg-gray-50 text-gray-900 border-gray-200',
-  testId = 'modal'
+  testId = 'modal',
+  closeOnClickOutside = false
 }: ModalProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm" style={{ animation: 'modal-overlay-fade 0.5s ease-out forwards' }} data-testid={`${testId}-overlay`}>
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm" 
+      style={{ animation: 'modal-overlay-fade 0.5s ease-out forwards' }} 
+      data-testid={`${testId}-overlay`}
+      onClick={closeOnClickOutside ? onClose : undefined}
+    >
       {/* Injetando animação pura para garantir fluidez extrema e crescimento a partir de um tamanho reduzido */}
       <style>{`
         @keyframes modal-overlay-fade {
@@ -39,7 +46,11 @@ export const Modal = ({
           to { opacity: 1; }
         }
       `}</style>
-      <div className={`bg-white rounded-xl shadow-2xl w-full ${maxWidth} max-h-[90vh] flex flex-col overflow-hidden`} style={{ animation: 'modal-scale-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}>
+      <div 
+        className={`bg-white rounded-xl shadow-2xl w-full ${maxWidth} max-h-[90vh] flex flex-col overflow-hidden`} 
+        style={{ animation: 'modal-scale-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={`px-6 py-4 border-b flex items-center justify-between shrink-0 ${headerClasses}`}>
           <h2 className="text-xl font-bold">{titulo}</h2>
           <button

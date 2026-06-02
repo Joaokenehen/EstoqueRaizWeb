@@ -329,6 +329,7 @@ export function Dashboard() {
           </div>
         }
         maxWidth="max-w-2xl"
+        closeOnClickOutside={true}
       >
         <div className="p-6 max-h-[60vh] overflow-y-auto">
           {listaExibicao.length === 0 ? (
