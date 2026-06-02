@@ -12,6 +12,9 @@ class MovimentacoesModel extends Model {
   public usuario_id!: number;
   public unidade_origem_id?: number;
   public unidade_destino_id?: number;
+  public status!: "pendente" | "aprovado" | "rejeitado";
+  public valor_custo?: number;
+  public valor_venda?: number;
 
   public toJSON(): object {
     return Object.assign({}, this.get());
@@ -60,6 +63,19 @@ documento: {
     },
     unidade_destino_id: {
       type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    status: {
+      type: DataTypes.ENUM("pendente", "aprovado", "rejeitado"),
+      allowNull: false,
+      defaultValue: "aprovado",
+    },
+    valor_custo: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+    valor_venda: {
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
     },
   },

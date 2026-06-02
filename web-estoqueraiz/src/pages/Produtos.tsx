@@ -490,7 +490,13 @@ export const Produtos = () => {
                       <td className="p-4"><StatusBadge status={prod.statusProduto} /></td>
                       
                       <td className="p-4 text-gray-700 font-semibold">
-                        {prod.preco_venda ? `R$ ${Number(prod.preco_venda).toFixed(2)}` : '---'}
+                        {prod.statusProduto === 'aprovado' ? (
+                          `R$ ${Number(prod.preco_venda || 0).toFixed(2)}`
+                        ) : prod.statusProduto === 'pendente' ? (
+                          <span className="text-xs italic text-blue-600 font-medium">Aguardando</span>
+                        ) : (
+                          <span className="text-xs italic text-red-700 font-medium">N/A</span>
+                        )}
                       </td>
                       
                       {/* COLUNA AÇÕES REATORADA COM OS COMPONENTES */}

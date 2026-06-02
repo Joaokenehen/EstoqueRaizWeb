@@ -32,6 +32,13 @@ BEGIN
   END IF;
 END$$;
 
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_movimentacoes_status') THEN
+    EXECUTE 'CREATE TYPE enum_movimentacoes_status AS ENUM (''pendente'', ''aprovado'', ''rejeitado'')';
+  END IF;
+END$$;
+
 CREATE TABLE IF NOT EXISTS unidades (
   id SERIAL PRIMARY KEY,
   nome VARCHAR(255) NOT NULL,
@@ -106,6 +113,9 @@ CREATE TABLE IF NOT EXISTS produtos (
 
 CREATE TABLE IF NOT EXISTS movimentacoes (
   id SERIAL PRIMARY KEY,
+  status enum_movimentacoes_status NOT NULL DEFAULT 'aprovado',
+  valor_custo DECIMAL(10,2),
+  valor_venda DECIMAL(10,2),
   tipo enum_movimentacoes_tipo NOT NULL,
   quantidade INTEGER NOT NULL,
   data_movimentacao TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
