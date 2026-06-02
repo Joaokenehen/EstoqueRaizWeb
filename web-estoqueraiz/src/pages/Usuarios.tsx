@@ -10,6 +10,7 @@ import { BarraAcoesLote } from '../components/BarraAcoesLote';
 import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
 import { Paginacao } from '../components/Paginacao';
 import toast from 'react-hot-toast';
+import { getIniciais, getCorAvatar } from '../utils/avatar';
 
 export const Usuarios = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -380,7 +381,18 @@ const handleAprovar = async (id: number) => {
                         />
                       </td>
 
-                      <td className="p-4">
+                      <td className="p-4 flex items-center gap-3">
+                        {usuario.foto_perfil ? (
+                          <img 
+                            src={usuario.foto_perfil} 
+                            alt={`Foto de ${usuario.nome}`} 
+                            className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm shrink-0" 
+                          />
+                        ) : (
+                          <div className={`w-10 h-10 flex items-center justify-center rounded-full border shadow-sm font-bold text-sm shrink-0 ${getCorAvatar(usuario.nome)}`}>
+                            {getIniciais(usuario.nome)}
+                          </div>
+                        )}
                         <div className="flex flex-col">
                           <span className="font-semibold text-gray-900">
                             {usuario.nome} {usuarioLogado?.id === usuario.id && <span className="text-xs text-raiz-verde font-bold ml-1">(Você)</span>}

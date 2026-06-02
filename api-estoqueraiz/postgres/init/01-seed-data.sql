@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   status enum_usuarios_status NOT NULL DEFAULT 'pendente',
   cargo enum_usuarios_cargo,
   unidade_id INTEGER,
+  foto_perfil TEXT,
   criado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 

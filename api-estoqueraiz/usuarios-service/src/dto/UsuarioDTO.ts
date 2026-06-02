@@ -11,6 +11,7 @@ export interface AtualizarUsuarioDTO {
   senha?: string;
   cargo?: "gerente" | "estoquista" | "financeiro";
   unidade_id?: number;
+  foto_perfil?: string;
 }
 
 export interface AlterarCargoDTO {
