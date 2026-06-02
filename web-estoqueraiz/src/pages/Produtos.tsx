@@ -5,7 +5,7 @@ import { unidadeService, type Unidade } from '../services/unidadeService';
 import { fornecedorService, type Fornecedor } from '../services/fornecedorService';
 import { api } from '../services/api';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { Plus, X, Image as ImageIcon, Filter, ChevronUp, ChevronDown, ChevronsUpDown, AlertTriangle, Clock, ArrowDownRight } from 'lucide-react';
+import { Plus, X, Image as ImageIcon, Filter, ChevronUp, ChevronDown, ChevronsUpDown, AlertTriangle, Clock, ArrowDownRight, Map } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
 import { LoadingSpinner } from '../components/Feedbacks';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
@@ -43,6 +43,7 @@ export const Produtos = () => {
   const [campoOrdenacao, setCampoOrdenacao] = useState<CampoOrdenacaoProdutos>('nome');
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<'asc' | 'desc'>('asc');
   const [filtroAlerta, setFiltroAlerta] = useState<FiltroAlerta>('todos');
+  const [mapaEndereco, setMapaEndereco] = useState<string | null>(null);
   const { 
     selecionados, 
     alternarSelecao, 
@@ -81,6 +82,16 @@ export const Produtos = () => {
     setPaginaAtual(1);
     limparSelecao();
   }, [buscaTexto, statusFiltro, itensPorPagina, limparSelecao, filtroAlerta]);
+
+  const abrirMapa = (unidade_id: number | string) => {
+    const unidade = unidades.find(u => u.id === Number(unidade_id));
+    if (!unidade) {
+      toast.error('Endereço da unidade não encontrado.');
+      return;
+    }
+    const endereco = `${unidade.rua}, ${unidade.numero} - ${unidade.bairro}, ${unidade.cidade} - ${unidade.estado}, ${unidade.cep}`;
+    setMapaEndereco(endereco);
+  };
 
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
@@ -503,6 +514,14 @@ export const Produtos = () => {
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           
+                          <button 
+                            onClick={() => abrirMapa(prod.unidade_id)}
+                            className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors inline-flex"
+                            title="Ver no Mapa"
+                          >
+                            <Map size={18} />
+                          </button>
+
                           {(isGerente || isEstoquista) && (
                             <BotaoEditar 
                               onClick={() => { setProdutoAtivo(prod); setModalAberto(true); }} 
@@ -685,6 +704,28 @@ export const Produtos = () => {
           </div>
         </div>
       )}
+
+      <Modal 
+        isOpen={!!mapaEndereco} 
+        onClose={() => setMapaEndereco(null)} 
+        titulo="Localização do Produto"
+        maxWidth="max-w-4xl"
+        closeOnClickOutside={true}
+      >
+        <div className="p-2 h-[60vh] min-h-[400px] w-full bg-gray-50 rounded-b-xl">
+          {mapaEndereco && (
+            <iframe
+              width="100%"
+              height="100%"
+              style={{ border: 0, borderRadius: '0.5rem' }}
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(mapaEndereco)}&t=m&z=15&output=embed&iwloc=near`}
+            ></iframe>
+          )}
+        </div>
+      </Modal>
     </Layout>
   );
 };
