@@ -39,3 +39,19 @@ export const obterEstatisticas = asyncHandler(
     res.json(resultado);
   }
 );
+
+export const obterRelatorioFinanceiro = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { unidade_id, data_inicio, data_fim } = req.query;
+
+    logger.info(`Obtendo relatorio financeiro`);
+
+    const resultado = await relatoriosService.obterRelatorioFinanceiro({
+      unidade_id: unidade_id ? parseInt(unidade_id as string) : undefined,
+      data_inicio: data_inicio as string,
+      data_fim: data_fim as string,
+    });
+
+    res.json(resultado);
+  }
+);
