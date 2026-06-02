@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Package, Building2, Tags, AlertTriangle, Clock, ArrowRight, DollarSign, ArrowRightLeft } from 'lucide-react';
+import { Lock, Package, Building2, Tags, AlertTriangle, Clock, ArrowRight, DollarSign, ArrowRightLeft, Users } from 'lucide-react';
 import Layout from '../components/Layout';
 import { Modal } from '../components/Modal';
 import { modulos } from '../data/modulos';
@@ -8,6 +8,7 @@ import { produtoService } from '../services/produtoService';
 import { unidadeService } from '../services/unidadeService';
 import { categoriaService } from '../services/categoriaService';
 import { movimentacaoService } from '../services/movimentacaoService';
+import { usuarioService } from '../services/usuarioService';
 
 // Componente reutilizável para exibir estatísticas
 export const StatCard = ({ titulo, valor, icone: Icone, corFundo, corIcone, carregando }: any) => (
@@ -39,9 +40,10 @@ export function Dashboard() {
   const [produtosEstoqueBaixo, setProdutosEstoqueBaixo] = useState<any[]>([]);
   const [produtosVencendo, setProdutosVencendo] = useState<any[]>([]);
   const [produtosPendentes, setProdutosPendentes] = useState<any[]>([]);
+  const [usuariosPendentes, setUsuariosPendentes] = useState<any[]>([]);
   const [unidades, setUnidades] = useState<any[]>([]);
   const [modalNotificacaoAberto, setModalNotificacaoAberto] = useState(false);
-  const [tipoNotificacao, setTipoNotificacao] = useState<'estoqueBaixo' | 'vencendo' | 'pendente' | null>(null);
+  const [tipoNotificacao, setTipoNotificacao] = useState<'estoqueBaixo' | 'vencendo' | 'pendente' | 'usuariosPendentes' | null>(null);
 
   const isGerente = usuario?.cargo === 'gerente';
   const isFinanceiro = usuario?.cargo === 'financeiro';
@@ -55,12 +57,19 @@ export function Dashboard() {
 
     const carregarEstatisticas = async () => {
       try {
-        const [produtos, unidades, categorias, movimentacoes] = await Promise.all([
+        const isUsuarioGerente = (usuario || (dadosSalvos ? JSON.parse(dadosSalvos) : null))?.cargo === 'gerente';
+        const promessas: any[] = [
           produtoService.listarTodos(),
           unidadeService.listarTodas(),
           categoriaService.listarTodas(),
           movimentacaoService.listarTodas()
-        ]);
+        ];
+
+        if (isUsuarioGerente) {
+          promessas.push(usuarioService.listarTodos().catch(() => []));
+        }
+
+        const [produtos, unidades, categorias, movimentacoes, usuariosData] = await Promise.all(promessas);
 
         const produtosArray = Array.isArray(produtos) ? produtos : [];
         
@@ -71,6 +80,10 @@ export function Dashboard() {
         setProdutosEstoqueBaixo(produtosArray.filter(p => p.quantidade_estoque <= (p.quantidade_minima || 0)));
         setProdutosVencendo(produtosArray.filter(p => p.data_validade && new Date(p.data_validade) <= trintaDias));
         setProdutosPendentes(produtosArray.filter(p => p.statusProduto === 'pendente'));
+        if (usuariosData && Array.isArray(usuariosData)) {
+          setUsuariosPendentes(usuariosData.filter(u => u.status === 'pendente'));
+        }
+
         setUnidades(Array.isArray(unidades) ? unidades : []);
 
         setStats({
@@ -94,7 +107,7 @@ export function Dashboard() {
     return modulo.cargosPermitidos.includes(usuario.cargo);
   }) : [];
 
-  const abrirNotificacao = (tipo: 'estoqueBaixo' | 'vencendo' | 'pendente') => {
+  const abrirNotificacao = (tipo: 'estoqueBaixo' | 'vencendo' | 'pendente' | 'usuariosPendentes') => {
     setTipoNotificacao(tipo);
     setModalNotificacaoAberto(true);
   };
@@ -103,7 +116,9 @@ export function Dashboard() {
     ? produtosEstoqueBaixo 
     : tipoNotificacao === 'vencendo' 
       ? produtosVencendo 
-      : produtosPendentes;
+      : tipoNotificacao === 'pendente'
+        ? produtosPendentes
+        : usuariosPendentes;
 
   return (
     <Layout>
@@ -220,6 +235,28 @@ export function Dashboard() {
                 </div>
               </button>
             )}
+
+            {isGerente && (
+              <button 
+                onClick={() => abrirNotificacao('usuariosPendentes')}
+                disabled={carregandoStats}
+                className="flex items-center justify-between bg-white border border-purple-200 p-5 rounded-xl shadow-sm hover:shadow-md hover:border-purple-400 transition-all text-left group disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-purple-50 text-purple-600 rounded-lg group-hover:scale-110 transition-transform">
+                    <Users size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-lg">Usuários Pendentes</h4>
+                    <p className="text-sm text-gray-500">Aguardando aprovação de cadastro</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl font-bold text-purple-600">{carregandoStats ? '-' : usuariosPendentes.length}</span>
+                  <ArrowRight size={20} className="text-gray-300 group-hover:text-purple-500 transition-colors" />
+                </div>
+              </button>
+            )}
           </div>
         </div>
 
@@ -271,11 +308,13 @@ export function Dashboard() {
         titulo={
           <div className="flex items-center gap-2">
             {tipoNotificacao === 'estoqueBaixo' ? <AlertTriangle className="text-red-600" /> : 
-             tipoNotificacao === 'vencendo' ? <Clock className="text-amber-600" /> : 
-             <DollarSign className="text-blue-600" />}
+             tipoNotificacao === 'vencendo' ? <Clock className="text-amber-600" /> :
+             tipoNotificacao === 'pendente' ? <DollarSign className="text-blue-600" /> : 
+             <Users className="text-purple-600" />}
             {tipoNotificacao === 'estoqueBaixo' ? "Produtos com Estoque Baixo" : 
-             tipoNotificacao === 'vencendo' ? "Produtos Vencendo ou Vencidos" : 
-             "Produtos Aguardando Precificação"}
+             tipoNotificacao === 'vencendo' ? "Produtos Vencendo ou Vencidos" :
+             tipoNotificacao === 'pendente' ? "Produtos Aguardando Precificação" : 
+             "Usuários Aguardando Aprovação"}
           </div>
         }
         maxWidth="max-w-2xl"
@@ -285,7 +324,25 @@ export function Dashboard() {
             <p className="text-center text-gray-500 py-8">Não há produtos nesta lista no momento. Tudo certo!</p>
           ) : (
             <ul className="divide-y divide-gray-100">
-              {listaExibicao.map(prod => (
+              {tipoNotificacao === 'usuariosPendentes' ? (
+                listaExibicao.map(usr => (
+                  <li key={usr.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <p className="font-bold text-gray-900">{usr.nome}</p>
+                      <p className="text-sm text-gray-500 flex items-center gap-2 mt-1">
+                        <span>Email: {usr.email}</span>
+                        <span className="px-2 py-0.5 bg-gray-100 border border-gray-200 text-gray-700 rounded-md text-xs font-semibold">CPF: {usr.cpf}</span>
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-3 text-sm text-right">
+                      <span className="bg-purple-50 text-purple-700 px-3 py-1 rounded-md font-medium border border-purple-100 animate-pulse">
+                        Aprovação Pendente
+                      </span>
+                    </div>
+                  </li>
+                ))
+              ) : (
+                listaExibicao.map(prod => (
                 <li key={prod.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <p className="font-bold text-gray-900">{prod.nome}</p>
@@ -314,7 +371,8 @@ export function Dashboard() {
                     )}
                   </div>
                 </li>
-              ))}
+                ))
+              )}
             </ul>
           )}
         </div>

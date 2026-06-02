@@ -5,7 +5,7 @@ import { unidadeService, type Unidade } from '../services/unidadeService';
 import { fornecedorService, type Fornecedor } from '../services/fornecedorService';
 import { api } from '../services/api';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { Plus, X, Image as ImageIcon, Filter, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { Plus, X, Image as ImageIcon, Filter, ChevronUp, ChevronDown, ChevronsUpDown, AlertTriangle, Clock, ArrowDownRight } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
 import { LoadingSpinner } from '../components/Feedbacks';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
@@ -17,6 +17,7 @@ import { Paginacao } from '../components/Paginacao';
 import toast from 'react-hot-toast';
 
 type CampoOrdenacaoProdutos = 'nome' | 'quantidade_estoque' | 'preco_venda' | 'statusProduto' | null;
+type FiltroAlerta = 'todos' | 'vencidos' | 'vencendo' | 'estoque_baixo';
 
 export const Produtos = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -41,6 +42,7 @@ export const Produtos = () => {
   const [produtoZoom, setProdutoZoom] = useState<Produto | null>(null);
   const [campoOrdenacao, setCampoOrdenacao] = useState<CampoOrdenacaoProdutos>('nome');
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<'asc' | 'desc'>('asc');
+  const [filtroAlerta, setFiltroAlerta] = useState<FiltroAlerta>('todos');
   const { 
     selecionados, 
     alternarSelecao, 
@@ -78,12 +80,32 @@ export const Produtos = () => {
   useEffect(() => {
     setPaginaAtual(1);
     limparSelecao();
-  }, [buscaTexto, statusFiltro, itensPorPagina, limparSelecao]);
+  }, [buscaTexto, statusFiltro, itensPorPagina, limparSelecao, filtroAlerta]);
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  
+  const trintaDias = new Date(hoje);
+  trintaDias.setDate(hoje.getDate() + 30);
+
+  const produtosVencidos = produtos.filter(p => p.data_validade && new Date(p.data_validade) < hoje);
+  const produtosVencendo = produtos.filter(p => p.data_validade && new Date(p.data_validade) >= hoje && new Date(p.data_validade) <= trintaDias);
+  const produtosEstoqueBaixo = produtos.filter(p => p.quantidade_estoque <= (p.quantidade_minima || 0));
 
   const produtosFiltrados = produtos.filter(p => {
     const matchesNome = p.nome?.toLowerCase().includes(buscaTexto.toLowerCase());
     const matchesStatus = statusFiltro === 'todos' || p.statusProduto === statusFiltro;
-    return matchesNome && matchesStatus;
+
+    let matchesAlerta = true;
+    if (filtroAlerta === 'vencidos') {
+      matchesAlerta = p.data_validade ? new Date(p.data_validade) < hoje : false;
+    } else if (filtroAlerta === 'vencendo') {
+      matchesAlerta = p.data_validade ? new Date(p.data_validade) >= hoje && new Date(p.data_validade) <= trintaDias : false;
+    } else if (filtroAlerta === 'estoque_baixo') {
+      matchesAlerta = p.quantidade_estoque <= (p.quantidade_minima || 0);
+    }
+
+    return matchesNome && matchesStatus && matchesAlerta;
   });
 
   const handleOrdenar = (campo: CampoOrdenacaoProdutos) => {
@@ -280,6 +302,56 @@ export const Produtos = () => {
             </button>
           )}
         </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <button
+            onClick={() => setFiltroAlerta(filtroAlerta === 'vencidos' ? 'todos' : 'vencidos')}
+            className={`p-4 rounded-xl border flex items-center justify-between transition-all ${filtroAlerta === 'vencidos' ? 'bg-red-100 border-red-300 ring-2 ring-red-500' : 'bg-white border-gray-200 hover:border-red-300 hover:shadow-sm'}`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${filtroAlerta === 'vencidos' ? 'bg-red-200 text-red-700' : 'bg-red-50 text-red-600'}`}>
+                 <AlertTriangle size={20} />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-gray-900">Vencidos</p>
+                <p className="text-xs text-gray-500">Prazo expirado</p>
+              </div>
+            </div>
+            <span className="text-2xl font-bold text-red-600">{produtosVencidos.length}</span>
+          </button>
+
+          <button
+            onClick={() => setFiltroAlerta(filtroAlerta === 'vencendo' ? 'todos' : 'vencendo')}
+            className={`p-4 rounded-xl border flex items-center justify-between transition-all ${filtroAlerta === 'vencendo' ? 'bg-amber-100 border-amber-300 ring-2 ring-amber-500' : 'bg-white border-gray-200 hover:border-amber-300 hover:shadow-sm'}`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${filtroAlerta === 'vencendo' ? 'bg-amber-200 text-amber-700' : 'bg-amber-50 text-amber-600'}`}>
+                 <Clock size={20} />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-gray-900">Vencendo</p>
+                <p className="text-xs text-gray-500">Próximos 30 dias</p>
+              </div>
+            </div>
+            <span className="text-2xl font-bold text-amber-600">{produtosVencendo.length}</span>
+          </button>
+
+          <button
+            onClick={() => setFiltroAlerta(filtroAlerta === 'estoque_baixo' ? 'todos' : 'estoque_baixo')}
+            className={`p-4 rounded-xl border flex items-center justify-between transition-all ${filtroAlerta === 'estoque_baixo' ? 'bg-orange-100 border-orange-300 ring-2 ring-orange-500' : 'bg-white border-gray-200 hover:border-orange-300 hover:shadow-sm'}`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${filtroAlerta === 'estoque_baixo' ? 'bg-orange-200 text-orange-700' : 'bg-orange-50 text-orange-600'}`}>
+                 <ArrowDownRight size={20} />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-gray-900">Estoque Baixo</p>
+                <p className="text-xs text-gray-500">Abaixo do mínimo</p>
+              </div>
+            </div>
+            <span className="text-2xl font-bold text-orange-600">{produtosEstoqueBaixo.length}</span>
+          </button>
+        </div>
 
         <BarraFiltros 
           buscaTexto={buscaTexto} 

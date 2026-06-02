@@ -204,7 +204,7 @@ const handleAprovar = async (id: number) => {
     
     const cargoParaEnviar = cargoSelecionado === 'nenhum' ? null : cargoSelecionado;
     
-    const unidadeParaEnviar = (cargoParaEnviar === null || cargoParaEnviar === 'financeiro' || !unidadeSelecionada) 
+    const unidadeParaEnviar = (cargoParaEnviar === null || cargoParaEnviar === 'financeiro' || cargoParaEnviar === 'gerente' || !unidadeSelecionada) 
       ? null 
       : Number(unidadeSelecionada);
 
@@ -413,17 +413,18 @@ const handleAprovar = async (id: number) => {
                           <select
                             className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px disabled:opacity-50 disabled:bg-gray-100"
                             data-testid={`usuarios-select-unidade-${usuario.id}`}
-                            value={cargosSelecionados[usuario.id] === 'financeiro' ? '' : (unidadesSelecionadas[usuario.id] || '')}
+                          value={(cargosSelecionados[usuario.id] === 'financeiro' || cargosSelecionados[usuario.id] === 'gerente') ? '' : (unidadesSelecionadas[usuario.id] || '')}
                             onChange={(e) => setUnidadesSelecionadas(prev => ({ ...prev, [usuario.id]: e.target.value }))}
                             disabled={
                               processandoId === usuario.id || 
                               usuario.status === 'rejeitado' || 
-                              cargosSelecionados[usuario.id] === 'financeiro'
+                            cargosSelecionados[usuario.id] === 'financeiro' ||
+                            cargosSelecionados[usuario.id] === 'gerente'
                             }
                           >
                             
                             <option value="" disabled>
-                              {cargosSelecionados[usuario.id] === 'financeiro' ? 'Acesso Global' : 'Unidade...'}
+                            {(cargosSelecionados[usuario.id] === 'financeiro' || cargosSelecionados[usuario.id] === 'gerente') ? 'Acesso Global' : 'Unidade...'}
                             </option>
                             
                             {unidades.map(u => (

@@ -15,7 +15,7 @@ export const Financeiro = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [buscaTexto, setBuscaTexto] = useState('');
-  const [abaAtiva, setAbaAtiva] = useState<'pendentes' | 'aprovados'>('pendentes');
+  const [abaAtiva, setAbaAtiva] = useState<'pendentes' | 'aprovados' | 'rejeitados'>('pendentes');
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
   
@@ -48,7 +48,7 @@ export const Financeiro = () => {
 
   const produtosFiltrados = produtos.filter(p => {
     const matchesNome = p.nome?.toLowerCase().includes(buscaTexto.toLowerCase());
-    const matchesStatus = abaAtiva === 'pendentes' ? p.statusProduto === 'pendente' : p.statusProduto === 'aprovado';
+    const matchesStatus = abaAtiva === 'pendentes' ? p.statusProduto === 'pendente' : abaAtiva === 'aprovados' ? p.statusProduto === 'aprovado' : p.statusProduto === 'rejeitado';
     return matchesNome && matchesStatus;
   });
 
@@ -177,6 +177,16 @@ export const Financeiro = () => {
             >
               Produtos Aprovados
             </button>
+            <button
+              onClick={() => setAbaAtiva('rejeitados')}
+              className={`pb-4 px-2 text-sm font-medium border-b-2 transition-colors ${
+                abaAtiva === 'rejeitados'
+                  ? 'border-raiz-verde text-raiz-verde'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Produtos Rejeitados
+            </button>
           </nav>
         </div>
 
@@ -198,8 +208,12 @@ export const Financeiro = () => {
                   <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
                     <th className="p-4 font-semibold">Produto</th>
                     <th className="p-4 font-semibold">Estoque</th>
-                    <th className="p-4 font-semibold">Custo (R$)</th>
-                    <th className="p-4 font-semibold">Venda (R$)</th>
+                    {abaAtiva === 'aprovados' && (
+                      <>
+                        <th className="p-4 font-semibold">Custo (R$)</th>
+                        <th className="p-4 font-semibold">Venda (R$)</th>
+                      </>
+                    )}
                     <th className="p-4 font-semibold text-right">Ações</th>
                   </tr>
                 </thead>
@@ -222,12 +236,16 @@ export const Financeiro = () => {
                       <td className="p-4">
                         <div className="text-sm font-medium text-gray-900">{prod.quantidade_estoque} un</div>
                       </td>
-                      <td className="p-4 text-gray-700">
-                        {prod.preco_custo !== null && prod.preco_custo !== undefined ? `R$ ${Number(prod.preco_custo).toFixed(2)}` : '---'}
-                      </td>
-                      <td className="p-4 text-gray-700 font-semibold">
-                        {prod.preco_venda !== null && prod.preco_venda !== undefined ? `R$ ${Number(prod.preco_venda).toFixed(2)}` : '---'}
-                      </td>
+                      {abaAtiva === 'aprovados' && (
+                        <>
+                          <td className="p-4 text-gray-700">
+                            {prod.preco_custo !== null && prod.preco_custo !== undefined ? `R$ ${Number(prod.preco_custo).toFixed(2)}` : '---'}
+                          </td>
+                          <td className="p-4 text-gray-700 font-semibold">
+                            {prod.preco_venda !== null && prod.preco_venda !== undefined ? `R$ ${Number(prod.preco_venda).toFixed(2)}` : '---'}
+                          </td>
+                        </>
+                      )}
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {abaAtiva === 'pendentes' ? (
@@ -235,15 +253,22 @@ export const Financeiro = () => {
                               <BotaoAprovar onClick={() => abrirModalAprovacao(prod)} title="Aprovar e Precificar" />
                               <BotaoRejeitar onClick={() => handleRejeitar(prod.id)} title="Rejeitar Produto" />
                             </>
-                          ) : (
+                          ) : abaAtiva === 'aprovados' ? (
                             <BotaoEditar onClick={() => abrirModalEdicao(prod)} title="Editar Preços" />
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-red-600 font-medium bg-red-50 px-2 py-1 rounded border border-red-100">
+                                Rejeitado
+                              </span>
+                              <BotaoAprovar onClick={() => abrirModalAprovacao(prod)} title="Reavaliar e Aprovar" />
+                            </div>
                           )}
                         </div>
                       </td>
                     </tr>
                   ))}
                   {produtosFiltrados.length === 0 && (
-                    <tr><td colSpan={5} className="p-12 text-center text-gray-400 italic">Nenhum produto encontrado.</td></tr>
+                    <tr><td colSpan={abaAtiva === 'aprovados' ? 5 : 3} className="p-12 text-center text-gray-400 italic">Nenhum produto encontrado.</td></tr>
                   )}
                 </tbody>
               </table>

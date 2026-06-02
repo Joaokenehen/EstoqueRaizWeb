@@ -154,9 +154,11 @@ ON CONFLICT (id) DO NOTHING;
 -- Senha padrão para todos os usuários da seed: Senha123!
 INSERT INTO usuarios (id, nome, email, senha, cpf, status, cargo, unidade_id, criado_em)
 VALUES
-  (1, 'João Gerente', 'gerente@estoqueraiz.com', crypt('Senha123!', gen_salt('bf', 10)), '82688200046', 'aprovado', 'gerente', 1, NOW()),
+  (1, 'João Gerente', 'gerente@estoqueraiz.com', crypt('Senha123!', gen_salt('bf', 10)), '82688200046', 'aprovado', 'gerente', NULL, NOW()),
   (2, 'Ana Estoquista', 'estoquista@estoqueraiz.com', crypt('Senha123!', gen_salt('bf', 10)), '66405647005', 'aprovado', 'estoquista', 1, NOW()),
-  (3, 'Carlos Financeiro', 'financeiro@estoqueraiz.com', crypt('Senha123!', gen_salt('bf', 10)), '84727540061', 'aprovado', 'financeiro', 1, NOW())
+  (3, 'Carlos Financeiro', 'financeiro@estoqueraiz.com', crypt('Senha123!', gen_salt('bf', 10)), '84727540061', 'aprovado', 'financeiro', NULL, NOW()),
+  (4, 'Marcos Pendente', 'marcos@estoqueraiz.com', crypt('Senha123!', gen_salt('bf', 10)), '12345678901', 'pendente', NULL, NULL, NOW()),
+  (5, 'Julia Pendente', 'julia@estoqueraiz.com', crypt('Senha123!', gen_salt('bf', 10)), '10987654321', 'pendente', NULL, NULL, NOW())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO produtos (id, nome, descricao, codigo_barras, preco_custo, preco_venda, quantidade_estoque, quantidade_minima, data_validade, lote, localizacao, imagem_url, ativo, "statusProduto", categoria_id, unidade_id, fornecedor_id, usuario_id, criado_em, atualizado_em)
@@ -169,9 +171,11 @@ VALUES
   (6, 'Enxada Larga 2.5', 'Enxada forjada em aço carbono.', '7891234500067', 25.00, 49.90, 50, 1, NULL, 'L006', 'Ferramentaria', NULL, true, 'aprovado', 4, 1, 5, 2, NOW(), NOW()),
   (7, 'Ração para Bovinos de Corte', 'Ração balanceada para ganho de peso.', '7891234500074', 55.00, 95.00, 200, 20, NULL, 'L007', 'Estoque F1', NULL, true, 'aprovado', 5, 3, 1, 2, NOW(), NOW()),
   (8, 'Pulverizador Costal 20L', 'Pulverizador para aplicação de defensivos.', '7891234500081', 90.00, 179.00, 30, 1, NULL, 'L008', 'Ferramentaria', NULL, true, 'aprovado', 4, 2, NULL, 2, NOW(), NOW()),
-  (9, 'Adubo Orgânico Líquido', 'Fertilizante orgânico de rápida absorção.', '7891234500098', 40.00, 75.00, 8, 20, NULL, 'L009', 'Estoque C2', NULL, true, 'pendente', 1, 1, 1, 2, NOW(), NOW()),
-  (10, 'Semente de Trigo TR 120', 'Sementes de trigo de inverno.', '7891234500104', 110.00, 190.00, 150, 10, NOW() + INTERVAL '15 days', 'L010', 'Estoque A2', NULL, true, 'pendente', 3, 2, 2, 2, NOW(), NOW()),
-  (11, 'Ração Suína Crescimento', 'Ração para suínos na fase de crescimento.', '7891234500111', 60.00, 110.00, 15, 50, NOW() + INTERVAL '5 days', 'L011', 'Estoque F2', NULL, true, 'pendente', 5, 3, NULL, 2, NOW(), NOW())
+  (9, 'Adubo Orgânico Líquido', 'Fertilizante orgânico de rápida absorção.', '7891234500098', 0.00, 0.00, 8, 20, NULL, 'L009', 'Estoque C2', NULL, true, 'pendente', 1, 1, 1, 2, NOW(), NOW()),
+  (10, 'Semente de Trigo TR 120', 'Sementes de trigo de inverno.', '7891234500104', 0.00, 0.00, 150, 10, NOW() + INTERVAL '15 days', 'L010', 'Estoque A2', NULL, true, 'pendente', 3, 2, 2, 2, NOW(), NOW()),
+  (11, 'Ração Suína Crescimento', 'Ração para suínos na fase de crescimento.', '7891234500111', 0.00, 0.00, 15, 50, NOW() + INTERVAL '5 days', 'L011', 'Estoque F2', NULL, true, 'pendente', 5, 3, NULL, 2, NOW(), NOW()),
+  (41, 'Fertilizante XYZ (Recusado)', 'Fórmula reprovada em testes de qualidade.', '7891234500418', 90.00, 0.00, 0, 10, NULL, 'L041', 'Quarentena', NULL, true, 'rejeitado', 1, 1, 1, 2, NOW(), NOW()),
+  (42, 'Defensivo Genérico (Recusado)', 'Lote sem documentação necessária.', '7891234500425', 200.00, 0.00, 0, 5, NULL, 'L042', 'Quarentena', NULL, true, 'rejeitado', 2, 2, 2, 2, NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO movimentacoes (id, tipo, quantidade, data_movimentacao, observacao, documento, produto_id, usuario_id, unidade_origem_id, unidade_destino_id, criado_em, atualizado_em)
@@ -260,5 +264,3 @@ SELECT setval('fornecedores_id_seq', COALESCE((SELECT MAX(id) FROM fornecedores)
 SELECT setval('usuarios_id_seq', COALESCE((SELECT MAX(id) FROM usuarios), 1), true);
 SELECT setval('produtos_id_seq', COALESCE((SELECT MAX(id) FROM produtos), 1), true);
 SELECT setval('movimentacoes_id_seq', COALESCE((SELECT MAX(id) FROM movimentacoes), 1), true);
-
-

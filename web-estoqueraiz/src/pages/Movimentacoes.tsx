@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronsUpDown,
   Eye,
+  Filter,
 } from 'lucide-react';
 import { LoadingSpinner } from '../components/Feedbacks';
 import Layout from '../components/Layout';
@@ -41,6 +42,7 @@ export const Movimentacoes = () => {
   const [filtro, setFiltro] = useState('');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
+  const [filtroTipo, setFiltroTipo] = useState('todos');
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
@@ -101,7 +103,7 @@ export const Movimentacoes = () => {
 
   useEffect(() => {
     setPaginaAtual(1);
-  }, [filtro, dataInicio, dataFim, itensPorPagina]);
+  }, [filtro, dataInicio, dataFim, filtroTipo, itensPorPagina]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     setProcessando(true);
@@ -212,7 +214,9 @@ export const Movimentacoes = () => {
     }
   }
 
-  return matchTexto && matchData;
+  const matchTipo = filtroTipo === 'todos' || mov.tipo === filtroTipo;
+
+  return matchTexto && matchData && matchTipo;
 });
 
   const handleOrdenar = (campo: CampoOrdenacao) => {
@@ -273,6 +277,20 @@ export const Movimentacoes = () => {
           itensPorPagina={itensPorPagina}
           onItensPorPaginaChange={setItensPorPagina}
         >
+          <div className="relative w-full sm:w-48 shrink-0">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <select
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-raiz-verde outline-none text-sm appearance-none bg-white"
+              value={filtroTipo}
+              onChange={(e) => setFiltroTipo(e.target.value)}
+            >
+              <option value="todos">Todas as Operações</option>
+              <option value="ENTRADA">Entradas</option>
+              <option value="SAIDA">Saídas</option>
+              <option value="TRANSFERENCIA">Transferências</option>
+              <option value="AJUSTE">Ajustes</option>
+            </select>
+          </div>
           <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0">
             <input 
               type="date" 
