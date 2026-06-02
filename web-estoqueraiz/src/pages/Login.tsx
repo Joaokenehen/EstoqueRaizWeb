@@ -21,6 +21,7 @@ export const Login = () => {
 
       localStorage.setItem('@EstoqueRaiz:token', resposta.token);
       localStorage.setItem('@EstoqueRaiz:usuario', JSON.stringify(resposta.usuario));
+      sessionStorage.removeItem('@EstoqueRaiz:qtdNotificacoes');
 
       navigate('/dashboard');
       

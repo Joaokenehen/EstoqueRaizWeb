@@ -104,7 +104,12 @@ export class ProdutosService {
 
   async processarMovimentacao(dados: any): Promise<void> {
     try {
-      const { tipo, produto_id, quantidade, unidade_destino_id } = dados;
+      const { tipo, produto_id, quantidade, unidade_destino_id, status, valor_custo, valor_venda } = dados;
+
+      if (status === 'pendente') {
+        logger.info(`Movimentação pendente. Estoque e preços do produto ${produto_id} não serão alterados ainda.`);
+        return;
+      }
 
       const produtoOrigem = await ProdutosModel.findByPk(produto_id);
       if (!produtoOrigem) {
@@ -113,7 +118,10 @@ export class ProdutosService {
       }
 
       if (tipo === 'ENTRADA') {
-        await produtoOrigem.increment('quantidade_estoque', { by: quantidade });
+        produtoOrigem.quantidade_estoque += quantidade;
+        if (valor_custo !== undefined && valor_custo !== null) produtoOrigem.preco_custo = valor_custo;
+        if (valor_venda !== undefined && valor_venda !== null) produtoOrigem.preco_venda = valor_venda;
+        await produtoOrigem.save();
       } else if (tipo === 'SAIDA') {
         await produtoOrigem.decrement('quantidade_estoque', { by: quantidade });
       } else if (tipo === 'AJUSTE') {

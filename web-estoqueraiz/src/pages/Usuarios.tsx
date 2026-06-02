@@ -10,6 +10,7 @@ import { BarraAcoesLote } from '../components/BarraAcoesLote';
 import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
 import { Paginacao } from '../components/Paginacao';
 import toast from 'react-hot-toast';
+import { getIniciais, getCorAvatar } from '../utils/avatar';
 
 export const Usuarios = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -204,7 +205,7 @@ const handleAprovar = async (id: number) => {
     
     const cargoParaEnviar = cargoSelecionado === 'nenhum' ? null : cargoSelecionado;
     
-    const unidadeParaEnviar = (cargoParaEnviar === null || cargoParaEnviar === 'financeiro' || !unidadeSelecionada) 
+    const unidadeParaEnviar = (cargoParaEnviar === null || cargoParaEnviar === 'financeiro' || cargoParaEnviar === 'gerente' || !unidadeSelecionada) 
       ? null 
       : Number(unidadeSelecionada);
 
@@ -380,7 +381,18 @@ const handleAprovar = async (id: number) => {
                         />
                       </td>
 
-                      <td className="p-4">
+                      <td className="p-4 flex items-center gap-3">
+                        {usuario.foto_perfil ? (
+                          <img 
+                            src={usuario.foto_perfil} 
+                            alt={`Foto de ${usuario.nome}`} 
+                            className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm shrink-0" 
+                          />
+                        ) : (
+                          <div className={`w-10 h-10 flex items-center justify-center rounded-full border shadow-sm font-bold text-sm shrink-0 ${getCorAvatar(usuario.nome)}`}>
+                            {getIniciais(usuario.nome)}
+                          </div>
+                        )}
                         <div className="flex flex-col">
                           <span className="font-semibold text-gray-900">
                             {usuario.nome} {usuarioLogado?.id === usuario.id && <span className="text-xs text-raiz-verde font-bold ml-1">(Você)</span>}
@@ -413,17 +425,18 @@ const handleAprovar = async (id: number) => {
                           <select
                             className="border border-gray-300 rounded-lg text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-150px disabled:opacity-50 disabled:bg-gray-100"
                             data-testid={`usuarios-select-unidade-${usuario.id}`}
-                            value={cargosSelecionados[usuario.id] === 'financeiro' ? '' : (unidadesSelecionadas[usuario.id] || '')}
+                          value={(cargosSelecionados[usuario.id] === 'financeiro' || cargosSelecionados[usuario.id] === 'gerente') ? '' : (unidadesSelecionadas[usuario.id] || '')}
                             onChange={(e) => setUnidadesSelecionadas(prev => ({ ...prev, [usuario.id]: e.target.value }))}
                             disabled={
                               processandoId === usuario.id || 
                               usuario.status === 'rejeitado' || 
-                              cargosSelecionados[usuario.id] === 'financeiro'
+                            cargosSelecionados[usuario.id] === 'financeiro' ||
+                            cargosSelecionados[usuario.id] === 'gerente'
                             }
                           >
                             
                             <option value="" disabled>
-                              {cargosSelecionados[usuario.id] === 'financeiro' ? 'Acesso Global' : 'Unidade...'}
+                            {(cargosSelecionados[usuario.id] === 'financeiro' || cargosSelecionados[usuario.id] === 'gerente') ? 'Acesso Global' : 'Unidade...'}
                             </option>
                             
                             {unidades.map(u => (
