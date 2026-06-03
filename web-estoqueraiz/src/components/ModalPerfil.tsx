@@ -3,6 +3,7 @@ import { User, X, Check, XCircle, Edit2, Camera } from 'lucide-react';
 import { usuarioService } from '../services/usuarioService';
 import { getIniciais, getCorAvatar } from '../utils/avatar';
 import toast from 'react-hot-toast';
+import { RecorteAvatar } from './RecorteAvatar';
 
 interface ModalPerfilProps {
   isOpen: boolean;
@@ -16,12 +17,14 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
   const [loadingConfig, setLoadingConfig] = useState(false);
   const [editForm, setEditForm] = useState({ nome: '' });
   const [mensagemConfig, setMensagemConfig] = useState({ texto: '', tipo: '' });
+  const [imagemParaRecortar, setImagemParaRecortar] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setEditForm({ nome: usuario?.nome || '' });
       setIsEditing(false);
       setMensagemConfig({ texto: '', tipo: '' });
+      setImagemParaRecortar(null);
     }
   }, [isOpen, usuario]);
 
@@ -76,29 +79,34 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
   const handleAlterarFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const arquivo = e.target.files?.[0];
     if (arquivo) {
-      if (arquivo.size > 1024 * 1024) {
-        toast.error('A imagem deve ter no máximo 1MB para ser salva localmente.');
+      if (arquivo.size > 5 * 1024 * 1024) {
+        toast.error('A imagem deve ter no máximo 5MB.');
         e.target.value = '';
         return;
       }
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const base64String = reader.result as string;
-        try {
-          setLoadingConfig(true);
-          // Chama a API para salvar a foto no banco de dados
-          await usuarioService.atualizar(usuario.id, { foto_perfil: base64String });
-          
-          const usuarioAtualizado = { ...usuario, foto_perfil: base64String };
-          onAtualizarUsuario(usuarioAtualizado);
-          toast.success('Foto de perfil atualizada com sucesso!');
-        } catch (error) {
-          toast.error('Erro ao salvar a foto de perfil.');
-        } finally {
-          setLoadingConfig(false);
-        }
+        setImagemParaRecortar(reader.result as string);
       };
       reader.readAsDataURL(arquivo);
+      e.target.value = ''; // Permite selecionar o mesmo arquivo novamente se cancelar
+    }
+  };
+
+  const salvarNovaFoto = async (base64Cortado: string) => {
+    try {
+      setLoadingConfig(true);
+      // Chama a API para salvar a foto no banco de dados
+      await usuarioService.atualizar(usuario.id, { foto_perfil: base64Cortado });
+      
+      const usuarioAtualizado = { ...usuario, foto_perfil: base64Cortado };
+      onAtualizarUsuario(usuarioAtualizado);
+      toast.success('Foto de perfil atualizada com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao salvar a foto de perfil.');
+    } finally {
+      setLoadingConfig(false);
+      setImagemParaRecortar(null);
     }
   };
 
@@ -239,6 +247,14 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
 
         </div>
       </div>
+
+      {imagemParaRecortar && (
+        <RecorteAvatar
+          imagemOriginal={imagemParaRecortar}
+          aoSalvar={salvarNovaFoto}
+          aoCancelar={() => setImagemParaRecortar(null)}
+        />
+      )}
     </div>
   );
 };
