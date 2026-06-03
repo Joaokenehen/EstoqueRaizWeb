@@ -33,15 +33,22 @@ export const ChatAssistente = () => {
   const [mostrarDica, setMostrarDica] = useState(false);
   const fimChatRef = useRef<HTMLDivElement>(null);
 
-  // Mostra a dica flutuante após 3 segundos e a oculta sozinha após 12 segundos
+  // Mostra a dica flutuante de forma mais espaçada e garante que só apareça uma vez por sessão
   useEffect(() => {
-    const timerShow = setTimeout(() => setMostrarDica(true), 3000);
-    const timerHide = setTimeout(() => setMostrarDica(false), 12000);
+    const dicaJaMostrada = sessionStorage.getItem('@EstoqueRaiz:dicaIaMostrada');
     
-    return () => { 
-      clearTimeout(timerShow); 
-      clearTimeout(timerHide); 
-    };
+    if (!dicaJaMostrada) {
+      const timerShow = setTimeout(() => setMostrarDica(true), 15000); // Aguarda 15s para mostrar
+      const timerHide = setTimeout(() => {
+        setMostrarDica(false);
+        sessionStorage.setItem('@EstoqueRaiz:dicaIaMostrada', 'true');
+      }, 25000); // Oculta sozinho após mais 10s visível
+      
+      return () => { 
+        clearTimeout(timerShow); 
+        clearTimeout(timerHide); 
+      };
+    }
   }, []);
 
   // Rola o chat para baixo automaticamente quando chega uma nova mensagem
@@ -163,11 +170,19 @@ export const ChatAssistente = () => {
               <div 
                 className="absolute right-full mr-4 bottom-2 bg-white text-slate-700 text-sm px-4 py-3 rounded-2xl rounded-br-sm shadow-xl border border-gray-200 w-max max-w-xs cursor-pointer origin-bottom-right"
                 style={{ animation: 'dica-pop-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
-                onClick={() => { setAberto(true); setMostrarDica(false); }}
+                onClick={() => { 
+                  setAberto(true); 
+                  setMostrarDica(false); 
+                  sessionStorage.setItem('@EstoqueRaiz:dicaIaMostrada', 'true');
+                }}
               >
                 <span className="font-semibold text-raiz-verde">Psiu!</span> Tô por aqui se precisar de ajuda com o estoque. 👀
                 <button 
-                  onClick={(e) => { e.stopPropagation(); setMostrarDica(false); }} 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    setMostrarDica(false); 
+                    sessionStorage.setItem('@EstoqueRaiz:dicaIaMostrada', 'true');
+                  }} 
                   className="absolute -top-2 -left-2 bg-white border border-gray-200 text-gray-400 hover:text-red-500 rounded-full p-1 shadow-sm transition-colors"
                   title="Fechar aviso"
                 >
@@ -177,7 +192,11 @@ export const ChatAssistente = () => {
             </>
           )}
           <button 
-            onClick={() => { setAberto(true); setMostrarDica(false); }} 
+            onClick={() => { 
+              setAberto(true); 
+              setMostrarDica(false); 
+              sessionStorage.setItem('@EstoqueRaiz:dicaIaMostrada', 'true');
+            }} 
             className="bg-raiz-verde text-white p-4 rounded-full shadow-lg hover:scale-110 hover:shadow-xl transition-all flex items-center justify-center group"
             title="Falar com o Assistente"
           >
