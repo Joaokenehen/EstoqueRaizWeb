@@ -12,6 +12,7 @@ import { usuarioService } from '../services/usuarioService';
 import { ModalPerfil } from './ModalPerfil';
 import toast from 'react-hot-toast';
 import { getIniciais, getCorAvatar } from '../utils/avatar';
+import { ChatAssistente } from './ChatAssistente';
 
 interface LayoutProps {
   children: ReactNode; 
@@ -403,6 +404,9 @@ export default function Layout({ children }: LayoutProps) {
         usuario={usuario}
         onAtualizarUsuario={handleAtualizarUsuario}
       />
+
+      {/* Assistente Virtual de IA */}
+      <ChatAssistente />
     </div>
   );
 }
