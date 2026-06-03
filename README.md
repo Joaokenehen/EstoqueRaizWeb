@@ -55,7 +55,8 @@ Nginx Gateway (8081)
   ├→ Produtos Service (3005)
   ├→ Movimentacoes Service (3006)
   ├→ Relatorios Service (3007)
-  └→ Fornecedores Service (3008)
+  ├→ Fornecedores Service (3008)
+  └→ IA Service (3009)
   
 Persistência:
   ├→ PostgreSQL (Dados transacionais)
@@ -70,6 +71,7 @@ Observabilidade:
 #### 5. Integrações Externas (Facilidade e UX)
 - **Integração Brasil API**: Busca automática e preenchimento de dados corporativos (Razão Social, Fantasia, Endereço, etc) através do CNPJ no Módulo de Fornecedores.
 - **Busca de CEP Automática**: Preenchimento ágil de endereços para novas unidades cadastradas.
+- **Assistente Virtual de IA**: Inteligência Artificial via Google Gemini integrada aos módulos, capaz de analisar dados do estoque, cruzar relatórios e responder dúvidas em linguagem natural.
 
 ---
 
@@ -178,6 +180,7 @@ EstoqueRaizWeb/
 │   ├── produtos-service/     # Catálogo de produtos
 │   ├── movimentacoes-service/# Fluxo de movimentações
 │   ├── relatorios-service/   # Curva ABC e estatísticas
+│   ├── ia-service/           # Assistente Virtual de IA (Google Gemini)
 │   ├── shared/               # Código compartilhado
 │   ├── nginx/                # Configuração do gateway
 │   ├── prometheus/           # Configuração de métricas
