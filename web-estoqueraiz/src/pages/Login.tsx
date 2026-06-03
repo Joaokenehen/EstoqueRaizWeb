@@ -47,18 +47,18 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-raiz-bege via-white to-raiz-bege font-sans p-4">
-      <div className="w-full max-w-[400px] p-8 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom">
+    <div className="er-auth-shell flex items-center justify-center p-4">
+      <div className="er-auth-card flex flex-col border-t-4 border-raiz-verde">
         
         <header className="text-center mb-6">
           <img 
             src={logoEstoque} 
             alt="Estoque Raiz" 
-            className="w-48 md:w-56 mx-auto mb-4 drop-shadow-md cursor-pointer hover:scale-105 transition-transform duration-200"
+            className="mx-auto mb-4 w-48 cursor-pointer drop-shadow-md transition-transform duration-200 hover:scale-105 md:w-56"
             onClick={() => navigate('/')}
             title="Voltar para a página inicial"
           />
-          <h1 className="text-2xl font-bold text-raiz-marrom tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight text-raiz-marrom">
             Bem-vindo
           </h1>
           <div className="h-1 w-12 bg-raiz-verde mx-auto mt-2 rounded-full mb-4"></div>
@@ -75,7 +75,7 @@ export const Login = () => {
             <input
               type="email"
               placeholder="seu@email.com"
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
+              className="er-input px-4 py-3"
               value={email}
               maxLength={100}
               onChange={(e) => setEmail(e.target.value)}
@@ -104,7 +104,7 @@ export const Login = () => {
               <input
                 type={mostrarSenha ? "text" : "password"}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde focus:border-transparent outline-none transition-all"
+                className="er-input px-4 py-3 pr-12"
                 value={senha}
                 maxLength={32}
                 onChange={(e) => setSenha(e.target.value)}
@@ -125,10 +125,10 @@ export const Login = () => {
           <button
             type="submit"
             disabled={carregando} 
-            className={`w-full text-white font-bold py-3 rounded-lg shadow-md transition-all duration-150 mt-6 
+            className={`mt-6 w-full rounded-lg py-3 font-bold text-white shadow-raiz-button transition-all duration-150
               ${carregando 
                 ? 'bg-gray-400 cursor-not-allowed opacity-70' 
-                : 'bg-raiz-verde hover:bg-opacity-90 active:scale-[0.98]'
+                : 'bg-raiz-verde hover:bg-raiz-verde-escuro active:scale-[0.98]'
               }`}
           >
             {carregando ? 'Processando...' : 'Entrar no Sistema'}

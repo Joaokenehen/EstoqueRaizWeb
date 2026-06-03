@@ -296,18 +296,18 @@ export const Produtos = () => {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto">
+      <div className="er-page">
         
-        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <header className="er-page-header">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Catálogo de Produtos</h1>
-            <p className="text-gray-500 mt-2">Gestão centralizada de itens, preços e aprovações.</p>
+            <h1 className="er-page-title">Catálogo de Produtos</h1>
+            <p className="er-page-subtitle">Gestão centralizada de itens, preços e aprovações.</p>
           </div>
 
           {podeCriar && (
             <button 
           onClick={() => abrirModal()}
-              className="flex items-center gap-2 bg-raiz-verde text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all shadow-md"
+              className="er-primary-button"
             >
               <Plus size={20} /> Novo Produto
             </button>
@@ -398,11 +398,11 @@ export const Produtos = () => {
         {carregando ? (
           <LoadingSpinner />
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="er-table-shell">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="er-table">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
+                  <tr className="er-table-head">
                     {isGerente && (
                       <th className="p-4 w-12 text-center">
                         <input 
@@ -447,7 +447,7 @@ export const Produtos = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {produtosPaginados.map((prod) => (
-                    <tr key={prod.id} className={`transition-colors ${selecionados.includes(prod.id) ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
+                    <tr key={prod.id} className={`transition-colors ${selecionados.includes(prod.id) ? 'bg-red-50' : 'er-table-row'}`}>
                       {isGerente && (
                         <td className="p-4 text-center">
                           <input 

@@ -25,16 +25,16 @@ export const FormularioBase = ({
   };
 
   return (
-    <form onSubmit={handleFormSubmit} className="p-6 space-y-4" data-testid={testId}>
+    <form onSubmit={handleFormSubmit} className="space-y-4 p-6" data-testid={testId}>
       
       {children}
 
-      <div className="pt-4 mt-6 border-t border-gray-100">
+      <div className="mt-6 border-t border-raiz-borda pt-4">
         <button
           type="submit"
           disabled={processando}
           data-testid={`${testId}-submit`}
-          className="w-full py-3 bg-raiz-verde text-white rounded-lg font-bold shadow-md hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+          className="er-primary-button w-full py-3"
         >
           {processando ? (
             <>

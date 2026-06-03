@@ -158,17 +158,17 @@ export const Categorias = () => {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto">
+      <div className="er-page">
 
-        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <header className="er-page-header">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gestão de Categorias</h1>
-            <p className="text-gray-500 mt-2">Organiza os teus produtos por secções e departamentos.</p>
+            <h1 className="er-page-title">Gestão de Categorias</h1>
+            <p className="er-page-subtitle">Organiza os teus produtos por secções e departamentos.</p>
           </div>
           {isGerente && (
             <button 
               onClick={() => abrirModal()}
-              className="flex items-center gap-2 bg-raiz-verde text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
+              className="er-primary-button"
             >
               <Plus size={20} /> Nova Categoria
             </button>
@@ -197,11 +197,11 @@ export const Categorias = () => {
         ) : erro ? (
           <MensagemErro mensagem={erro} />
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="er-table-shell">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="er-table">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
+                  <tr className="er-table-head">
                     {isGerente && (
                       <th className="p-4 w-12 text-center">
                         <input 
@@ -228,7 +228,7 @@ export const Categorias = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {categoriasPaginadas.map((categoria) => (
-                    <tr key={categoria.id} className={`transition-colors ${isGerente && selecionados.includes(categoria.id) ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
+                    <tr key={categoria.id} className={`transition-colors ${isGerente && selecionados.includes(categoria.id) ? 'bg-red-50' : 'er-table-row'}`}>
                       {isGerente && (
                         <td className="p-4 text-center">
                           <input 
