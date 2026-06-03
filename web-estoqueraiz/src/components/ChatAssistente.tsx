@@ -7,14 +7,42 @@ interface Mensagem {
   texto: string;
 }
 
+const getSaudacaoInicial = () => {
+  const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
+  const usuario = usuarioString ? JSON.parse(usuarioString) : null;
+  const nome = usuario?.nome?.split(' ')[0] || 'parceiro(a)';
+  
+  const saudacoes = [
+    `Olá, ${nome}! Sou o Assistente Raiz. Como posso ajudar com o estoque hoje?`,
+    `E aí, ${nome}! Tudo pronto para organizar nosso estoque?`,
+    `Boas-vindas, ${nome}! Qual a missão de hoje no sistema?`,
+    `Fala, ${nome}! Precisando de um resumo do estoque ou relatórios? É só pedir!`,
+    `Olá, ${nome}! Preparado(a) para manter tudo nos trilhos? Como posso ser útil?`
+  ];
+
+  return saudacoes[Math.floor(Math.random() * saudacoes.length)];
+};
+
 export const ChatAssistente = () => {
   const [aberto, setAberto] = useState(false);
-  const [mensagens, setMensagens] = useState<Mensagem[]>([
-    { role: 'ai', texto: 'Olá! Sou o Assistente Raiz. Como posso ajudar com o estoque hoje?' }
+  const [mensagens, setMensagens] = useState<Mensagem[]>(() => [
+    { role: 'ai', texto: getSaudacaoInicial() }
   ]);
   const [input, setInput] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const [mostrarDica, setMostrarDica] = useState(false);
   const fimChatRef = useRef<HTMLDivElement>(null);
+
+  // Mostra a dica flutuante após 3 segundos e a oculta sozinha após 12 segundos
+  useEffect(() => {
+    const timerShow = setTimeout(() => setMostrarDica(true), 3000);
+    const timerHide = setTimeout(() => setMostrarDica(false), 12000);
+    
+    return () => { 
+      clearTimeout(timerShow); 
+      clearTimeout(timerHide); 
+    };
+  }, []);
 
   // Rola o chat para baixo automaticamente quando chega uma nova mensagem
   useEffect(() => {
@@ -122,13 +150,40 @@ export const ChatAssistente = () => {
       )}
       
       {!aberto && (
-        <button 
-          onClick={() => setAberto(true)} 
-          className="bg-raiz-verde text-white p-4 rounded-full shadow-lg hover:scale-110 hover:shadow-xl transition-all flex items-center justify-center group"
-          title="Falar com o Assistente"
-        >
-          <Bot size={28} className="group-hover:animate-pulse" />
-        </button>
+        <div className="relative flex items-end justify-end">
+          {mostrarDica && (
+            <>
+              <style>{`
+                @keyframes dica-pop-in {
+                  0% { opacity: 0; transform: scale(0.6) translate(20px, 10px); }
+                  70% { opacity: 1; transform: scale(1.05) translate(-2px, -2px); }
+                  100% { opacity: 1; transform: scale(1) translate(0, 0); }
+                }
+              `}</style>
+              <div 
+                className="absolute right-full mr-4 bottom-2 bg-white text-slate-700 text-sm px-4 py-3 rounded-2xl rounded-br-sm shadow-xl border border-gray-200 w-max max-w-xs cursor-pointer origin-bottom-right"
+                style={{ animation: 'dica-pop-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
+                onClick={() => { setAberto(true); setMostrarDica(false); }}
+              >
+                <span className="font-semibold text-raiz-verde">Psiu!</span> Tô por aqui se precisar de ajuda com o estoque. 👀
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setMostrarDica(false); }} 
+                  className="absolute -top-2 -left-2 bg-white border border-gray-200 text-gray-400 hover:text-red-500 rounded-full p-1 shadow-sm transition-colors"
+                  title="Fechar aviso"
+                >
+                  <X size={12} strokeWidth={3} />
+                </button>
+              </div>
+            </>
+          )}
+          <button 
+            onClick={() => { setAberto(true); setMostrarDica(false); }} 
+            className="bg-raiz-verde text-white p-4 rounded-full shadow-lg hover:scale-110 hover:shadow-xl transition-all flex items-center justify-center group"
+            title="Falar com o Assistente"
+          >
+            <Bot size={28} className="group-hover:animate-pulse" />
+          </button>
+        </div>
       )}
     </div>
   );
