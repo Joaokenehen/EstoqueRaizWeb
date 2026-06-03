@@ -54,7 +54,8 @@ Nginx Gateway (8081)
   ├→ Categorias Service (3004)
   ├→ Produtos Service (3005)
   ├→ Movimentacoes Service (3006)
-  └→ Relatorios Service (3007)
+  ├→ Relatorios Service (3007)
+  └→ Fornecedores Service (3008)
   
 Persistência:
   ├→ PostgreSQL (Dados transacionais)
@@ -65,6 +66,10 @@ Observabilidade:
   ├→ Grafana (Dashboards)
   └→ Node Exporter (Métricas do SO)
 ```
+
+#### 5. Integrações Externas (Facilidade e UX)
+- **Integração Brasil API**: Busca automática e preenchimento de dados corporativos (Razão Social, Fantasia, Endereço, etc) através do CNPJ no Módulo de Fornecedores.
+- **Busca de CEP Automática**: Preenchimento ágil de endereços para novas unidades cadastradas.
 
 ---
 
@@ -169,6 +174,7 @@ EstoqueRaizWeb/
 │   ├── usuarios-service/     # Gestão de usuários
 │   ├── unidades-service/     # Gestão de unidades
 │   ├── categorias-service/   # Gestão de categorias
+│   ├── fornecedores-service/ # Gestão de fornecedores e integração Brasil API
 │   ├── produtos-service/     # Catálogo de produtos
 │   ├── movimentacoes-service/# Fluxo de movimentações
 │   ├── relatorios-service/   # Curva ABC e estatísticas
@@ -185,11 +191,18 @@ EstoqueRaizWeb/
 │       └── fluxo-negocio.drawio  # Diagrama do fluxo
 ├── web-estoqueraiz/          # Frontend web
 │   ├── src/
+│   │   ├── assets/           # Imagens e recursos estáticos (logos, ícones)
 │   │   ├── components/       # Componentes reutilizáveis
+│   │   ├── data/             # Dados estáticos (ex: menu de módulos, landing page)
+│   │   ├── hooks/            # Custom React hooks (ex: useSelecaoLote)
 │   │   ├── pages/            # Páginas/rotas
 │   │   ├── services/         # Integração com API
-│   │   └── hooks/            # Custom React hooks
-│   ├── cypress/              # Testes E2E
+│   │   └── utils/            # Utilitários (ex: avatar)
+│   ├── cypress/              # Testes automatizados (E2E e UI)
+│   │   ├── e2e/              # Testes End-to-End completos
+│   │   ├── fixtures/         # Mocks e massa de dados padronizada
+│   │   ├── support/          # Comandos e helpers (ex: visitarComSessao)
+│   │   └── ui/               # Testes focados em interface/componentes isolados
 │   └── public/               # Arquivos estáticos
 └── Regras De Negócio.md      # Especificação de regras
 ```

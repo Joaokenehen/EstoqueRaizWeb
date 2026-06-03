@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Menu, X, User, ChevronDown, Settings, LogOut, Package, Bell,
-  AlertTriangle, Clock, Users, DollarSign, ArrowDownRight
+  Menu, X, ChevronDown, Settings, LogOut, Package, Bell,
+  Clock, Users, DollarSign, ArrowDownRight
 } from 'lucide-react';
 import { modulos } from '../data/modulos';
 import { authService } from '../services/authService';
