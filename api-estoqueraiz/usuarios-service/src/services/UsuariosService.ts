@@ -88,6 +88,7 @@ export class UsuariosService {
       status: "pendente",
       cargo: null,
       unidade_id: null,
+      foto_perfil: null,
     });
 
     await publicadorEventos.publicar(

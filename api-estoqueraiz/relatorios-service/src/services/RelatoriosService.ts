@@ -301,6 +301,73 @@ export class RelatoriosService {
       { ttl: 900, namespace: "relatorios" }
     );
   }
+
+  async obterRelatorioFinanceiro(filtros: EstatisticasDTO): Promise<any> {
+    let { unidade_id, data_inicio, data_fim } = filtros;
+
+    if (data_fim && data_fim.length === 10) data_fim += " 23:59:59";
+
+    const cacheKey = `financeiro:${unidade_id || "todas"}:${data_inicio || "sem-inicio"}:${data_fim || "sem-fim"}`;
+
+    return await cacheService.buscarOuExecutar(
+      cacheKey,
+      async () => {
+        let whereClause = "WHERE m.status = 'aprovado'";
+        const replacements: any = {};
+
+        if (unidade_id) {
+          whereClause += " AND (m.unidade_origem_id = :unidade_id OR m.unidade_destino_id = :unidade_id)";
+          replacements.unidade_id = unidade_id;
+        }
+
+        if (data_inicio && data_fim) {
+          whereClause += " AND m.data_movimentacao BETWEEN :data_inicio AND :data_fim";
+          replacements.data_inicio = data_inicio;
+          replacements.data_fim = data_fim;
+        } else if (data_inicio) {
+          whereClause += " AND m.data_movimentacao >= :data_inicio";
+          replacements.data_inicio = data_inicio;
+        } else if (data_fim) {
+          whereClause += " AND m.data_movimentacao <= :data_fim";
+          replacements.data_fim = data_fim;
+        }
+
+        const query = `
+          SELECT 
+            EXTRACT(MONTH FROM m.data_movimentacao) AS mes,
+            EXTRACT(YEAR FROM m.data_movimentacao) AS ano,
+            SUM(CASE WHEN m.tipo = 'ENTRADA' THEN m.quantidade * COALESCE(m.valor_custo, p.preco_custo, 0) ELSE 0 END) AS total_gastos,
+            SUM(CASE WHEN m.tipo = 'SAIDA' THEN m.quantidade * COALESCE(m.valor_venda, p.preco_venda, 0) ELSE 0 END) AS total_faturamento,
+            SUM(CASE WHEN m.tipo = 'SAIDA' THEN m.quantidade * COALESCE(m.valor_custo, p.preco_custo, 0) ELSE 0 END) AS total_custo_saidas
+          FROM movimentacoes m
+          JOIN produtos p ON m.produto_id = p.id
+          ${whereClause}
+          GROUP BY ano, mes
+          ORDER BY ano ASC, mes ASC
+          LIMIT 12
+        `;
+
+        const resultados: any[] = await sequelize.query(query, {
+          replacements,
+          type: QueryTypes.SELECT
+        });
+
+        const balanco_mensal = resultados.map((r: any) => ({
+          mes: String(r.mes).padStart(2, '0'),
+          ano: Number(r.ano),
+          total_gastos: Number(r.total_gastos),
+          total_faturamento: Number(r.total_faturamento),
+          total_custo_saidas: Number(r.total_custo_saidas),
+          lucro_bruto: Number(r.total_faturamento) - Number(r.total_custo_saidas)
+        }));
+
+        logger.info(`Relatório financeiro gerado com ${balanco_mensal.length} meses`);
+
+        return { balanco_mensal };
+      },
+      { ttl: 1800, namespace: "relatorios" } // Cache de 30 minutos
+    );
+  }
 }
 
 export const relatoriosService = new RelatoriosService();

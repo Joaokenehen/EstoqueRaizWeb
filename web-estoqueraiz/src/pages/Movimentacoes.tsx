@@ -10,6 +10,8 @@ import {
   ChevronDown,
   ChevronsUpDown,
   Eye,
+  Filter,
+  X,
 } from 'lucide-react';
 import { LoadingSpinner } from '../components/Feedbacks';
 import Layout from '../components/Layout';
@@ -41,6 +43,7 @@ export const Movimentacoes = () => {
   const [filtro, setFiltro] = useState('');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
+  const [filtroTipo, setFiltroTipo] = useState('todos');
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
@@ -54,19 +57,21 @@ export const Movimentacoes = () => {
 
   const [form, setForm] = useState({
     tipo: 'ENTRADA' as TipoMovimentacao,
-    produto_id: '',
-    quantidade: '',
     documento: '',
     observacao: '',
     unidade_origem_id: '',
     unidade_destino_id: '',
   });
 
+  const [itensMovimentacao, setItensMovimentacao] = useState<{ produto_id: number; quantidade: number }[]>([]);
+  const [produtoAtual, setProdutoAtual] = useState('');
+  const [quantidadeAtual, setQuantidadeAtual] = useState('');
+
   const carregarDados = async () => {
     try {
       setCarregando(true);
       const [dadosMov, dadosProd, dadosUnid, dadosForn, dadosUsr] = await Promise.all([
-        movimentacaoService.listarTodas(),
+        movimentacaoService.listarTodas({ status: 'aprovado' }),
         produtoService.listarTodos(),
         unidadeService.listarTodas(),
         fornecedorService.listarTodos(),
@@ -101,37 +106,73 @@ export const Movimentacoes = () => {
 
   useEffect(() => {
     setPaginaAtual(1);
-  }, [filtro, dataInicio, dataFim, itensPorPagina]);
+  }, [filtro, dataInicio, dataFim, filtroTipo, itensPorPagina]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    setProcessando(true);
-
+  const adicionarItem = () => {
+    if (!produtoAtual || !quantidadeAtual || Number(quantidadeAtual) <= 0) return;
+    
     if (form.tipo === 'SAIDA' || form.tipo === 'TRANSFERENCIA') {
-      const produtoSelecionado = produtos.find(p => p.id === Number(form.produto_id));
-      const qtdDesejada = Number(form.quantidade);
+      const produtoSelecionado = produtos.find(p => p.id === Number(produtoAtual));
+      const qtdDesejada = Number(quantidadeAtual);
+      const qtdJaAdicionada = itensMovimentacao.find(i => i.produto_id === Number(produtoAtual))?.quantidade || 0;
       
-      if (produtoSelecionado && qtdDesejada > (produtoSelecionado.quantidade_estoque || 0)) {
+      if (produtoSelecionado && (qtdDesejada + qtdJaAdicionada) > (produtoSelecionado.quantidade_estoque || 0)) {
         toast.error(`Estoque insuficiente! O produto possui apenas ${produtoSelecionado.quantidade_estoque || 0} un. disponíveis.`);
-        setProcessando(false);
         return;
       }
     }
 
-    const payload = {
-      tipo: form.tipo,
-      produto_id: Number(form.produto_id),
-      quantidade: Number(form.quantidade),
-      documento: form.documento || undefined,
-      observacao: form.observacao || undefined,
-      unidade_origem_id: form.unidade_origem_id ? Number(form.unidade_origem_id) : undefined,
-      unidade_destino_id: form.unidade_destino_id ? Number(form.unidade_destino_id) : undefined,
-    };
+    setItensMovimentacao(prev => {
+      const existente = prev.find(i => i.produto_id === Number(produtoAtual));
+      if (existente) {
+        return prev.map(i => i.produto_id === Number(produtoAtual) ? { ...i, quantidade: i.quantidade + Number(quantidadeAtual) } : i);
+      }
+      return [...prev, { produto_id: Number(produtoAtual), quantidade: Number(quantidadeAtual) }];
+    });
+    
+    setProdutoAtual('');
+    setQuantidadeAtual('');
+  };
+
+  const removerItem = (id: number) => {
+    setItensMovimentacao(prev => prev.filter(i => i.produto_id !== id));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setProcessando(true);
+
+    if (itensMovimentacao.length === 0) {
+      toast.error('Adicione pelo menos um produto à movimentação antes de salvar.');
+      setProcessando(false);
+      return;
+    }
 
     try {
-      await movimentacaoService.registrarMovimentacao(payload);
-      toast.success(`Movimentação de ${form.tipo} registrada com sucesso!`);
+      const promessas = itensMovimentacao.map(item => {
+        const payload = {
+          tipo: form.tipo,
+          produto_id: item.produto_id,
+          quantidade: item.quantidade,
+          documento: form.documento || undefined,
+          observacao: form.observacao || undefined,
+          unidade_origem_id: form.unidade_origem_id ? Number(form.unidade_origem_id) : undefined,
+          unidade_destino_id: form.unidade_destino_id ? Number(form.unidade_destino_id) : undefined,
+        };
+        return movimentacaoService.registrarMovimentacao(payload);
+      });
+
+      await Promise.all(promessas);
+      
+      toast.success(`Movimentação de ${form.tipo} registrada com sucesso para ${itensMovimentacao.length} item(ns)!`);
       setModalAberto(false);
-      setForm({ ...form, quantidade: '', documento: '', observacao: '' });
+      setForm({ ...form, documento: '', observacao: '' });
+      setItensMovimentacao([]);
+      setProdutoAtual('');
+      setQuantidadeAtual('');
+      
+      // Aguarda 1 segundo para o microserviço de produtos processar o evento via Redis
+      await new Promise(resolve => setTimeout(resolve, 1000));
       await carregarDados();
     } catch (error) {
       const mensagemErro =
@@ -191,7 +232,7 @@ export const Movimentacoes = () => {
   const movimentacoesFiltradas = movimentacoes.filter((mov) => {
   const termo = filtro.toLowerCase();
   const docMatches = mov.documento?.toLowerCase().includes(termo) || false;
-  const nomeProduto = mov.Produto?.nome || produtos.find(p => p.id === mov.produto_id)?.nome || '';
+  const nomeProduto = mov.produto?.nome || produtos.find(p => p.id === mov.produto_id)?.nome || '';
   const prodMatches = nomeProduto.toLowerCase().includes(termo);
   const obsMatches = mov.observacao?.toLowerCase().includes(termo) || false;
   
@@ -212,7 +253,9 @@ export const Movimentacoes = () => {
     }
   }
 
-  return matchTexto && matchData;
+  const matchTipo = filtroTipo === 'todos' || mov.tipo === filtroTipo;
+
+  return matchTexto && matchData && matchTipo;
 });
 
   const handleOrdenar = (campo: CampoOrdenacao) => {
@@ -235,7 +278,7 @@ export const Movimentacoes = () => {
     switch (campoOrdenacao) {
       case 'data_movimentacao': valorA = new Date(a.data_movimentacao).getTime(); valorB = new Date(b.data_movimentacao).getTime(); break;
       case 'tipo': valorA = a.tipo; valorB = b.tipo; break;
-      case 'produto': valorA = a.Produto?.nome || produtos.find(p => p.id === a.produto_id)?.nome || ''; valorB = b.Produto?.nome || produtos.find(p => p.id === b.produto_id)?.nome || ''; break;
+      case 'produto': valorA = a.produto?.nome || produtos.find(p => p.id === a.produto_id)?.nome || ''; valorB = b.produto?.nome || produtos.find(p => p.id === b.produto_id)?.nome || ''; break;
       case 'quantidade': valorA = a.quantidade; valorB = b.quantidade; break;
       default: return 0;
     }
@@ -273,6 +316,20 @@ export const Movimentacoes = () => {
           itensPorPagina={itensPorPagina}
           onItensPorPaginaChange={setItensPorPagina}
         >
+          <div className="relative w-full sm:w-48 shrink-0">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <select
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-raiz-verde outline-none text-sm appearance-none bg-white"
+              value={filtroTipo}
+              onChange={(e) => setFiltroTipo(e.target.value)}
+            >
+              <option value="todos">Todas as Operações</option>
+              <option value="ENTRADA">Entradas</option>
+              <option value="SAIDA">Saídas</option>
+              <option value="TRANSFERENCIA">Transferências</option>
+              <option value="AJUSTE">Ajustes</option>
+            </select>
+          </div>
           <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0">
             <input 
               type="date" 
@@ -338,7 +395,7 @@ export const Movimentacoes = () => {
                       <td className="p-4">{renderBadgeTipo(movimentacao.tipo)}</td>
                       <td className="p-4">
                         <p className="font-medium text-gray-900">
-                          {movimentacao.produto?.nome || movimentacao.Produto?.nome || produtos.find(p => p.id === movimentacao.produto_id)?.nome || `Prod #${movimentacao.produto_id}`}
+                          {movimentacao.produto?.nome || produtos.find(p => p.id === movimentacao.produto_id)?.nome || `Prod #${movimentacao.produto_id}`}
                         </p>
                         <p className="text-xs text-gray-500">
                           {movimentacao.unidade_origem_id && `De: ${unidades.find(u => u.id === movimentacao.unidade_origem_id)?.nome || `Unidade #${movimentacao.unidade_origem_id}`}`}
@@ -434,15 +491,17 @@ export const Movimentacoes = () => {
                       name="tipo"
                       value={tipo}
                       checked={form.tipo === tipo}
-                      onChange={(e) =>
+                  onChange={(e) => {
                         setForm({
                           ...form,
                           tipo: e.target.value as TipoMovimentacao,
-                          produto_id: '',
                           unidade_origem_id: '',
                           unidade_destino_id: '',
-                        })
-                      }
+                        });
+                        setItensMovimentacao([]);
+                        setProdutoAtual('');
+                        setQuantidadeAtual('');
+                  }}
                       className="sr-only"
                     />
                     {tipo}
@@ -461,9 +520,11 @@ export const Movimentacoes = () => {
                 <select
                   required
                   value={form.unidade_origem_id}
-                  onChange={(e) =>
-                    setForm({ ...form, unidade_origem_id: e.target.value, produto_id: '' })
-                  }
+                onChange={(e) => {
+                  setForm({ ...form, unidade_origem_id: e.target.value });
+                  setItensMovimentacao([]);
+                  setProdutoAtual('');
+                }}
                   className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde ${
                     isEstoquista ? 'bg-gray-100 text-gray-600' : 'bg-white'
                   }`}
@@ -488,13 +549,16 @@ export const Movimentacoes = () => {
                 <select
                   required
                   value={form.unidade_destino_id}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      unidade_destino_id: e.target.value,
-                      produto_id: form.tipo === 'ENTRADA' ? '' : form.produto_id,
-                    })
+                onChange={(e) => {
+                  setForm({
+                    ...form,
+                    unidade_destino_id: e.target.value,
+                  });
+                  if (form.tipo === 'ENTRADA') {
+                    setItensMovimentacao([]);
+                    setProdutoAtual('');
                   }
+                }}
                   className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde ${
                     isEstoquista && form.tipo === 'ENTRADA'
                       ? 'bg-gray-100 text-gray-600'
@@ -521,12 +585,11 @@ export const Movimentacoes = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Produto (Aprovados) *
+                Produto (Aprovados)
               </label>
               <select
-                required
-                value={form.produto_id}
-                onChange={(e) => setForm({ ...form, produto_id: e.target.value })}
+                value={produtoAtual}
+                onChange={(e) => setProdutoAtual(e.target.value)}
                 className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={
                   (form.tipo === 'ENTRADA' && !form.unidade_destino_id) ||
@@ -539,29 +602,74 @@ export const Movimentacoes = () => {
                     ? 'Selecione uma unidade primeiro...'
                     : 'Selecione o Item...'}
                 </option>
-                {produtosDisponiveis.map((produto) => (
-                  <option key={produto.id} value={produto.id}>
-                    {produto.nome} (Estoque: {produto.quantidade_estoque})
-                  </option>
-                ))}
+                {produtosDisponiveis.map((produto) => {
+                  let estoqueVisivel = produto.quantidade_estoque || 0;
+                  if (form.tipo === 'SAIDA' || form.tipo === 'TRANSFERENCIA') {
+                    const qtdJaAdicionada = itensMovimentacao.find(i => i.produto_id === produto.id)?.quantidade || 0;
+                    estoqueVisivel -= qtdJaAdicionada;
+                  }
+                  return (
+                    <option key={produto.id} value={produto.id}>
+                      {produto.nome} (Estoque: {estoqueVisivel})
+                    </option>
+                  );
+                })}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quantidade *
-              </label>
-              <input
-                required
-                type="number"
-                min="1"
-                data-testid="movimentacoes-input-quantidade"
-                value={form.quantidade}
-                onChange={(e) => setForm({ ...form, quantidade: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde"
-                placeholder="Ex: 50"
-              />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Quantidade
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={quantidadeAtual}
+                  onChange={(e) => setQuantidadeAtual(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      adicionarItem();
+                    }
+                  }}
+                  className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde"
+                  placeholder="Ex: 50"
+                />
+              </div>
+              
+              <button
+                type="button"
+                onClick={adicionarItem}
+                disabled={!produtoAtual || !quantidadeAtual || Number(quantidadeAtual) <= 0}
+                className="bg-raiz-verde text-white p-2 rounded-lg hover:opacity-90 disabled:opacity-50 h-[38px] flex items-center justify-center shrink-0"
+                title="Adicionar à lista"
+              >
+                <Plus size={20} />
+              </button>
             </div>
           </div>
+
+          {itensMovimentacao.length > 0 && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 max-h-40 overflow-y-auto mb-4">
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">Itens Adicionados ({itensMovimentacao.length}):</h4>
+              <ul className="space-y-2">
+                {itensMovimentacao.map(item => {
+                  const p = produtos.find(prod => prod.id === item.produto_id);
+                  return (
+                    <li key={item.produto_id} className="flex items-center justify-between text-sm bg-white p-2 border border-gray-100 rounded-md shadow-sm">
+                      <span className="font-medium text-gray-800">{p?.nome || `Produto #${item.produto_id}`}</span>
+                      <div className="flex items-center gap-4">
+                        <span className="text-gray-600 bg-gray-100 px-2 py-0.5 rounded-md font-semibold">{item.quantidade} un</span>
+                        <button type="button" onClick={() => removerItem(item.produto_id)} className="text-red-500 hover:text-red-700 transition-colors bg-red-50 p-1 rounded hover:bg-red-100" title="Remover item">
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -601,6 +709,7 @@ export const Movimentacoes = () => {
         onClose={() => setMovimentacaoDetalhe(null)} 
         titulo="Detalhes da Movimentação" 
         maxWidth="max-w-lg"
+        closeOnClickOutside={true}
       >
         {movimentacaoDetalhe && (
           (() => {
@@ -612,7 +721,7 @@ export const Movimentacoes = () => {
             <div className="flex justify-between items-start border-b border-gray-100 pb-4">
               <div>
                 <p className="text-sm text-gray-500 font-semibold mb-1">Produto Movimentado</p>
-                <p className="text-lg font-bold text-gray-900">{movimentacaoDetalhe.Produto?.nome || produtos.find(p => p.id === movimentacaoDetalhe.produto_id)?.nome || `Produto #${movimentacaoDetalhe.produto_id}`}</p>
+                <p className="text-lg font-bold text-gray-900">{movimentacaoDetalhe.produto?.nome || produtos.find(p => p.id === movimentacaoDetalhe.produto_id)?.nome || `Produto #${movimentacaoDetalhe.produto_id}`}</p>
               </div>
               <div className="mt-1">
                 {renderBadgeTipo(movimentacaoDetalhe.tipo)}

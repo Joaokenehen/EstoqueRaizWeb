@@ -65,6 +65,19 @@ export interface ResultadoEstatisticas {
   movimentacoes_por_mes: any[];
 }
 
+export interface BalancoMensal {
+  mes: string;
+  ano: number;
+  total_gastos: number;
+  total_faturamento: number;
+  total_custo_saidas: number;
+  lucro_bruto: number;
+}
+
+export interface ResultadoRelatorioFinanceiro {
+  balanco_mensal: BalancoMensal[];
+}
+
 export const relatorioService = {
   gerarCurvaABC: async (filtros: CurvaABCFiltros): Promise<ResultadoCurvaABC> => {
     const params = new URLSearchParams();
@@ -105,6 +118,16 @@ export const relatorioService = {
     if (filtros?.unidade_id) params.append('unidade_id', filtros.unidade_id.toString());
     
     const response = await api.get(`/api/relatorios/estatisticas?${params.toString()}`);
+    return response.data;
+  },
+
+  obterRelatorioFinanceiro: async (filtros?: CurvaABCFiltros): Promise<ResultadoRelatorioFinanceiro> => {
+    const params = new URLSearchParams();
+    if (filtros?.data_inicio) params.append('data_inicio', filtros.data_inicio);
+    if (filtros?.data_fim) params.append('data_fim', filtros.data_fim);
+    if (filtros?.unidade_id) params.append('unidade_id', filtros.unidade_id.toString());
+    
+    const response = await api.get(`/api/relatorios/financeiro?${params.toString()}`);
     return response.data;
   }
 };

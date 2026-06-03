@@ -6,7 +6,7 @@ Backend do Estoque Raiz organizado em microservicos. A stack foi montada para ce
 
 O ambiente e composto por:
 
-- 7 microservicos em Node.js + TypeScript
+- 8 microservicos em Node.js + TypeScript
 - 1 gateway Nginx na porta `8081`
 - PostgreSQL para persistencia
 - Redis para cache e Pub/Sub
@@ -23,6 +23,7 @@ O ambiente e composto por:
 | `produtos-service` | `3005` | `/api/produtos` | Catalogo, upload de imagem, aprovacao e estoque por produto |
 | `movimentacoes-service` | `3006` | `/api/movimentacoes` | Entradas, saidas, ajustes e transferencias |
 | `relatorios-service` | `3007` | `/api/relatorios` | Curva ABC e estatisticas gerais |
+| `ia-service` | `3009` | `/api/ia` | Assistente Virtual com IA Generativa (Google Gemini) |
 
 ## Fluxos de negocio verificados
 
@@ -165,6 +166,7 @@ api-estoqueraiz/
 ├─ produtos-service/
 ├─ movimentacoes-service/
 ├─ relatorios-service/
+├─ ia-service/
 ├─ shared/
 │  ├─ config/
 │  ├─ eventos/
@@ -186,6 +188,7 @@ As variaveis abaixo sao usadas pela stack. As mais importantes para iniciar o am
 | --- | --- |
 | `DATABASE_URL` | String de conexao do PostgreSQL |
 | `JWT_SECRET` | Segredo para emissao e validacao de JWT |
+| `GEMINI_API_KEY` | Chave de API do Google Gemini para o Assistente Virtual |
 | `REDIS_HOST` | Host do Redis |
 | `REDIS_PORT` | Porta do Redis |
 | `EMAIL_SERVICE` | Provedor SMTP do `usuarios-service` |
@@ -199,6 +202,7 @@ As variaveis abaixo sao usadas pela stack. As mais importantes para iniciar o am
 | `CATEGORIAS_SERVICE_PORT` | Override opcional da porta externa do categorias |
 | `MOVIMENTACOES_SERVICE_PORT` | Override opcional da porta externa do movimentacoes |
 | `RELATORIOS_SERVICE_PORT` | Override opcional da porta externa do relatorios |
+| `IA_SERVICE_PORT` | Override opcional da porta externa do ia-service |
 
 Exemplo minimo de `.env` para o ambiente Docker Compose:
 
@@ -213,6 +217,7 @@ EMAIL_SERVICE=gmail
 EMAIL_NOME=Estoque Raiz
 EMAIL_USER=seu-email@dominio.com
 EMAIL_PASS=sua-app-password
+GEMINI_API_KEY=sua-chave-api-gemini
 ```
 
 ## Como rodar com Docker Compose

@@ -45,19 +45,19 @@ export const Cadastro = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-raiz-bege via-white to-raiz-bege font-sans p-4">
-      <div className="w-full max-w-[400px] p-8 flex flex-col bg-white rounded-xl shadow-lg border-t-8 border-raiz-marrom">
+    <div className="er-auth-shell flex items-center justify-center p-4">
+      <div className="er-auth-card flex flex-col border-t-4 border-raiz-verde">
         
         <header className="text-center mb-6">
           <img 
             src={logoEstoque} 
             alt="Estoque Raiz" 
-            className="w-48 md:w-56 mx-auto mb-4 drop-shadow-md cursor-pointer hover:scale-105 transition-transform duration-200"
+            className="mx-auto mb-4 w-48 cursor-pointer drop-shadow-md transition-transform duration-200 hover:scale-105 md:w-56"
             onClick={() => navigate('/')}
             title="Voltar para a página inicial"
             data-testid="logo-estoque"
           />
-          <h1 className="text-2xl font-bold text-raiz-marrom tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight text-raiz-marrom">
             Criar Nova Conta
           </h1>
           <div className="h-1 w-12 bg-raiz-verde mx-auto mt-2 rounded-full"></div>
@@ -72,7 +72,7 @@ export const Cadastro = () => {
             <input
               type="text"
               placeholder="Ex: João da Silva"
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde outline-none transition-all"
+              className="er-input px-4 py-3"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               maxLength={100} 
@@ -89,7 +89,7 @@ export const Cadastro = () => {
             <input
               type="email"
               placeholder="seu@email.com"
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde outline-none transition-all"
+              className="er-input px-4 py-3"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               maxLength={100}
@@ -105,7 +105,7 @@ export const Cadastro = () => {
             <input
               type="text"
               placeholder="00000000000"
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde outline-none transition-all"
+              className="er-input px-4 py-3"
               value={cpf}
               onChange={(e) => setCpf(e.target.value.replace(/\D/g, ''))} 
               maxLength={11} 
@@ -122,7 +122,7 @@ export const Cadastro = () => {
               <input
                 type={mostrarSenha ? "text" : "password"}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:ring-2 focus:ring-raiz-verde outline-none transition-all"
+                className="er-input px-4 py-3 pr-12"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 maxLength={32}
@@ -148,10 +148,10 @@ export const Cadastro = () => {
               <input
                 type={mostrarConfirmarSenha ? "text" : "password"}
                 placeholder="••••••••"
-                className={`w-full px-4 py-3 pr-12 rounded-lg border outline-none transition-all ${
+                className={`w-full rounded-lg border px-4 py-3 pr-12 outline-none transition-all ${
                   confirmarSenha && senha !== confirmarSenha 
-                  ? 'border-red-500 focus:ring-red-500' 
-                  : 'border-gray-200 focus:ring-raiz-verde'
+                  ? 'border-red-500 focus:ring-4 focus:ring-red-500/10' 
+                  : 'border-raiz-borda focus:border-raiz-verde focus:ring-4 focus:ring-raiz-verde/10'
                 }`}
                 value={confirmarSenha}
                 onChange={(e) => setConfirmarSenha(e.target.value)}
@@ -178,7 +178,7 @@ export const Cadastro = () => {
 
           <button
             type="submit"
-            className="w-full bg-raiz-verde hover:bg-opacity-90 text-white font-bold py-3 rounded-lg shadow-md transform active:scale-[0.98] transition-all duration-150 mt-4"
+            className="mt-4 w-full rounded-lg bg-raiz-verde py-3 font-bold text-white shadow-raiz-button transition-all duration-150 hover:bg-raiz-verde-escuro active:scale-[0.98]"
             data-testid="btn-finalizar-cadastro"
           >
             Finalizar Cadastro

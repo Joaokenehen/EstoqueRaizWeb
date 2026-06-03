@@ -12,6 +12,7 @@ import MovimentacoesModel from "../models/MovimentacoesModel";
 import {
   CriarMovimentacaoDTO,
   FiltroMovimentacoesDTO,
+  AprovarMovimentacaoDTO,
 } from "../dto/MovimentacaoDTO";
 import { sequelize } from "../../../shared/config/database";
 import { Transaction, Op, QueryTypes } from "sequelize";
@@ -29,6 +30,7 @@ export class MovimentacoesService {
 
         if (produto_id) where.produto_id = produto_id;
         if (tipo) where.tipo = tipo;
+        if (filtros.status) where.status = filtros.status;
 
         if (unidade_id) {
           where[Op.or] = [
@@ -112,6 +114,9 @@ export class MovimentacoesService {
       usuario_id,
       unidade_origem_id,
       unidade_destino_id,
+      status,
+      valor_custo,
+      valor_venda,
     } = dados;
 
     if (!tipo || !quantidade || !produto_id || !usuario_id) {
@@ -187,6 +192,9 @@ export class MovimentacoesService {
             usuario_id,
             unidade_origem_id,
             unidade_destino_id,
+            status: status || "aprovado",
+            valor_custo,
+            valor_venda,
             data_movimentacao: new Date(),
           },
           { transaction }
@@ -214,6 +222,9 @@ export class MovimentacoesService {
         usuario_id,
         unidade_origem_id: dados.unidade_origem_id,
         unidade_destino_id,
+        status: status || "aprovado",
+        valor_custo,
+        valor_venda,
         data_movimentacao: new Date(),
       });
 
@@ -230,6 +241,9 @@ export class MovimentacoesService {
         quantidade: novaMovimentacao.quantidade,
         unidade_origem_id: novaMovimentacao.unidade_origem_id,
         unidade_destino_id: novaMovimentacao.unidade_destino_id,
+        status: novaMovimentacao.status,
+        valor_custo: novaMovimentacao.valor_custo,
+        valor_venda: novaMovimentacao.valor_venda,
       },
       "movimentacoes-service"
     );
@@ -238,6 +252,51 @@ export class MovimentacoesService {
     await cacheService.invalidarPorPadrao("*", "produtos");
 
     return novaMovimentacao.toJSON();
+  }
+
+  async aprovar(id: number, precos: AprovarMovimentacaoDTO): Promise<any> {
+    const movimentacao = await MovimentacoesModel.findByPk(id);
+    if (!movimentacao) {
+      throw new ErroNaoEncontrado("Movimentação não encontrada");
+    }
+
+    if (movimentacao.status !== "pendente") {
+      throw new ErroValidacao("Apenas movimentações pendentes podem ser aprovadas");
+    }
+
+    movimentacao.status = "aprovado";
+    movimentacao.valor_custo = precos.valor_custo;
+    movimentacao.valor_venda = precos.valor_venda;
+    await movimentacao.save();
+
+    // Publica o evento para que o ProdutosService saiba que agora está aprovado e some no estoque, além de atualizar o preço no catálogo.
+    await publicadorEventos.publicar(
+      EventosTipo.MOVIMENTACAO_CRIADA,
+      movimentacao.toJSON(),
+      "movimentacoes-service"
+    );
+
+    await cacheService.invalidarPorPadrao("*", "movimentacoes");
+    await cacheService.invalidarPorPadrao("*", "produtos");
+
+    return movimentacao.toJSON();
+  }
+
+  async rejeitar(id: number): Promise<any> {
+    const movimentacao = await MovimentacoesModel.findByPk(id);
+    if (!movimentacao) {
+      throw new ErroNaoEncontrado("Movimentação não encontrada");
+    }
+
+    if (movimentacao.status !== "pendente") {
+      throw new ErroValidacao("Apenas movimentações pendentes podem ser rejeitadas");
+    }
+
+    movimentacao.status = "rejeitado";
+    await movimentacao.save();
+
+    await cacheService.invalidarPorPadrao("*", "movimentacoes");
+    return movimentacao.toJSON();
   }
 
   async deletar(id: number): Promise<void> {

@@ -11,6 +11,7 @@ class UsuariosModel extends Model {
   public status!: "pendente" | "aprovado" | "rejeitado";
   public cargo!: "gerente" | "estoquista" | "financeiro" | null;
   public unidade_id!: number | null;
+  public foto_perfil!: string | null;
   public criado_em!: Date;
 
   public async verificarSenha(senha: string): Promise<boolean> {
@@ -60,6 +61,10 @@ UsuariosModel.init(
     },
     unidade_id: {
       type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    foto_perfil: {
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     criado_em: {

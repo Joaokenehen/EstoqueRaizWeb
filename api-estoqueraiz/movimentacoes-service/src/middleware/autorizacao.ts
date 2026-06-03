@@ -57,6 +57,17 @@ export const apenasGerente = (
   next();
 };
 
+export const apenasFinanceiroOuGerente = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (req.usuario?.cargo !== "gerente" && req.usuario?.cargo !== "financeiro") {
+    throw new ErroProibido("Acesso negado: Requer cargo de financeiro ou gerente");
+  }
+  next();
+};
+
 export const verificarAcessoUnidade = (
   req: Request,
   res: Response,

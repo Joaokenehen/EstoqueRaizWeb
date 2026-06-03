@@ -1,13 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import { relatorioService, type ResultadoCurvaABC, type ResultadoEstatisticas } from '../services/relatorioService';
+import { relatorioService, type ResultadoCurvaABC, type ResultadoEstatisticas, type ResultadoRelatorioFinanceiro } from '../services/relatorioService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
-import { TrendingUp, Filter, FileSpreadsheet, PlusCircle } from 'lucide-react';
+import { TrendingUp, Filter, FileSpreadsheet, PlusCircle, DollarSign } from 'lucide-react';
 import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
 import Layout from '../components/Layout';
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export const Relatorios = () => {
   const [dados, setDados] = useState<ResultadoCurvaABC | null>(null);
   const [estatisticas, setEstatisticas] = useState<ResultadoEstatisticas | null>(null);
+  const [financeiro, setFinanceiro] = useState<ResultadoRelatorioFinanceiro | null>(null);
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [limiteVisivel, setLimiteVisivel] = useState(10);
@@ -34,6 +36,7 @@ export const Relatorios = () => {
     if (e) e.preventDefault();
     setCarregando(true);
     setDados(null);
+    setFinanceiro(null);
     setErro('');
     setLimiteVisivel(10);
     setLimiteVisivelTendencia(6);
@@ -46,13 +49,15 @@ export const Relatorios = () => {
         limite: 9999,
       };
 
-      const [resultadoCurva, resultadoEstatisticas] = await Promise.all([
+      const [resultadoCurva, resultadoEstatisticas, resultadoFinanceiro] = await Promise.all([
         relatorioService.gerarCurvaABC(filtros),
-        relatorioService.obterEstatisticasGerais(filtros)
+        relatorioService.obterEstatisticasGerais(filtros),
+        relatorioService.obterRelatorioFinanceiro(filtros)
       ]);
 
       setDados(resultadoCurva);
       setEstatisticas(resultadoEstatisticas);
+      setFinanceiro(resultadoFinanceiro);
     } catch (error) {
       setErro('Não foi possível gerar o relatório. Tente novamente.');
       console.error(error);
@@ -106,6 +111,20 @@ export const Relatorios = () => {
     // Ordena de forma decrescente: meses mais recentes no topo
     return Object.values(agregado).sort((a: any, b: any) => b.chave.localeCompare(a.chave));
   }, [estatisticas, dados]);
+
+  const dadosGraficoFinanceiro = useMemo(() => {
+    if (!financeiro?.balanco_mensal) return [];
+    
+    return financeiro.balanco_mensal.map(item => {
+      const data = new Date(item.ano, Number(item.mes) - 1);
+      return {
+        ...item,
+        mes_formatado: data.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }),
+        lucro_bruto_positivo: item.lucro_bruto > 0 ? item.lucro_bruto : 0,
+        lucro_bruto_negativo: item.lucro_bruto < 0 ? item.lucro_bruto : 0
+      };
+    });
+  }, [financeiro]);
 
   const insights = useMemo(() => {
     if (!dados || !estatisticas) return [];
@@ -187,6 +206,32 @@ export const Relatorios = () => {
 
         {erro && (
           <MensagemErro mensagem={erro} />
+        )}
+
+        {!carregando && financeiro && financeiro.balanco_mensal.length > 0 && (
+          <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <DollarSign className="text-raiz-verde" size={20} /> Balanço Financeiro
+            </h2>
+            
+            <div className="h-[400px] w-full mt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart
+                  data={dadosGraficoFinanceiro}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis dataKey="mes_formatado" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} dy={10} />
+                  <YAxis yAxisId="left" tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+                  <Tooltip formatter={(value: number) => formatarMoeda(value)} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                  <Bar yAxisId="left" dataKey="total_gastos" name="Gastos (Entradas)" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                  <Bar yAxisId="left" dataKey="total_faturamento" name="Faturamento Bruto" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                  <Line yAxisId="left" type="monotone" dataKey="lucro_bruto" name="Lucro Bruto" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
         )}
 
         {!carregando && estatisticas && (

@@ -5,7 +5,7 @@ import { unidadeService, type Unidade } from '../services/unidadeService';
 import { fornecedorService, type Fornecedor } from '../services/fornecedorService';
 import { api } from '../services/api';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { Plus, X, Image as ImageIcon, Filter, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { Plus, X, Image as ImageIcon, Filter, ChevronUp, ChevronDown, ChevronsUpDown, AlertTriangle, Clock, ArrowDownRight, Map } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
 import { LoadingSpinner } from '../components/Feedbacks';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
@@ -17,6 +17,7 @@ import { Paginacao } from '../components/Paginacao';
 import toast from 'react-hot-toast';
 
 type CampoOrdenacaoProdutos = 'nome' | 'quantidade_estoque' | 'preco_venda' | 'statusProduto' | null;
+type FiltroAlerta = 'todos' | 'vencidos' | 'vencendo' | 'estoque_baixo';
 
 export const Produtos = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -41,6 +42,9 @@ export const Produtos = () => {
   const [produtoZoom, setProdutoZoom] = useState<Produto | null>(null);
   const [campoOrdenacao, setCampoOrdenacao] = useState<CampoOrdenacaoProdutos>('nome');
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<'asc' | 'desc'>('asc');
+  const [semValidade, setSemValidade] = useState(false);
+  const [filtroAlerta, setFiltroAlerta] = useState<FiltroAlerta>('todos');
+  const [mapaEndereco, setMapaEndereco] = useState<string | null>(null);
   const { 
     selecionados, 
     alternarSelecao, 
@@ -78,12 +82,42 @@ export const Produtos = () => {
   useEffect(() => {
     setPaginaAtual(1);
     limparSelecao();
-  }, [buscaTexto, statusFiltro, itensPorPagina, limparSelecao]);
+  }, [buscaTexto, statusFiltro, itensPorPagina, limparSelecao, filtroAlerta]);
+
+  const abrirMapa = (unidade_id: number | string) => {
+    const unidade = unidades.find(u => u.id === Number(unidade_id));
+    if (!unidade) {
+      toast.error('Endereço da unidade não encontrado.');
+      return;
+    }
+    const endereco = `${unidade.rua}, ${unidade.numero} - ${unidade.bairro}, ${unidade.cidade} - ${unidade.estado}, ${unidade.cep}`;
+    setMapaEndereco(endereco);
+  };
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  
+  const trintaDias = new Date(hoje);
+  trintaDias.setDate(hoje.getDate() + 30);
+
+  const produtosVencidos = produtos.filter(p => p.data_validade && new Date(p.data_validade) < hoje);
+  const produtosVencendo = produtos.filter(p => p.data_validade && new Date(p.data_validade) >= hoje && new Date(p.data_validade) <= trintaDias);
+  const produtosEstoqueBaixo = produtos.filter(p => p.quantidade_estoque <= (p.quantidade_minima || 0));
 
   const produtosFiltrados = produtos.filter(p => {
     const matchesNome = p.nome?.toLowerCase().includes(buscaTexto.toLowerCase());
     const matchesStatus = statusFiltro === 'todos' || p.statusProduto === statusFiltro;
-    return matchesNome && matchesStatus;
+
+    let matchesAlerta = true;
+    if (filtroAlerta === 'vencidos') {
+      matchesAlerta = p.data_validade ? new Date(p.data_validade) < hoje : false;
+    } else if (filtroAlerta === 'vencendo') {
+      matchesAlerta = p.data_validade ? new Date(p.data_validade) >= hoje && new Date(p.data_validade) <= trintaDias : false;
+    } else if (filtroAlerta === 'estoque_baixo') {
+      matchesAlerta = p.quantidade_estoque <= (p.quantidade_minima || 0);
+    }
+
+    return matchesNome && matchesStatus && matchesAlerta;
   });
 
   const handleOrdenar = (campo: CampoOrdenacaoProdutos) => {
@@ -123,8 +157,10 @@ export const Produtos = () => {
     setProcessandoAcao(true);
     const formData = new FormData(e.target as HTMLFormElement);
 
-    const dataValidadeStr = formData.get('data_validade') as string;
-    if (dataValidadeStr) {
+    if (semValidade || !formData.get('data_validade')) {
+      formData.delete('data_validade');
+    } else {
+      const dataValidadeStr = formData.get('data_validade') as string;
       const dataValidade = new Date(dataValidadeStr + 'T00:00:00');
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -246,6 +282,7 @@ export const Produtos = () => {
   const abrirModal = (produto?: Produto) => {
     if (produto) {
       setProdutoAtivo(produto);
+      setSemValidade(!produto.data_validade);
       if (produto.imagem_url) {
         setImagemPreview(`${api.defaults.baseURL}${produto.imagem_url}`);
       } else {
@@ -253,6 +290,7 @@ export const Produtos = () => {
       }
     } else {
       setProdutoAtivo(null);
+      setSemValidade(false);
       setImagemPreview(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -263,23 +301,73 @@ export const Produtos = () => {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto">
+      <div className="er-page">
         
-        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <header className="er-page-header">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Catálogo de Produtos</h1>
-            <p className="text-gray-500 mt-2">Gestão centralizada de itens, preços e aprovações.</p>
+            <h1 className="er-page-title">Catálogo de Produtos</h1>
+            <p className="er-page-subtitle">Gestão centralizada de itens, preços e aprovações.</p>
           </div>
 
           {podeCriar && (
             <button 
           onClick={() => abrirModal()}
-              className="flex items-center gap-2 bg-raiz-verde text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all shadow-md"
+              className="er-primary-button"
             >
               <Plus size={20} /> Novo Produto
             </button>
           )}
         </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <button
+            onClick={() => setFiltroAlerta(filtroAlerta === 'vencidos' ? 'todos' : 'vencidos')}
+            className={`p-4 rounded-xl border flex items-center justify-between transition-all ${filtroAlerta === 'vencidos' ? 'bg-red-100 border-red-300 ring-2 ring-red-500' : 'bg-white border-gray-200 hover:border-red-300 hover:shadow-sm'}`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${filtroAlerta === 'vencidos' ? 'bg-red-200 text-red-700' : 'bg-red-50 text-red-600'}`}>
+                 <AlertTriangle size={20} />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-gray-900">Vencidos</p>
+                <p className="text-xs text-gray-500">Prazo expirado</p>
+              </div>
+            </div>
+            <span className="text-2xl font-bold text-red-600">{produtosVencidos.length}</span>
+          </button>
+
+          <button
+            onClick={() => setFiltroAlerta(filtroAlerta === 'vencendo' ? 'todos' : 'vencendo')}
+            className={`p-4 rounded-xl border flex items-center justify-between transition-all ${filtroAlerta === 'vencendo' ? 'bg-amber-100 border-amber-300 ring-2 ring-amber-500' : 'bg-white border-gray-200 hover:border-amber-300 hover:shadow-sm'}`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${filtroAlerta === 'vencendo' ? 'bg-amber-200 text-amber-700' : 'bg-amber-50 text-amber-600'}`}>
+                 <Clock size={20} />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-gray-900">Vencendo</p>
+                <p className="text-xs text-gray-500">Próximos 30 dias</p>
+              </div>
+            </div>
+            <span className="text-2xl font-bold text-amber-600">{produtosVencendo.length}</span>
+          </button>
+
+          <button
+            onClick={() => setFiltroAlerta(filtroAlerta === 'estoque_baixo' ? 'todos' : 'estoque_baixo')}
+            className={`p-4 rounded-xl border flex items-center justify-between transition-all ${filtroAlerta === 'estoque_baixo' ? 'bg-orange-100 border-orange-300 ring-2 ring-orange-500' : 'bg-white border-gray-200 hover:border-orange-300 hover:shadow-sm'}`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${filtroAlerta === 'estoque_baixo' ? 'bg-orange-200 text-orange-700' : 'bg-orange-50 text-orange-600'}`}>
+                 <ArrowDownRight size={20} />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-gray-900">Estoque Baixo</p>
+                <p className="text-xs text-gray-500">Abaixo do mínimo</p>
+              </div>
+            </div>
+            <span className="text-2xl font-bold text-orange-600">{produtosEstoqueBaixo.length}</span>
+          </button>
+        </div>
 
         <BarraFiltros 
           buscaTexto={buscaTexto} 
@@ -315,11 +403,11 @@ export const Produtos = () => {
         {carregando ? (
           <LoadingSpinner />
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="er-table-shell">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="er-table">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
+                  <tr className="er-table-head">
                     {isGerente && (
                       <th className="p-4 w-12 text-center">
                         <input 
@@ -364,7 +452,7 @@ export const Produtos = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {produtosPaginados.map((prod) => (
-                    <tr key={prod.id} className={`transition-colors ${selecionados.includes(prod.id) ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
+                    <tr key={prod.id} className={`transition-colors ${selecionados.includes(prod.id) ? 'bg-red-50' : 'er-table-row'}`}>
                       {isGerente && (
                         <td className="p-4 text-center">
                           <input 
@@ -418,13 +506,27 @@ export const Produtos = () => {
                       <td className="p-4"><StatusBadge status={prod.statusProduto} /></td>
                       
                       <td className="p-4 text-gray-700 font-semibold">
-                        {prod.preco_venda ? `R$ ${Number(prod.preco_venda).toFixed(2)}` : '---'}
+                        {prod.statusProduto === 'aprovado' ? (
+                          `R$ ${Number(prod.preco_venda || 0).toFixed(2)}`
+                        ) : prod.statusProduto === 'pendente' ? (
+                          <span className="text-xs italic text-blue-600 font-medium">Aguardando</span>
+                        ) : (
+                          <span className="text-xs italic text-red-700 font-medium">N/A</span>
+                        )}
                       </td>
                       
                       {/* COLUNA AÇÕES REATORADA COM OS COMPONENTES */}
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           
+                          <button 
+                            onClick={() => abrirMapa(prod.unidade_id)}
+                            className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors inline-flex"
+                            title="Ver no Mapa"
+                          >
+                            <Map size={18} />
+                          </button>
+
                           {(isGerente || isEstoquista) && (
                             <BotaoEditar 
                               onClick={() => { setProdutoAtivo(prod); setModalAberto(true); }} 
@@ -496,8 +598,14 @@ export const Produtos = () => {
                   <input name="lote" type="text" data-testid="produtos-input-lote" defaultValue={produtoAtivo?.lote} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" placeholder="Ex: LOTE-2023" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Data de Validade</label>
-                  <input name="data_validade" type="date" data-testid="produtos-input-validade" defaultValue={produtoAtivo?.data_validade ? new Date(produtoAtivo.data_validade).toISOString().split('T')[0] : ''} min={new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-sm font-medium text-gray-700">Data de Validade</label>
+                    <label className="flex items-center gap-1 text-xs text-gray-500 cursor-pointer hover:text-gray-800 transition-colors">
+                      <input type="checkbox" checked={semValidade} onChange={(e) => setSemValidade(e.target.checked)} className="w-3 h-3 rounded border-gray-300 text-raiz-verde focus:ring-raiz-verde cursor-pointer" />
+                      Não possui
+                    </label>
+                  </div>
+                  <input name="data_validade" type="date" disabled={semValidade} data-testid="produtos-input-validade" defaultValue={produtoAtivo?.data_validade ? new Date(produtoAtivo.data_validade).toISOString().split('T')[0] : ''} min={new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]} className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde transition-all ${semValidade ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-70' : ''}`} />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -607,6 +715,28 @@ export const Produtos = () => {
           </div>
         </div>
       )}
+
+      <Modal 
+        isOpen={!!mapaEndereco} 
+        onClose={() => setMapaEndereco(null)} 
+        titulo="Localização do Produto"
+        maxWidth="max-w-4xl"
+        closeOnClickOutside={true}
+      >
+        <div className="p-2 h-[60vh] min-h-[400px] w-full bg-gray-50 rounded-b-xl">
+          {mapaEndereco && (
+            <iframe
+              width="100%"
+              height="100%"
+              style={{ border: 0, borderRadius: '0.5rem' }}
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(mapaEndereco)}&t=m&z=15&output=embed&iwloc=near`}
+            ></iframe>
+          )}
+        </div>
+      </Modal>
     </Layout>
   );
 };

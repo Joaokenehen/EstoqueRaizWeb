@@ -7,6 +7,9 @@ export interface CriarMovimentacaoDTO {
   usuario_id?: number;
   unidade_origem_id?: number;
   unidade_destino_id?: number;
+  status?: "pendente" | "aprovado" | "rejeitado";
+  valor_custo?: number;
+  valor_venda?: number;
 }
 
 export interface FiltroMovimentacoesDTO {
@@ -15,4 +18,10 @@ export interface FiltroMovimentacoesDTO {
   tipo?: "ENTRADA" | "SAIDA" | "TRANSFERENCIA" | "AJUSTE";
   data_inicio?: string;
   data_fim?: string;
+  status?: "pendente" | "aprovado" | "rejeitado";
+}
+
+export interface AprovarMovimentacaoDTO {
+  valor_custo: number;
+  valor_venda: number;
 }

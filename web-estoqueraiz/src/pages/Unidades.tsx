@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { unidadeService, type Unidade } from '../services/unidadeService';
 import { BarraFiltros } from '../components/BarraFiltro';
-import { Plus, MapPin } from 'lucide-react';
+import { Plus, MapPin, Map } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
 import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
 import { BarraAcoesLote } from '../components/BarraAcoesLote';
@@ -26,6 +26,7 @@ export const Unidades = () => {
   const [modalAberto, setModalAberto] = useState(false);
   const [unidadeEditando, setUnidadeEditando] = useState<Unidade | null>(null);
   const [processandoAcao, setProcessandoAcao] = useState(false);
+  const [mapaEndereco, setMapaEndereco] = useState<string | null>(null);
   const { 
     selecionados, 
     alternarSelecao, 
@@ -86,6 +87,11 @@ export const Unidades = () => {
         toast.error('CEP não encontrado.');
       }
     }
+  };
+
+  const abrirMapa = (unidade: Unidade) => {
+    const endereco = `${unidade.rua}, ${unidade.numero} - ${unidade.bairro}, ${unidade.cidade} - ${unidade.estado}, ${unidade.cep}`;
+    setMapaEndereco(endereco);
   };
 
   const abrirModal = (unidade?: Unidade) => {
@@ -281,6 +287,14 @@ export const Unidades = () => {
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           
+                          <button 
+                            onClick={() => abrirMapa(unidade)}
+                            className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors inline-flex"
+                            title="Ver no Mapa"
+                          >
+                            <Map size={18} />
+                          </button>
+
                           <BotaoEditar 
                             onClick={() => abrirModal(unidade)}
                             title="Editar Unidade"
@@ -370,6 +384,28 @@ export const Unidades = () => {
                 </div>
               </div>
         </FormularioBase>
+      </Modal>
+
+      <Modal 
+        isOpen={!!mapaEndereco} 
+        onClose={() => setMapaEndereco(null)} 
+        titulo="Localização da Unidade"
+        maxWidth="max-w-4xl"
+        closeOnClickOutside={true}
+      >
+        <div className="p-2 h-[60vh] min-h-[400px] w-full bg-gray-50 rounded-b-xl">
+          {mapaEndereco && (
+            <iframe
+              width="100%"
+              height="100%"
+              style={{ border: 0, borderRadius: '0.5rem' }}
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(mapaEndereco)}&t=m&z=15&output=embed&iwloc=near`}
+            ></iframe>
+          )}
+        </div>
       </Modal>
     </Layout>
   );

@@ -88,7 +88,7 @@ export const modulos: ModuloProps[] = [
   },
    {
     nome: 'Fornecedores',
-    descricao: 'Gestão de fornecedores, parceiros de negócios e dados de faturamento.',
+    descricao: 'Gestão de fornecedores e parceiros de negócios',
     rota: '/fornecedores',
     icon: Truck,
     corFundo: 'bg-emerald-100',

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
-import { User, X, Check, XCircle, Edit2 } from 'lucide-react';
+import { User, X, Check, XCircle, Edit2, Camera } from 'lucide-react';
 import { usuarioService } from '../services/usuarioService';
+import { getIniciais, getCorAvatar } from '../utils/avatar';
+import toast from 'react-hot-toast';
+import { RecorteAvatar } from './RecorteAvatar';
 
 interface ModalPerfilProps {
   isOpen: boolean;
@@ -14,12 +17,14 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
   const [loadingConfig, setLoadingConfig] = useState(false);
   const [editForm, setEditForm] = useState({ nome: '' });
   const [mensagemConfig, setMensagemConfig] = useState({ texto: '', tipo: '' });
+  const [imagemParaRecortar, setImagemParaRecortar] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setEditForm({ nome: usuario?.nome || '' });
       setIsEditing(false);
       setMensagemConfig({ texto: '', tipo: '' });
+      setImagemParaRecortar(null);
     }
   }, [isOpen, usuario]);
 
@@ -71,9 +76,49 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
     }
   };
 
+  const handleAlterarFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const arquivo = e.target.files?.[0];
+    if (arquivo) {
+      if (arquivo.size > 5 * 1024 * 1024) {
+        toast.error('A imagem deve ter no máximo 5MB.');
+        e.target.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        setImagemParaRecortar(reader.result as string);
+      };
+      reader.readAsDataURL(arquivo);
+      e.target.value = ''; // Permite selecionar o mesmo arquivo novamente se cancelar
+    }
+  };
+
+  const salvarNovaFoto = async (base64Cortado: string) => {
+    try {
+      setLoadingConfig(true);
+      // Chama a API para salvar a foto no banco de dados
+      await usuarioService.atualizar(usuario.id, { foto_perfil: base64Cortado });
+      
+      const usuarioAtualizado = { ...usuario, foto_perfil: base64Cortado };
+      onAtualizarUsuario(usuarioAtualizado);
+      toast.success('Foto de perfil atualizada com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao salvar a foto de perfil.');
+    } finally {
+      setLoadingConfig(false);
+      setImagemParaRecortar(null);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-50 duration-300 ease-out">
+    <div 
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity"
+      onClick={!isEditing ? onClose : undefined}
+    >
+      <div 
+        className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-50 duration-300 ease-out"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         <div className="bg-raiz-marrom p-6 flex justify-between items-center text-white relative">
           <div className="flex items-center space-x-3">
@@ -93,6 +138,22 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
         </div>
 
         <div className="p-6 space-y-5">
+          
+          <div className="flex flex-col items-center mb-2 pt-2">
+            <div className="relative group">
+              {usuario?.foto_perfil ? (
+                <img src={usuario.foto_perfil} alt="Perfil" className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg" />
+              ) : (
+                <div className={`w-24 h-24 flex items-center justify-center rounded-full border-4 border-white shadow-lg font-bold text-3xl ${getCorAvatar(usuario?.nome)}`}>
+                  {getIniciais(usuario?.nome)}
+                </div>
+              )}
+              <label className="absolute bottom-0 right-0 bg-raiz-verde text-white p-2 rounded-full shadow-md cursor-pointer hover:bg-green-700 transition-colors" title="Alterar foto">
+                <Camera size={16} />
+                <input type="file" accept="image/*" className="hidden" onChange={handleAlterarFoto} />
+              </label>
+            </div>
+          </div>
           
           {mensagemConfig.texto && (
             <div className={`p-3 rounded-lg text-sm font-semibold flex items-center space-x-2 ${mensagemConfig.tipo === 'sucesso' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -186,6 +247,14 @@ export const ModalPerfil = ({ isOpen, onClose, usuario, onAtualizarUsuario }: Mo
 
         </div>
       </div>
+
+      {imagemParaRecortar && (
+        <RecorteAvatar
+          imagemOriginal={imagemParaRecortar}
+          aoSalvar={salvarNovaFoto}
+          aoCancelar={() => setImagemParaRecortar(null)}
+        />
+      )}
     </div>
   );
 };

@@ -15,6 +15,7 @@ services:
       - produtos-service
       - movimentacoes-service
       - relatorios-service
+      - ia-service
     networks:
       - microservices-network
     restart: unless-stopped
@@ -336,6 +337,34 @@ services:
         reservations:
           cpus: "0.25"
           memory: 256M
+
+  ia-service:
+    build:
+      context: .
+      dockerfile: ./ia-service/Dockerfile
+    container_name: ia-service
+    ports:
+      - "${IA_SERVICE_PORT:-3009}:3009"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3009
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3009/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   # ==================== OBSERVABILIDADE ====================
 
