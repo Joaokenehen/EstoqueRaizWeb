@@ -1,10 +1,28 @@
 import { useState, useEffect, useMemo } from 'react';
 import { relatorioService, type ResultadoCurvaABC, type ResultadoEstatisticas, type ResultadoRelatorioFinanceiro } from '../services/relatorioService';
 import { unidadeService, type Unidade } from '../services/unidadeService';
-import { TrendingUp, Filter, FileSpreadsheet, PlusCircle, DollarSign } from 'lucide-react';
+import { TrendingUp, Filter, FileSpreadsheet, PlusCircle, DollarSign, Download } from 'lucide-react';
 import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
 import Layout from '../components/Layout';
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ComposedChart, BarChart, LineChart, PieChart, Pie, Cell, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import logoEstoque from '../assets/LogoEstoqueRaiz.png';
+
+type TipoGrafico = 'composed' | 'bar' | 'line' | 'pie';
+const CORES_PIE = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+
+// Utilitário para converter a imagem da logo para Base64 (Requisito do jsPDF)
+const getBase64ImageFromUrl = async (imageUrl: string): Promise<string> => {
+  const res = await fetch(imageUrl);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
 
 export const Relatorios = () => {
   const [dados, setDados] = useState<ResultadoCurvaABC | null>(null);
@@ -18,6 +36,7 @@ export const Relatorios = () => {
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
   const [unidadeId, setUnidadeId] = useState('');
+  const [tipoGrafico, setTipoGrafico] = useState<TipoGrafico>('composed');
 
   useEffect(() => {
     const carregarUnidades = async () => {
@@ -64,6 +83,144 @@ export const Relatorios = () => {
     } finally {
       setCarregando(false);
     }
+  };
+
+  const exportarParaPDF = async () => {
+    if (!dados || dados.produtos.length === 0) return;
+    
+    // Paisagem (landscape) para caber bem as colunas da Curva ABC
+    const doc = new jsPDF('landscape'); 
+    
+    try {
+      const logoBase64 = await getBase64ImageFromUrl(logoEstoque);
+      doc.addImage(logoBase64, 'PNG', 14, 10, 36, 12);
+    } catch (e) {
+      console.warn("Aviso: Logo não carregada no PDF", e);
+    }
+
+    doc.setFontSize(16);
+    doc.text('Relatório Gerencial - Curva ABC', 14, 32);
+    
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 40);
+    
+    let currentY = 48;
+    if (unidadeId) {
+      const nomeUnidade = unidades.find(u => u.id === Number(unidadeId))?.nome;
+      if (nomeUnidade) {
+        doc.text(`Filtro de Unidade: ${nomeUnidade}`, 14, 46);
+        currentY = 52;
+      }
+    }
+
+    const dadosTabela = dados.produtos.map((item, index) => [
+      index + 1,
+      item.nome,
+      item.categoria,
+      item.unidade,
+      item.quantidade_vendida,
+      `R$ ${item.valor_total.toFixed(2)}`,
+      `${(item.percentual_participacao || 0).toFixed(1)}%`,
+      `${(item.percentual_acumulado || 0).toFixed(1)}%`,
+      item.classificacao
+    ]);
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [['Rank', 'Produto', 'Categoria', 'Unidade', 'Qtd.', 'Faturamento', 'Part. (%)', 'Acum. (%)', 'Curva']],
+      body: dadosTabela,
+      theme: 'striped',
+      headStyles: { fillColor: [46, 125, 50] }, // Verde do Estoque Raiz
+    });
+
+    doc.save('relatorio-curva-abc.pdf');
+  };
+
+  const exportarFinanceiroPDF = async () => {
+    if (!financeiro || financeiro.balanco_mensal.length === 0) return;
+    
+    const doc = new jsPDF();
+
+    try {
+      const logoBase64 = await getBase64ImageFromUrl(logoEstoque);
+      doc.addImage(logoBase64, 'PNG', 14, 10, 36, 12);
+    } catch (e) {}
+
+    doc.setFontSize(16);
+    doc.text('Relatório Gerencial - Balanço Financeiro', 14, 32);
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 40);
+    
+    let currentY = 48;
+    if (unidadeId) {
+      const nomeUnidade = unidades.find(u => u.id === Number(unidadeId))?.nome;
+      if (nomeUnidade) {
+        doc.text(`Filtro de Unidade: ${nomeUnidade}`, 14, 46);
+        currentY = 52;
+      }
+    }
+
+    const dadosTabela = dadosGraficoFinanceiro.map(item => [
+      item.mes_formatado,
+      formatarMoeda(item.total_gastos),
+      formatarMoeda(item.total_faturamento),
+      formatarMoeda(item.total_custo_saidas),
+      formatarMoeda(item.lucro_bruto)
+    ]);
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [['Período', 'Gastos (Entradas)', 'Faturamento Bruto', 'Custo das Saídas', 'Lucro Bruto']],
+      body: dadosTabela,
+      theme: 'striped',
+      headStyles: { fillColor: [46, 125, 50] },
+    });
+
+    doc.save('relatorio-financeiro.pdf');
+  };
+
+  const exportarTendenciaPDF = async () => {
+    if (!tendenciaMensal || tendenciaMensal.length === 0) return;
+    
+    const doc = new jsPDF();
+
+    try {
+      const logoBase64 = await getBase64ImageFromUrl(logoEstoque);
+      doc.addImage(logoBase64, 'PNG', 14, 10, 36, 12);
+    } catch (e) {}
+
+    doc.setFontSize(16);
+    doc.text('Relatório Gerencial - Tendência Mensal de Movimentações', 14, 32);
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 40);
+    
+    let currentY = 48;
+    if (unidadeId) {
+      const nomeUnidade = unidades.find(u => u.id === Number(unidadeId))?.nome;
+      if (nomeUnidade) {
+        doc.text(`Filtro de Unidade: ${nomeUnidade}`, 14, 46);
+        currentY = 52;
+      }
+    }
+
+    const dadosTabela = tendenciaMensal.map((item: any) => [
+      item.label,
+      item.total,
+      item.entrada,
+      item.saida,
+      item.transferencia,
+      item.ajuste
+    ]);
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [['Período', 'Total Mov.', 'Entradas', 'Saídas', 'Transferências', 'Ajustes']],
+      body: dadosTabela,
+      theme: 'striped',
+      headStyles: { fillColor: [46, 125, 50] },
+    });
+
+    doc.save('relatorio-tendencia-movimentacoes.pdf');
   };
 
   const formatarMoeda = (valor: number) =>
@@ -210,25 +367,81 @@ export const Relatorios = () => {
 
         {!carregando && financeiro && financeiro.balanco_mensal.length > 0 && (
           <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <DollarSign className="text-raiz-verde" size={20} /> Balanço Financeiro
-            </h2>
-            
-            <div className="h-[400px] w-full mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart
-                  data={dadosGraficoFinanceiro}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-4">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <DollarSign className="text-raiz-verde" size={20} /> Balanço Financeiro
+              </h2>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <button
+                  onClick={exportarFinanceiroPDF}
+                  className="px-4 py-1.5 bg-raiz-verde text-white rounded-lg text-sm font-medium hover:bg-opacity-90 transition-colors flex items-center gap-2 shadow-sm"
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="mes_formatado" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} dy={10} />
-                  <YAxis yAxisId="left" tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
-                  <Tooltip formatter={(value: number) => formatarMoeda(value)} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
-                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                  <Bar yAxisId="left" dataKey="total_gastos" name="Gastos (Entradas)" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={50} />
-                  <Bar yAxisId="left" dataKey="total_faturamento" name="Faturamento Bruto" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={50} />
-                  <Line yAxisId="left" type="monotone" dataKey="lucro_bruto" name="Lucro Bruto" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                </ComposedChart>
+                  <Download size={16} /> Exportar PDF
+                </button>
+                <select 
+                  value={tipoGrafico} 
+                  onChange={(e) => setTipoGrafico(e.target.value as TipoGrafico)}
+                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-raiz-verde bg-gray-50 cursor-pointer"
+                >
+                  <option value="composed">Visão Completa (Misto)</option>
+                  <option value="bar">Gastos vs Faturamento (Barras)</option>
+                  <option value="line">Evolução de Lucro (Linha)</option>
+                  <option value="pie">Faturamento Bruto (Pizza)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="h-[400px] w-full mt-4 bg-white">
+              <ResponsiveContainer width="100%" height="100%">
+                {tipoGrafico === 'composed' ? (
+                  <ComposedChart data={dadosGraficoFinanceiro} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis dataKey="mes_formatado" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} dy={10} />
+                    <YAxis yAxisId="left" tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+                    <Tooltip formatter={(value: number) => formatarMoeda(value)} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
+                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                <Bar yAxisId="left" dataKey="total_gastos" name="Gastos (Entradas)" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                <Bar yAxisId="left" dataKey="total_faturamento" name="Faturamento Bruto" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                <Line yAxisId="left" type="monotone" dataKey="lucro_bruto" name="Lucro Bruto" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                  </ComposedChart>
+                ) : tipoGrafico === 'bar' ? (
+                  <BarChart data={dadosGraficoFinanceiro} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis dataKey="mes_formatado" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} dy={10} />
+                    <YAxis tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+                    <Tooltip formatter={(value: number) => formatarMoeda(value)} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
+                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                <Bar dataKey="total_gastos" name="Gastos (Entradas)" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                <Bar dataKey="total_faturamento" name="Faturamento Bruto" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                  </BarChart>
+                ) : tipoGrafico === 'line' ? (
+                  <LineChart data={dadosGraficoFinanceiro} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis dataKey="mes_formatado" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} dy={10} />
+                    <YAxis tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+                    <Tooltip formatter={(value: number) => formatarMoeda(value)} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
+                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                <Line type="monotone" dataKey="lucro_bruto" name="Lucro Bruto" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                ) : (
+                  <PieChart>
+                    <Tooltip formatter={(value: number) => formatarMoeda(value)} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
+                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                    <Pie
+                      data={dadosGraficoFinanceiro}
+                      dataKey="total_faturamento"
+                      nameKey="mes_formatado"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={130}
+                      label={({ mes_formatado, percent }) => `${mes_formatado} (${(percent * 100).toFixed(0)}%)`}
+                    >
+                      {dadosGraficoFinanceiro.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={CORES_PIE[index % CORES_PIE.length]} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                )}
               </ResponsiveContainer>
             </div>
           </section>
@@ -257,12 +470,20 @@ export const Relatorios = () => {
 
         {!carregando && (
           <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">Tendência mensal de movimentações</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-4">
+              <h2 className="text-lg font-semibold text-gray-900">Tendência mensal de movimentações</h2>
+              <button
+                onClick={exportarTendenciaPDF}
+                className="px-4 py-1.5 bg-raiz-verde text-white rounded-lg text-sm font-medium hover:bg-opacity-90 transition-colors flex items-center gap-2 shadow-sm"
+              >
+                <Download size={16} /> Exportar PDF
+              </button>
+            </div>
 
             {tendenciaMensal.length === 0 ? (
               <p className="text-sm text-gray-500">Sem dados mensais para o período selecionado.</p>
             ) : (
-              <div className="space-y-3 pb-2">
+            <div className="space-y-3 pb-2">
                 {tendenciaParaExibir.map((item: any) => {
                   const maximo = Math.max(...tendenciaParaExibir.map((m: any) => m.total), 1);
                   const largura = (item.total / maximo) * 100;
@@ -332,6 +553,15 @@ export const Relatorios = () => {
               <p>Nenhuma venda registrada para os filtros aplicados.</p>
             </div>
           ) : (<>
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-white">
+              <h3 className="font-semibold text-gray-800">Listagem Completa (Curva ABC)</h3>
+              <button
+                onClick={exportarParaPDF}
+                className="px-4 py-2 bg-raiz-verde text-white rounded-lg text-sm font-medium hover:bg-opacity-90 transition-colors flex items-center gap-2 shadow-sm"
+              >
+                <Download size={16} /> Exportar PDF
+              </button>
+            </div>
             <div className="overflow-x-auto max-h-600px overflow-y-auto">
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
