@@ -16,6 +16,7 @@ import {
 } from "../dto/MovimentacaoDTO";
 import { sequelize } from "../../../shared/config/database";
 import { Transaction, Op, QueryTypes } from "sequelize";
+import { executeWithLock } from "../../../shared/utils/redisLock";
 
 export class MovimentacoesService {
   async listarTodos(filtros: FiltroMovimentacoesDTO): Promise<any[]> {
@@ -155,81 +156,88 @@ export class MovimentacoesService {
       );
     }
 
-    // VERIFICAÇÃO DE ESTOQUE REAL ANTES DA MOVIMENTAÇÃO
-    if (tipo === "SAIDA" || tipo === "TRANSFERENCIA") {
-      const [produtoStock]: any = await sequelize.query(
-        "SELECT quantidade_estoque FROM produtos WHERE id = :produto_id LIMIT 1",
-        {
-          replacements: { produto_id },
-          type: QueryTypes.SELECT,
-        }
-      );
+    const lockKey = `lock:estoque:produto:${produto_id}`;
+    const tempoDeVidaDoLockMs = 5000;
 
-      if (!produtoStock) {
-        throw new ErroNaoEncontrado("Produto não encontrado no banco de dados.");
-      }
-
-      if (produtoStock.quantidade_estoque < quantidade) {
-        throw new ErroValidacao(
-          `Estoque insuficiente! Você só possui ${produtoStock.quantidade_estoque} unidade(s) deste produto para movimentar.`
-        );
-      }
-    }
-
-    let novaMovimentacao;
-
-    if (tipo === "TRANSFERENCIA") {
-      const transaction: Transaction = await sequelize.transaction();
-
-      try {
-        novaMovimentacao = await MovimentacoesModel.create(
+    const novaMovimentacao = await executeWithLock(lockKey, tempoDeVidaDoLockMs, async () => {
+      // VERIFICAÇÃO DE ESTOQUE REAL ANTES DA MOVIMENTAÇÃO
+      if (tipo === "SAIDA" || tipo === "TRANSFERENCIA") {
+        const [produtoStock]: any = await sequelize.query(
+          "SELECT quantidade_estoque FROM produtos WHERE id = :produto_id LIMIT 1",
           {
-            tipo,
-            quantidade,
-            observacao: dados.observacao,
-            documento: dados.documento,
-            produto_id,
-            usuario_id,
-            unidade_origem_id,
-            unidade_destino_id,
-            status: status || "aprovado",
-            valor_custo,
-            valor_venda,
-            data_movimentacao: new Date(),
-          },
-          { transaction }
+            replacements: { produto_id },
+            type: QueryTypes.SELECT,
+          }
         );
-
-        await transaction.commit();
-
-        logger.info(
-          `Transferência criada com transação atômica: produto ${produto_id} de unidade ${unidade_origem_id} para ${unidade_destino_id}`
-        );
-      } catch (erro) {
-        await transaction.rollback();
-        logger.error(
-          `Erro ao criar transferência, transação revertida: ${erro}`
-        );
-        throw erro;
+  
+        if (!produtoStock) {
+          throw new ErroNaoEncontrado("Produto não encontrado no banco de dados.");
+        }
+  
+        if (produtoStock.quantidade_estoque < quantidade) {
+          throw new ErroValidacao(
+            `Estoque insuficiente! Você só possui ${produtoStock.quantidade_estoque} unidade(s) deste produto para movimentar.`
+          );
+        }
       }
-    } else {
-      novaMovimentacao = await MovimentacoesModel.create({
-        tipo,
-        quantidade,
-        observacao: dados.observacao,
-        documento: dados.documento,
-        produto_id,
-        usuario_id,
-        unidade_origem_id: dados.unidade_origem_id,
-        unidade_destino_id,
-        status: status || "aprovado",
-        valor_custo,
-        valor_venda,
-        data_movimentacao: new Date(),
-      });
+  
+      let movCriada;
+  
+      if (tipo === "TRANSFERENCIA") {
+        const transaction: Transaction = await sequelize.transaction();
+  
+        try {
+          movCriada = await MovimentacoesModel.create(
+            {
+              tipo,
+              quantidade,
+              observacao: dados.observacao,
+              documento: dados.documento,
+              produto_id,
+              usuario_id,
+              unidade_origem_id,
+              unidade_destino_id,
+              status: status || "aprovado",
+              valor_custo,
+              valor_venda,
+              data_movimentacao: new Date(),
+            },
+            { transaction }
+          );
+  
+          await transaction.commit();
+  
+          logger.info(
+            `Transferência criada com transação atômica: produto ${produto_id} de unidade ${unidade_origem_id} para ${unidade_destino_id}`
+          );
+        } catch (erro) {
+          await transaction.rollback();
+          logger.error(
+            `Erro ao criar transferência, transação revertida: ${erro}`
+          );
+          throw erro;
+        }
+      } else {
+        movCriada = await MovimentacoesModel.create({
+          tipo,
+          quantidade,
+          observacao: dados.observacao,
+          documento: dados.documento,
+          produto_id,
+          usuario_id,
+          unidade_origem_id: dados.unidade_origem_id,
+          unidade_destino_id,
+          status: status || "aprovado",
+          valor_custo,
+          valor_venda,
+          data_movimentacao: new Date(),
+        });
+  
+        logger.info(`Movimentação ${tipo} criada para produto ${produto_id}`);
+      }
 
-      logger.info(`Movimentação ${tipo} criada para produto ${produto_id}`);
-    }
+      return movCriada;
+    });
 
     // Garantindo que Origem e Destino viajam para o ProdutosService
     await publicadorEventos.publicar(
