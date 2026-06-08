@@ -1,54 +1,63 @@
 describe('CRUD de Movimentações - Teste E2E', () => {
   beforeEach(() => {
-    // Intercepta a chamada de login e "moka" o retorno para pularmos direto pra tela logada
-    cy.intercept('POST', '**/api/auth/login', {
-      statusCode: 200,
-      body: { usuario: { id: 1, cargo: 'gerente', unidade_id: 1 }, token: 'fake-jwt' }
-    }).as('login');
+    // Fazemos o login real na aplicação usando os dados do seed do PostgreSQL.
+    // Assim garantimos um Token JWT válido, resolvendo os erros 401 (Unauthorized).
 
     cy.visit('/login');
     cy.get('[data-testid="email-input"]').type('gerente@estoqueraiz.com');
     cy.get('[data-testid="senha-input"]').type('Senha123!');
     cy.contains('button', 'Entrar no Sistema').click();
-    cy.wait('@login');
+
+    // Aguarda até o redirecionamento ocorrer para garantir que a sessão foi salva
+    cy.url().should('include', '/dashboard');
 
     // Navega para a tela do CRUD
     cy.visit('/movimentacoes');
   });
 
   it('1. Deve listar as movimentações na tabela (READ)', () => {
+    // Verifica se o título da página carregou
+    cy.get('h1').contains('Movimentações de Estoque').should('be.visible');
+
     // Verifica se a tabela de listagem carregou na tela
     cy.get('table').should('be.visible');
-    // Verifica se os botões de filtro existem
-    cy.contains('Filtrar').should('be.visible');
   });
 
   it('2. Deve criar uma nova movimentação de SAIDA (CREATE)', () => {
     // Clica no botão de criar novo
-    cy.contains('button', 'Nova Movimentação').click();
+    cy.contains('button', 'Registrar Movimento').click();
 
-    // Preenche o formulário
-    cy.get('select[name="tipo"]').select('SAIDA');
-    cy.get('select[name="produto_id"]').select('1'); // Produto de ID 1
-    cy.get('input[name="quantidade"]').type('10');
+    // Seleciona a opção de SAÍDA nos Radio Buttons customizados
+    cy.contains('label', 'SAIDA').click();
+
+    // Seleciona a Unidade de Origem (Aguardando carregar as opções)
+    cy.contains('label', 'Unidade de Origem').parent().find('select').select('1'); // ID 1
+
+    // Seleciona o Produto 
+    cy.contains('label', 'Produto').parent().find('select').select('1'); // ID 1
+
+    // Preenche a quantidade
+    cy.contains('label', 'Quantidade').parent().find('input[type="number"]').type('10');
     
-    // Salva e intercepta a requisição da API para garantir que bateu no backend
+    // Clica no botão "+" para adicionar à lista
+    cy.get('button[title="Adicionar à lista"]').click();
+
+    // Intercepta a requisição da API para garantir que bateu no backend
     cy.intercept('POST', '**/api/movimentacoes').as('criarMovimentacao');
-    cy.contains('button', 'Salvar').click();
+    cy.contains('button', 'Confirmar e Gravar Movimento').click();
     
     cy.wait('@criarMovimentacao').its('response.statusCode').should('eq', 201);
     
-    // O sistema deve mostrar a mensagem de sucesso na interface
-    cy.contains('Movimentação criada com sucesso').should('be.visible');
+    // O sistema deve mostrar o toast (notificação) de sucesso na interface
+    cy.contains('registrada com sucesso').should('be.visible');
   });
 
-  it('3. Deve deletar uma movimentação (DELETE)', () => {
-    cy.intercept('DELETE', '**/api/movimentacoes/*').as('deletarMovimentacao');
+  it('3. Deve visualizar os detalhes completos da movimentação', () => {
+    // Encontra o botão de "olho" da primeira linha da tabela e clica
+    cy.get('table tbody tr').first().find('button[title="Ver Detalhes Completos"]').click();
     
-    // Encontra o botão de deletar (lixeira) da primeira linha da tabela e clica
-    cy.get('table tbody tr').first().find('[data-testid="btn-excluir"]').click();
-    
-    cy.wait('@deletarMovimentacao').its('response.statusCode').should('eq', 200);
-    cy.contains('Movimentação deletada').should('be.visible');
+    // Garante que o Modal de visualização abriu preenchido
+    cy.contains('Detalhes da Movimentação').should('be.visible');
+    cy.contains('Produto Movimentado').should('be.visible');
   });
 });
