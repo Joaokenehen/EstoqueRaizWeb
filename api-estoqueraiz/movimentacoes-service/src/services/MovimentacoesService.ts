@@ -120,7 +120,7 @@ export class MovimentacoesService {
       valor_venda,
     } = dados;
 
-    if (!tipo || !quantidade || !produto_id || !usuario_id) {
+    if (!tipo || quantidade === undefined || quantidade === null || !produto_id || !usuario_id) {
       throw new ErroValidacao("Campos obrigatórios faltando");
     }
 
