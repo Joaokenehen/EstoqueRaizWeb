@@ -95,6 +95,12 @@ O diagrama abaixo ilustra o fluxo completo de uma movimentação de estoque no s
    - Relatórios Service invalida cache
 7. **Resposta**: Retorna confirmação ao cliente
 
+### Diagrama de Entidade-Relacionamento (DER)
+
+Abaixo está a representação da modelagem estrutural do banco de dados relacional (PostgreSQL), demonstrando as principais entidades e seus relacionamentos:
+
+![Diagrama DER do Banco de Dados](api-estoqueraiz/docs/images/der-estoqueraiz.png)
+
 ### Regras de Negócio Principais
 
 #### 1. Cadastro e Aprovação de Usuário
