@@ -24,6 +24,9 @@ const getBase64ImageFromUrl = async (imageUrl: string): Promise<string> => {
   });
 };
 
+const formatarMoeda = (valor: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor || 0);
+
 export const Relatorios = () => {
   const [dados, setDados] = useState<ResultadoCurvaABC | null>(null);
   const [estatisticas, setEstatisticas] = useState<ResultadoEstatisticas | null>(null);
@@ -93,23 +96,23 @@ export const Relatorios = () => {
     
     try {
       const logoBase64 = await getBase64ImageFromUrl(logoEstoque);
-      doc.addImage(logoBase64, 'PNG', 14, 10, 36, 12);
+      doc.addImage(logoBase64, 'PNG', 14, 10, 20, 20);
     } catch (e) {
       console.warn("Aviso: Logo não carregada no PDF", e);
     }
 
     doc.setFontSize(16);
-    doc.text('Relatório Gerencial - Curva ABC', 14, 32);
+    doc.text('Relatório Gerencial - Curva ABC', 14, 36);
     
     doc.setFontSize(10);
-    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 40);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 44);
     
-    let currentY = 48;
+    let currentY = 52;
     if (unidadeId) {
       const nomeUnidade = unidades.find(u => u.id === Number(unidadeId))?.nome;
       if (nomeUnidade) {
-        doc.text(`Filtro de Unidade: ${nomeUnidade}`, 14, 46);
-        currentY = 52;
+        doc.text(`Filtro de Unidade: ${nomeUnidade}`, 14, 50);
+        currentY = 56;
       }
     }
 
@@ -143,20 +146,20 @@ export const Relatorios = () => {
 
     try {
       const logoBase64 = await getBase64ImageFromUrl(logoEstoque);
-      doc.addImage(logoBase64, 'PNG', 14, 10, 36, 12);
+      doc.addImage(logoBase64, 'PNG', 14, 10, 20, 20);
     } catch (e) {}
 
     doc.setFontSize(16);
-    doc.text('Relatório Gerencial - Balanço Financeiro', 14, 32);
+    doc.text('Relatório Gerencial - Balanço Financeiro', 14, 36);
     doc.setFontSize(10);
-    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 40);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 44);
     
-    let currentY = 48;
+    let currentY = 52;
     if (unidadeId) {
       const nomeUnidade = unidades.find(u => u.id === Number(unidadeId))?.nome;
       if (nomeUnidade) {
-        doc.text(`Filtro de Unidade: ${nomeUnidade}`, 14, 46);
-        currentY = 52;
+        doc.text(`Filtro de Unidade: ${nomeUnidade}`, 14, 50);
+        currentY = 56;
       }
     }
 
@@ -186,20 +189,20 @@ export const Relatorios = () => {
 
     try {
       const logoBase64 = await getBase64ImageFromUrl(logoEstoque);
-      doc.addImage(logoBase64, 'PNG', 14, 10, 36, 12);
+      doc.addImage(logoBase64, 'PNG', 14, 10, 20, 20);
     } catch (e) {}
 
     doc.setFontSize(16);
-    doc.text('Relatório Gerencial - Tendência Mensal de Movimentações', 14, 32);
+    doc.text('Relatório Gerencial - Tendência Mensal de Movimentações', 14, 36);
     doc.setFontSize(10);
-    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 40);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 44);
     
-    let currentY = 48;
+    let currentY = 52;
     if (unidadeId) {
       const nomeUnidade = unidades.find(u => u.id === Number(unidadeId))?.nome;
       if (nomeUnidade) {
-        doc.text(`Filtro de Unidade: ${nomeUnidade}`, 14, 46);
-        currentY = 52;
+        doc.text(`Filtro de Unidade: ${nomeUnidade}`, 14, 50);
+        currentY = 56;
       }
     }
 
@@ -222,9 +225,6 @@ export const Relatorios = () => {
 
     doc.save('relatorio-tendencia-movimentacoes.pdf');
   };
-
-  const formatarMoeda = (valor: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor || 0);
 
   const tendenciaMensal = useMemo(() => {
     if (!estatisticas?.movimentacoes_por_mes?.length) return [];
@@ -323,8 +323,6 @@ export const Relatorios = () => {
   const produtosParaExibir = dados?.produtos.slice(0, limiteVisivel) || [];
   const temMais = dados ? dados.produtos.length > limiteVisivel : false;
   const temMenos = limiteVisivel > 10;
-
-  // Como agora está ordenado do mais recente para o mais antigo, pegamos sempre do início do array
   const tendenciaParaExibir = tendenciaMensal.slice(0, limiteVisivelTendencia);
   const temMaisTendencia = tendenciaMensal.length > limiteVisivelTendencia;
   const temMenosTendencia = limiteVisivelTendencia > 6;
@@ -398,7 +396,7 @@ export const Relatorios = () => {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                     <XAxis dataKey="mes_formatado" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} dy={10} />
                     <YAxis yAxisId="left" tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
-                    <Tooltip formatter={(value: number) => formatarMoeda(value)} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
+                    <Tooltip formatter={(value: any) => formatarMoeda(Number(value))} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
                     <Legend wrapperStyle={{ paddingTop: '20px' }} />
                 <Bar yAxisId="left" dataKey="total_gastos" name="Gastos (Entradas)" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={50} />
                 <Bar yAxisId="left" dataKey="total_faturamento" name="Faturamento Bruto" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={50} />
@@ -409,7 +407,7 @@ export const Relatorios = () => {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                     <XAxis dataKey="mes_formatado" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} dy={10} />
                     <YAxis tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
-                    <Tooltip formatter={(value: number) => formatarMoeda(value)} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
+                    <Tooltip formatter={(value: any) => formatarMoeda(Number(value))} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
                     <Legend wrapperStyle={{ paddingTop: '20px' }} />
                 <Bar dataKey="total_gastos" name="Gastos (Entradas)" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={50} />
                 <Bar dataKey="total_faturamento" name="Faturamento Bruto" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={50} />
@@ -419,13 +417,13 @@ export const Relatorios = () => {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                     <XAxis dataKey="mes_formatado" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} dy={10} />
                     <YAxis tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
-                    <Tooltip formatter={(value: number) => formatarMoeda(value)} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
+                    <Tooltip formatter={(value: any) => formatarMoeda(Number(value))} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
                     <Legend wrapperStyle={{ paddingTop: '20px' }} />
                 <Line type="monotone" dataKey="lucro_bruto" name="Lucro Bruto" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                   </LineChart>
                 ) : (
                   <PieChart>
-                    <Tooltip formatter={(value: number) => formatarMoeda(value)} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
+                    <Tooltip formatter={(value: any) => formatarMoeda(Number(value))} contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
                     <Legend wrapperStyle={{ paddingTop: '20px' }} />
                     <Pie
                       data={dadosGraficoFinanceiro}
@@ -434,7 +432,7 @@ export const Relatorios = () => {
                       cx="50%"
                       cy="50%"
                       outerRadius={130}
-                      label={({ mes_formatado, percent }) => `${mes_formatado} (${(percent * 100).toFixed(0)}%)`}
+                      label={({ name, percent }: any) => `${name} (${((percent || 0) * 100).toFixed(0)}%)`}
                     >
                       {dadosGraficoFinanceiro.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={CORES_PIE[index % CORES_PIE.length]} />
