@@ -14,6 +14,7 @@ export interface LoginResponseDTO {
         cargo: string;
         unidade_id: string;
         status: string;
+        foto_perfil?: string;
     };
 }
 

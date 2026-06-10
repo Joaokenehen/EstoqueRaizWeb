@@ -42,6 +42,7 @@ export const Produtos = () => {
   const [produtoZoom, setProdutoZoom] = useState<Produto | null>(null);
   const [campoOrdenacao, setCampoOrdenacao] = useState<CampoOrdenacaoProdutos>('nome');
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<'asc' | 'desc'>('asc');
+  const [semValidade, setSemValidade] = useState(false);
   const [filtroAlerta, setFiltroAlerta] = useState<FiltroAlerta>('todos');
   const [mapaEndereco, setMapaEndereco] = useState<string | null>(null);
   const { 
@@ -156,8 +157,10 @@ export const Produtos = () => {
     setProcessandoAcao(true);
     const formData = new FormData(e.target as HTMLFormElement);
 
-    const dataValidadeStr = formData.get('data_validade') as string;
-    if (dataValidadeStr) {
+    if (semValidade || !formData.get('data_validade')) {
+      formData.delete('data_validade');
+    } else {
+      const dataValidadeStr = formData.get('data_validade') as string;
       const dataValidade = new Date(dataValidadeStr + 'T00:00:00');
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -279,6 +282,7 @@ export const Produtos = () => {
   const abrirModal = (produto?: Produto) => {
     if (produto) {
       setProdutoAtivo(produto);
+      setSemValidade(!produto.data_validade);
       if (produto.imagem_url) {
         setImagemPreview(`${api.defaults.baseURL}${produto.imagem_url}`);
       } else {
@@ -286,6 +290,7 @@ export const Produtos = () => {
       }
     } else {
       setProdutoAtivo(null);
+      setSemValidade(false);
       setImagemPreview(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -296,18 +301,18 @@ export const Produtos = () => {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto">
+      <div className="er-page">
         
-        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <header className="er-page-header">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Catálogo de Produtos</h1>
-            <p className="text-gray-500 mt-2">Gestão centralizada de itens, preços e aprovações.</p>
+            <h1 className="er-page-title">Catálogo de Produtos</h1>
+            <p className="er-page-subtitle">Gestão centralizada de itens, preços e aprovações.</p>
           </div>
 
           {podeCriar && (
             <button 
           onClick={() => abrirModal()}
-              className="flex items-center gap-2 bg-raiz-verde text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all shadow-md"
+              className="er-primary-button"
             >
               <Plus size={20} /> Novo Produto
             </button>
@@ -398,11 +403,11 @@ export const Produtos = () => {
         {carregando ? (
           <LoadingSpinner />
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="er-table-shell">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="er-table">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
+                  <tr className="er-table-head">
                     {isGerente && (
                       <th className="p-4 w-12 text-center">
                         <input 
@@ -447,7 +452,7 @@ export const Produtos = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {produtosPaginados.map((prod) => (
-                    <tr key={prod.id} className={`transition-colors ${selecionados.includes(prod.id) ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
+                    <tr key={prod.id} className={`transition-colors ${selecionados.includes(prod.id) ? 'bg-red-50' : 'er-table-row'}`}>
                       {isGerente && (
                         <td className="p-4 text-center">
                           <input 
@@ -593,8 +598,14 @@ export const Produtos = () => {
                   <input name="lote" type="text" data-testid="produtos-input-lote" defaultValue={produtoAtivo?.lote} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" placeholder="Ex: LOTE-2023" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Data de Validade</label>
-                  <input name="data_validade" type="date" data-testid="produtos-input-validade" defaultValue={produtoAtivo?.data_validade ? new Date(produtoAtivo.data_validade).toISOString().split('T')[0] : ''} min={new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" />
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-sm font-medium text-gray-700">Data de Validade</label>
+                    <label className="flex items-center gap-1 text-xs text-gray-500 cursor-pointer hover:text-gray-800 transition-colors">
+                      <input type="checkbox" checked={semValidade} onChange={(e) => setSemValidade(e.target.checked)} className="w-3 h-3 rounded border-gray-300 text-raiz-verde focus:ring-raiz-verde cursor-pointer" />
+                      Não possui
+                    </label>
+                  </div>
+                  <input name="data_validade" type="date" disabled={semValidade} data-testid="produtos-input-validade" defaultValue={produtoAtivo?.data_validade ? new Date(produtoAtivo.data_validade).toISOString().split('T')[0] : ''} min={new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]} className={`w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde transition-all ${semValidade ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-70' : ''}`} />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

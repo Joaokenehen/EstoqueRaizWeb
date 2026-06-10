@@ -196,9 +196,9 @@ export const Financeiro = () => {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Financeiro</h1>
+      <div className="er-page">
+        <header className="er-page-header">
+          <h1 className="er-page-title">Financeiro</h1>
           <p className="text-gray-500 mt-2">Gestão de precificação e aprovação comercial de produtos.</p>
         </header>
 
@@ -264,19 +264,19 @@ export const Financeiro = () => {
         {carregando ? (
           <LoadingSpinner />
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="er-table-shell">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="er-table">
                 <thead>
                   {abaAtiva === 'entradas_pendentes' ? (
-                    <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
+                    <tr className="er-table-head">
                       <th className="p-4 font-semibold">Produto Recebido</th>
                       <th className="p-4 font-semibold">Data / Documento</th>
                       <th className="p-4 font-semibold">Qtd Entrada</th>
                       <th className="p-4 font-semibold text-right">Ações</th>
                     </tr>
                   ) : (
-                    <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-600 uppercase tracking-wider">
+                    <tr className="er-table-head">
                       <th className="p-4 font-semibold">Produto</th>
                       <th className="p-4 font-semibold">Estoque</th>
                       {abaAtiva === 'aprovados' && (
@@ -292,7 +292,7 @@ export const Financeiro = () => {
                 <tbody className="divide-y divide-gray-200">
                   {abaAtiva === 'entradas_pendentes' ? (
                     movimentacoesPaginadas.map(mov => (
-                      <tr key={mov.id} className="transition-colors hover:bg-gray-50">
+                      <tr key={mov.id} className="er-table-row">
                         <td className="p-4 font-medium text-gray-900">
                           {mov.produto?.nome || produtos.find(p => p.id === mov.produto_id)?.nome || `Prod #${mov.produto_id}`}
                         </td>
@@ -311,7 +311,7 @@ export const Financeiro = () => {
                     ))
                   ) : (
                     produtosPaginados.map((prod) => (
-                    <tr key={prod.id} className="transition-colors hover:bg-gray-50">
+                    <tr key={prod.id} className="er-table-row">
                       <td className="p-4 flex items-center gap-4">
                         {prod.imagem_url ? (
                           <img src={`${api.defaults.baseURL}${prod.imagem_url}`} alt={prod.nome} className="w-14 h-14 rounded-lg object-cover border" />

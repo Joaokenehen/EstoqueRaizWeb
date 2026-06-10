@@ -12,16 +12,16 @@ import { usuarioService } from '../services/usuarioService';
 import { fornecedorService } from '../services/fornecedorService';
 
 export const StatCard = ({ titulo, valor, icone: Icone, corFundo, corIcone, carregando }: any) => (
-  <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center hover:shadow-md transition-shadow duration-200">
+  <div className="er-surface flex items-center p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
     <div className={`p-4 rounded-lg ${corFundo} ${corIcone} mr-5`}>
       <Icone size={24} />
     </div>
     <div>
-      <p className="text-sm font-medium text-gray-500">{titulo}</p>
+      <p className="text-sm font-medium text-slate-500">{titulo}</p>
       {carregando ? (
         <div className="h-7 w-16 bg-gray-200 animate-pulse rounded mt-1"></div>
       ) : (
-        <h4 className="text-2xl font-bold text-gray-900">{valor}</h4>
+        <h4 className="text-2xl font-bold text-slate-950">{valor}</h4>
       )}
     </div>
   </div>
@@ -125,10 +125,12 @@ export function Dashboard() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">Visão Geral</h2>
-          <p className="text-gray-500 mt-1">Acompanhe os principais indicadores do seu sistema.</p>
+      <div className="er-page">
+        <div className="er-page-header">
+          <div>
+            <h2 className="er-page-title">Visão Geral</h2>
+            <p className="er-page-subtitle">Acompanhe os principais indicadores do seu sistema.</p>
+          </div>
         </div>
 
         {/* Cards de Estatísticas Principais */}
@@ -176,9 +178,9 @@ export function Dashboard() {
         </div>
 
         {/* Sessão de Alertas / Notificações */}
-        <div className="mb-6 mt-8 border-t border-gray-100 pt-8">
-          <h3 className="text-xl font-bold text-gray-800">Alertas do Sistema</h3>
-          <p className="text-gray-500 text-sm mt-1 mb-6">Itens que requerem sua atenção imediata.</p>
+        <div className="mb-6 mt-8 border-t border-raiz-borda pt-8">
+          <h3 className="text-xl font-bold text-slate-900">Alertas do Sistema</h3>
+          <p className="mb-6 mt-1 text-sm text-slate-500">Itens que requerem sua atenção imediata.</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(isGerente || isEstoquista) && (
@@ -271,9 +273,9 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="mb-6 mt-8 border-t border-gray-100 pt-8">
-          <h3 className="text-xl font-bold text-gray-800">Acesso Rápido</h3>
-          <p className="text-gray-500 text-sm mt-1 mb-6">Navegue pelos módulos disponíveis para o seu perfil.</p>
+        <div className="mb-6 mt-8 border-t border-raiz-borda pt-8">
+          <h3 className="text-xl font-bold text-slate-900">Acesso Rápido</h3>
+          <p className="mb-6 mt-1 text-sm text-slate-500">Navegue pelos módulos disponíveis para o seu perfil.</p>
         </div>
 
         {modulosPermitidos.length > 0 ? (
@@ -284,23 +286,23 @@ export function Dashboard() {
                 <button
                   key={`card-${modulo.nome}`}
                   onClick={() => navigate(modulo.rota)}
-                  className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-raiz-verde transition-all duration-200 flex items-start text-left group"
+                  className="er-surface group flex items-start p-6 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-raiz-verde/40 hover:shadow-md"
                 >
                   <div className={`p-4 rounded-lg ${modulo.corFundo} ${modulo.corIcone} mr-5 group-hover:scale-110 transition-transform duration-200 shrink-0`}>
                     <IconeDoModulo size={28} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-800 group-hover:text-raiz-verde transition-colors">
+                    <h3 className="text-xl font-bold text-slate-900 transition-colors group-hover:text-raiz-verde">
                       {modulo.nome}
                     </h3>
-                    <p className="text-gray-500 text-sm mt-1 leading-relaxed line-clamp-2">{modulo.descricao}</p>
+                    <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-slate-500">{modulo.descricao}</p>
                   </div>
                 </button>
               );
             })}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center animate-in fade-in duration-300">
+          <div className="er-surface flex flex-col items-center justify-center p-12 text-center animate-in fade-in duration-300">
             <div className="bg-gray-50 p-6 rounded-full mb-4">
               <Lock size={48} className="text-gray-400" />
             </div>

@@ -11,7 +11,7 @@ export const BotaoAprovar = ({ onClick, disabled, title = "Aprovar", className =
   <button
     onClick={onClick}
     disabled={disabled}
-    className={`p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+    className={`er-icon-button bg-green-50 text-green-700 hover:border-green-200 hover:bg-green-100 ${className}`}
     title={title}
   >
     <Check size={18} />
@@ -22,7 +22,7 @@ export const BotaoRejeitar = ({ onClick, disabled, title = "Rejeitar", className
   <button
     onClick={onClick}
     disabled={disabled}
-    className={`p-2 bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+    className={`er-icon-button bg-amber-50 text-amber-700 hover:border-amber-200 hover:bg-amber-100 ${className}`}
     title={title}
   >
     <AlertCircle size={18} />
@@ -33,7 +33,7 @@ export const BotaoDeletar = ({ onClick, disabled, title = "Excluir", className =
   <button
     onClick={onClick}
     disabled={disabled}
-    className={`p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+    className={`er-icon-button bg-red-50 text-red-700 hover:border-red-200 hover:bg-red-100 ${className}`}
     title={title}
   >
     <Trash2 size={18} />
@@ -44,7 +44,7 @@ export const BotaoEditar = ({ onClick, disabled, title = "Editar", className = "
   <button
     onClick={onClick}
     disabled={disabled}
-    className={`p-2 bg-green-50 text-raiz-verde rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+    className={`er-icon-button bg-raiz-verde-claro text-raiz-verde hover:border-raiz-verde/20 hover:bg-green-100 ${className}`}
     title={title}
   >
     <Edit size={18} />
@@ -55,9 +55,9 @@ export const BotaoSalvarPermissao = ({ onClick, disabled, title = "Salvar novo c
   <button
     onClick={onClick}
     disabled={disabled}
-    className={`p-2 rounded-lg transition-colors ${
+    className={`er-icon-button ${
       !disabled
-        ? 'bg-green-100 text-raiz-verde hover:bg-green-200'
+        ? 'bg-green-100 text-raiz-verde hover:border-green-200 hover:bg-green-200'
         : 'bg-gray-100 text-gray-400 cursor-not-allowed'
     } ${className}`}
     title={title}

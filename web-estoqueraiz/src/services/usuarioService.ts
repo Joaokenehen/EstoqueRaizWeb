@@ -13,6 +13,7 @@ export interface AtualizarUsuarioDTO {
     senha?: string;
     cargo?: 'gerente' | 'estoquista' | 'financeiro';
     unidade_id?: number;
+    foto_perfil?: string;
 }
 
 export interface RedefinirSenhaDTO {
@@ -29,18 +30,17 @@ export interface Usuario {
     status: 'aprovado' | 'pendente' | 'rejeitado';
     criado_em?: string;
     unidade_id: number | null;
+    foto_perfil?: string;
 }
 
 export const usuarioService = {
 
     listarTodos: async (): Promise<Usuario[]> => {
-            // Removido os headers problemáticos
             const response = await api.get('/api/usuarios');
             return response.data;
         },
 
     listarPendentes: async (): Promise<Usuario[]> => {
-            // Removido os headers problemáticos
             const response = await api.get('/api/usuarios/pendentes');
             return response.data;
         },

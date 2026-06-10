@@ -79,6 +79,7 @@ export class AuthService {
         cargo: usuario.cargo,
         unidade_id: usuario.unidade_id,
         status: usuario.status,
+        foto_perfil: usuario.foto_perfil,
       },
     };
   }

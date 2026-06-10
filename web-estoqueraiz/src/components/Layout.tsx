@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Menu, X, User, ChevronDown, Settings, LogOut, Package, Bell,
-  AlertTriangle, Clock, Users, DollarSign, ArrowDownRight
+  Menu, X, ChevronDown, Settings, LogOut, Package, Bell,
+  Clock, Users, DollarSign, ArrowDownRight
 } from 'lucide-react';
 import { modulos } from '../data/modulos';
 import { authService } from '../services/authService';
@@ -12,6 +12,7 @@ import { usuarioService } from '../services/usuarioService';
 import { ModalPerfil } from './ModalPerfil';
 import toast from 'react-hot-toast';
 import { getIniciais, getCorAvatar } from '../utils/avatar';
+import { ChatAssistente } from './ChatAssistente';
 
 interface LayoutProps {
   children: ReactNode; 
@@ -38,7 +39,6 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, []);
 
-  // Efeito para carregar as notificações globais baseadas no cargo
   useEffect(() => {
     if (!usuario) return;
 
@@ -192,12 +192,10 @@ export default function Layout({ children }: LayoutProps) {
 
     carregarNotificacoes();
     
-    // Atualiza silenciosamente as notificações a cada 2 minutos
     const interval = setInterval(carregarNotificacoes, 120000);
     return () => clearInterval(interval);
   }, [usuario]);
 
-  // --- Funções Restauradas ---
   const modulosPermitidos = usuario ? modulos.filter((modulo) => {
     if (!usuario || !usuario.cargo) return false;
     return modulo.cargosPermitidos.includes(usuario.cargo);
@@ -213,7 +211,6 @@ export default function Layout({ children }: LayoutProps) {
     authService.logOut();
     navigate('/login');
   };
-  // ---------------------------
 
   const abrirModalConfig = () => {
     setModalConfigAberto(true);
@@ -226,27 +223,27 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-raiz-fundo font-sans text-slate-900">
       
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 shadow-sm transform transition-transform duration-300 ease-in-out flex flex-col 
+      <aside className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-raiz-borda bg-white/95 shadow-[18px_0_55px_-45px_rgba(75,54,33,0.55)] backdrop-blur transform transition-transform duration-300 ease-in-out
         ${sidebarAberta ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}
       >
-       <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100 shrink-0">
+       <div className="flex h-16 shrink-0 items-center justify-between border-b border-raiz-borda px-6">
           <button 
             onClick={() => navigate('/dashboard')} 
             className="flex items-center space-x-3 hover:opacity-80 transition-opacity focus:outline-none"
             title="Voltar para a Visão Geral"
           >
-            <div className="w-8 h-8 bg-raiz-verde rounded-lg flex items-center justify-center shadow-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-raiz-verde shadow-raiz-button">
               <Package className="text-white" size={18} />
             </div>
-            <h1 className="text-xl font-bold text-raiz-marrom tracking-tight">Estoque Raiz</h1>
+            <h1 className="text-xl font-bold tracking-tight text-raiz-marrom">Estoque Raiz</h1>
           </button>
           
           {/* Botão fechar (Apenas Mobile) */}
           <button 
-            className="md:hidden text-gray-400 hover:text-red-500 transition-colors"
+            className="er-icon-button text-slate-400 hover:bg-red-50 hover:text-red-600 md:hidden"
             onClick={() => setSidebarAberta(false)}
           >
             <X size={20} />
@@ -254,22 +251,22 @@ export default function Layout({ children }: LayoutProps) {
         </div>
         
         {/* Permissão */}
-        <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50">
-          <p className="text-xs text-gray-500 mb-1">Permissão de Acesso</p>
-          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold bg-green-100 text-green-800 uppercase">
+        <div className="border-b border-raiz-borda bg-[#fbfaf5] px-6 py-4">
+          <p className="mb-1 text-xs font-medium text-slate-500">Permissão de Acesso</p>
+          <span className="inline-flex items-center rounded-md bg-raiz-verde-claro px-2 py-1 text-xs font-bold uppercase text-raiz-verde">
             {formatarCargo(usuario?.cargo)}
           </span>
         </div>
 
         {/* Links */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+        <nav className="flex-1 space-y-1 overflow-y-auto p-4">
           {modulosPermitidos.map((modulo) => {
             const Icon = modulo.icon;
             return (
               <button 
                 key={modulo.nome} 
                 onClick={() => { navigate(modulo.rota); setSidebarAberta(false); }}
-                className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-green-50 hover:text-raiz-verde transition-all"
+                className="flex w-full items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-raiz-verde-claro hover:text-raiz-verde"
               >
                 <Icon size={20} />
                 <span>{modulo.nome}</span>
@@ -288,8 +285,8 @@ export default function Layout({ children }: LayoutProps) {
       )}
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <header className="h-16 bg-white border-b border-gray-200 px-4 sm:px-8 flex items-center justify-between md:justify-end shadow-sm z-20 shrink-0">
-          <button className="md:hidden text-gray-500 hover:text-raiz-verde p-2 -ml-2 rounded-lg focus:outline-none" onClick={() => setSidebarAberta(true)}>
+        <header className="z-20 flex h-16 shrink-0 items-center justify-between border-b border-raiz-borda bg-white/85 px-4 shadow-sm backdrop-blur sm:px-8 md:justify-end">
+          <button className="-ml-2 rounded-lg p-2 text-slate-500 hover:bg-raiz-verde-claro hover:text-raiz-verde focus:outline-none md:hidden" onClick={() => setSidebarAberta(true)}>
             <Menu size={24} />
           </button>
 
@@ -301,7 +298,7 @@ export default function Layout({ children }: LayoutProps) {
                   setNotificacoesAbertas(!notificacoesAbertas);
                   setMenuAberto(false);
                 }} 
-                className="relative p-2 text-gray-500 hover:text-raiz-verde transition-colors focus:outline-none bg-gray-50 rounded-full border border-gray-200"
+                className="relative rounded-full border border-raiz-borda bg-[#fbfaf5] p-2 text-slate-500 transition-colors hover:text-raiz-verde focus:outline-none"
               >
                 <Bell size={18} />
                 {notificacoes.length > 0 && (
@@ -312,8 +309,8 @@ export default function Layout({ children }: LayoutProps) {
               {notificacoesAbertas && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setNotificacoesAbertas(false)}></div>
-                  <div className="absolute right-0 mt-3 w-[320px] sm:w-[360px] bg-white rounded-xl shadow-2xl border border-gray-100 py-1 z-50 overflow-hidden flex flex-col max-h-[80vh] animate-in fade-in zoom-in duration-200">
-                    <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/80">
+                  <div className="absolute right-0 z-50 mt-3 flex max-h-[80vh] w-[320px] flex-col overflow-hidden rounded-lg border border-raiz-borda bg-white py-1 shadow-2xl animate-in fade-in zoom-in duration-200 sm:w-[360px]">
+                    <div className="flex items-center justify-between border-b border-raiz-borda bg-[#fbfaf5] px-4 py-3">
                       <h3 className="font-bold text-gray-800 text-sm">Notificações</h3>
                       {notificacoes.length > 0 && <span className="bg-raiz-verde text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{notificacoes.length} alertas</span>}
                     </div>
@@ -333,7 +330,7 @@ export default function Layout({ children }: LayoutProps) {
                               navigate(notif.rota);
                               setNotificacoesAbertas(false);
                             }}
-                            className="w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors flex items-start gap-3 group"
+                            className="group flex w-full items-start gap-3 border-b border-raiz-borda/60 px-4 py-3 text-left transition-colors hover:bg-raiz-verde-claro/30"
                           >
                             <div className={`p-2 rounded-lg border shrink-0 ${notif.bg} ${notif.cor}`}>
                               <Icone size={18} />
@@ -352,17 +349,17 @@ export default function Layout({ children }: LayoutProps) {
             </div>
 
             {/* User Dropdown */}
-            <div className="relative pl-2 sm:pl-4 border-l border-gray-200">
+            <div className="relative border-l border-raiz-borda pl-2 sm:pl-4">
             <button 
               onClick={() => setMenuAberto(!menuAberto)} 
-              className="flex items-center space-x-2 text-gray-600 hover:text-raiz-verde transition-colors focus:outline-none"
+              className="flex items-center space-x-2 text-slate-600 transition-colors hover:text-raiz-verde focus:outline-none"
               data-testid="menu-usuario-btn"
             >
               {usuario?.foto_perfil ? (
                 <img 
                   src={usuario.foto_perfil} 
                   alt="Perfil" 
-                  className="w-9 h-9 rounded-full object-cover border border-gray-200 shadow-sm" 
+                  className="h-9 w-9 rounded-full border border-raiz-borda object-cover shadow-sm" 
                 />
               ) : (
                 <div className={`w-9 h-9 flex items-center justify-center rounded-full border shadow-sm font-bold text-sm ${getCorAvatar(usuario?.nome)}`}>
@@ -376,14 +373,14 @@ export default function Layout({ children }: LayoutProps) {
             {menuAberto && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setMenuAberto(false)}></div>
-                <div className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in duration-200">
+                <div className="absolute right-0 z-50 mt-3 w-48 rounded-lg border border-raiz-borda bg-white py-2 shadow-2xl animate-in fade-in zoom-in duration-200">
                   <button 
                     onClick={abrirModalConfig}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-green-50 flex items-center space-x-3"
+                    className="flex w-full items-center space-x-3 px-4 py-2 text-left text-sm hover:bg-raiz-verde-claro/50"
                   >
                     <Settings size={16} /> <span>Meu Perfil</span>
                   </button>
-                  <div className="h-px bg-gray-100 my-1"></div>
+                  <div className="my-1 h-px bg-raiz-borda"></div>
                   <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3">
                     <LogOut size={16} /> <span>Sair</span>
                   </button>
@@ -395,7 +392,7 @@ export default function Layout({ children }: LayoutProps) {
         </header>
 
         {/* Conteúdo Dinâmico */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8 bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-transparent p-4 sm:p-8">
           {children}
         </main>
       </div>
@@ -407,6 +404,9 @@ export default function Layout({ children }: LayoutProps) {
         usuario={usuario}
         onAtualizarUsuario={handleAtualizarUsuario}
       />
+
+      {/* Assistente Virtual de IA */}
+      <ChatAssistente />
     </div>
   );
 }

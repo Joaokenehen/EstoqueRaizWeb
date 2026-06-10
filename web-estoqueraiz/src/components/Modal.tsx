@@ -18,7 +18,7 @@ export const Modal = ({
   titulo,
   children,
   maxWidth = 'max-w-2xl',
-  headerClasses = 'bg-gray-50 text-gray-900 border-gray-200',
+  headerClasses = 'bg-[#fbfaf5] text-slate-950 border-raiz-borda',
   testId = 'modal',
   closeOnClickOutside = false
 }: ModalProps) => {
@@ -38,7 +38,7 @@ export const Modal = ({
           to { opacity: 1; background-color: rgba(0, 0, 0, 0.5); }
         }
         @keyframes modal-scale-up {
-          from { opacity: 0; transform: scale(0.6); }
+          from { opacity: 0; transform: translateY(12px) scale(0.98); }
           to { opacity: 1; transform: scale(1); }
         }
         @keyframes modal-fade-in {
@@ -47,15 +47,15 @@ export const Modal = ({
         }
       `}</style>
       <div 
-        className={`bg-white rounded-xl shadow-2xl w-full ${maxWidth} max-h-[90vh] flex flex-col overflow-hidden`} 
-        style={{ animation: 'modal-scale-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
+        className={`w-full ${maxWidth} max-h-[90vh] overflow-hidden rounded-lg border border-white/60 bg-white shadow-[0_34px_90px_-44px_rgba(15,23,42,0.55)] ring-1 ring-black/5 flex flex-col`} 
+        style={{ animation: 'modal-scale-up 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`px-6 py-4 border-b flex items-center justify-between shrink-0 ${headerClasses}`}>
-          <h2 className="text-xl font-bold">{titulo}</h2>
+        <div className={`flex shrink-0 items-center justify-between border-b px-6 py-4 ${headerClasses}`}>
+          <h2 className="text-lg font-bold tracking-tight">{titulo}</h2>
           <button
             onClick={onClose}
-            className="opacity-70 hover:opacity-100 transition-opacity"
+            className="er-icon-button text-slate-500 hover:bg-white hover:text-slate-900"
             type="button"
             title="Fechar"
             data-testid={`${testId}-close-btn`}
