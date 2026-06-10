@@ -35,6 +35,17 @@ export const Fornecedores = () => {
     cep: '', rua: '', numero: '', bairro: '', cidade: '', estado: ''
   });
 
+  const formatarCnpj = (valor: string) => {
+    const apenasDigitos = valor.replace(/\D/g, '').slice(0, 14);
+
+    if (apenasDigitos.length <= 2) return apenasDigitos;
+    if (apenasDigitos.length <= 5) return `${apenasDigitos.slice(0, 2)}.${apenasDigitos.slice(2)}`;
+    if (apenasDigitos.length <= 8) return `${apenasDigitos.slice(0, 2)}.${apenasDigitos.slice(2, 5)}.${apenasDigitos.slice(5)}`;
+    if (apenasDigitos.length <= 12) return `${apenasDigitos.slice(0, 2)}.${apenasDigitos.slice(2, 5)}.${apenasDigitos.slice(5, 8)}/${apenasDigitos.slice(8)}`;
+
+    return `${apenasDigitos.slice(0, 2)}.${apenasDigitos.slice(2, 5)}.${apenasDigitos.slice(5, 8)}/${apenasDigitos.slice(8, 12)}-${apenasDigitos.slice(12)}`;
+  };
+
   const carregarFornecedores = async () => {
     try {
       setCarregando(true);
@@ -58,7 +69,7 @@ export const Fornecedores = () => {
 
   const handleBuscaCnpj = async (cnpjBuscado: string) => {
     const cnpjLimpo = cnpjBuscado.replace(/\D/g, '');
-    setFormData(prev => ({ ...prev, cnpj: cnpjBuscado }));
+    setFormData(prev => ({ ...prev, cnpj: cnpjLimpo }));
 
     if (cnpjLimpo.length === 14) {
       const toastId = toast.loading('Consultando Receita Federal...');
@@ -207,7 +218,16 @@ export const Fornecedores = () => {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
             <div className="col-span-12 md:col-span-4">
               <label className="block text-sm font-medium mb-1">CNPJ *</label>
-              <input required type="text" className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" value={formData.cnpj} onChange={e => handleBuscaCnpj(e.target.value)} placeholder="Apenas números" />
+              <input
+                required
+                type="text"
+                inputMode="numeric"
+                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde"
+                value={formatarCnpj(formData.cnpj)}
+                onChange={(e) => handleBuscaCnpj(e.target.value)}
+                placeholder="00.000.000/0000-00"
+                maxLength={18}
+              />
             </div>
             <div className="col-span-12 md:col-span-8">
               <label className="block text-sm font-medium mb-1">Razão Social *</label>
