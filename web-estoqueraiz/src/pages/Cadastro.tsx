@@ -18,6 +18,16 @@ export const Cadastro = () => {
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
   const [modalSucessoAberto, setModalSucessoAberto] = useState(false);
 
+  const formatarCpf = (valor: string) => {
+    const apenasDigitos = valor.replace(/\D/g, '').slice(0, 11);
+
+    if (apenasDigitos.length <= 3) return apenasDigitos;
+    if (apenasDigitos.length <= 6) return `${apenasDigitos.slice(0, 3)}.${apenasDigitos.slice(3)}`;
+    if (apenasDigitos.length <= 9) return `${apenasDigitos.slice(0, 3)}.${apenasDigitos.slice(3, 6)}.${apenasDigitos.slice(6)}`;
+
+    return `${apenasDigitos.slice(0, 3)}.${apenasDigitos.slice(3, 6)}.${apenasDigitos.slice(6, 9)}-${apenasDigitos.slice(9)}`;
+  };
+
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -100,15 +110,15 @@ export const Cadastro = () => {
 
           <div>
             <label className="block text-sm font-semibold text-raiz-marrom mb-1">
-              CPF (Apenas números)
+              CPF
             </label>
             <input
               type="text"
-              placeholder="00000000000"
+              placeholder="000.000.000-00"
               className="er-input px-4 py-3"
-              value={cpf}
-              onChange={(e) => setCpf(e.target.value.replace(/\D/g, ''))} 
-              maxLength={11} 
+              value={formatarCpf(cpf)}
+              onChange={(e) => setCpf(e.target.value.replace(/\D/g, '').slice(0, 11))}
+              maxLength={14}
               required
               data-testid="cpf-input"
             />
