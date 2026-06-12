@@ -60,7 +60,7 @@ class IaService {
       // 3. Devolvemos o resultado da API real para o Gemini
       const finalResult = await chat.sendMessage([{
         functionResponse: {
-          name: call.name, // <-- A VÍRGULA SALVADORA DEVE ESTAR AQUI
+          name: call.name, 
           response: { dados: dadosDaApi }
         }
       }]);
