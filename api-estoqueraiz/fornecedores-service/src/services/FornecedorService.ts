@@ -1,5 +1,6 @@
 import { Fornecedor } from '../models/Fornecedor';
 import { info, warn, error } from '../utils/logger';
+import { validarCNPJ } from '../../../shared/utils/validacoes';
 
 export const FornecedorService = {
   async listarTodos() {
@@ -12,7 +13,16 @@ export const FornecedorService = {
   async criar(dados: Partial<Fornecedor>) {
     try {
       info('FornecedorService.criar - dados recebidos:', dados);
-      const novo = await Fornecedor.create(dados);
+      const cnpjLimpo = (dados.cnpj || '').replace(/\D/g, '');
+
+      if (!validarCNPJ(cnpjLimpo)) {
+        throw new Error('CNPJ inválido');
+      }
+
+      const novo = await Fornecedor.create({
+        ...dados,
+        cnpj: cnpjLimpo,
+      });
       info('FornecedorService.criar - registro criado:', novo.toJSON());
       return novo;
     } catch (err) {
@@ -29,7 +39,16 @@ export const FornecedorService = {
         warn(`FornecedorService.atualizar - fornecedor ${id} não encontrado`);
         throw new Error('Fornecedor não encontrado');
       }
-      const atualizado = await fornecedor.update(dados);
+      const cnpjLimpo = dados.cnpj ? dados.cnpj.replace(/\D/g, '') : '';
+
+      if (dados.cnpj && !validarCNPJ(cnpjLimpo)) {
+        throw new Error('CNPJ inválido');
+      }
+
+      const atualizado = await fornecedor.update({
+        ...dados,
+        ...(dados.cnpj ? { cnpj: cnpjLimpo } : {}),
+      });
       info('FornecedorService.atualizar - atualizado:', atualizado.toJSON());
       return atualizado;
     } catch (err) {
