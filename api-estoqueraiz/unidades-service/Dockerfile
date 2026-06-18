@@ -4,7 +4,7 @@ WORKDIR /build
 
 COPY shared ./shared
 WORKDIR /build/shared
-RUN npm ci
+RUN npm install
 RUN npm run build || true
 
 WORKDIR /build
@@ -13,7 +13,7 @@ COPY unidades-service/tsconfig.json ./unidades-service/
 COPY unidades-service/src ./unidades-service/src
 
 WORKDIR /build/unidades-service
-RUN npm ci
+RUN npm install
 RUN npm run build
 
 FROM node:18-alpine
