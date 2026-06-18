@@ -39,6 +39,31 @@ export function validarCPF(cpf: string): boolean {
   return true;
 }
 
+export function validarCNPJ(cnpj: string): boolean {
+  const cnpjLimpo = cnpj.replace(/[^\d]/g, "");
+
+  if (cnpjLimpo.length !== 14) {
+    return false;
+  }
+
+  if (/^(\d)\1{13}$/.test(cnpjLimpo)) {
+    return false;
+  }
+
+  const calcularDigito = (base: string, pesos: number[]) => {
+    const soma = base
+      .split("")
+      .reduce((total, digito, indice) => total + Number(digito) * pesos[indice], 0);
+    const resto = soma % 11;
+    return resto < 2 ? 0 : 11 - resto;
+  };
+
+  const primeiroDigito = calcularDigito(cnpjLimpo.slice(0, 12), [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+  const segundoDigito = calcularDigito(cnpjLimpo.slice(0, 13), [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+
+  return primeiroDigito === Number(cnpjLimpo.charAt(12)) && segundoDigito === Number(cnpjLimpo.charAt(13));
+}
+
 export function validarEmail(email: string): boolean {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);

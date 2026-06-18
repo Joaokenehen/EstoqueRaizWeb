@@ -5,6 +5,7 @@ export interface CriarUsuarioDTO {
     email: string;
     senha: string;
     cpf: string;
+    data_nascimento?: string;
 }
 
 export interface AtualizarUsuarioDTO {

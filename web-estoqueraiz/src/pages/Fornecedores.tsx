@@ -4,9 +4,7 @@ import { fornecedorService, type Fornecedor } from '../services/fornecedorServic
 import { BarraFiltros } from '../components/BarraFiltro';
 import { Plus, Truck, MapPin } from 'lucide-react';
 import { BotaoEditar, BotaoDeletar } from '../components/BotoesAcao';
-import { LoadingSpinner, MensagemErro } from '../components/Feedbacks';
-import { BarraAcoesLote } from '../components/BarraAcoesLote';
-import { useSelecaoLote } from '../hooks/useSelecaoLote';
+import { LoadingSpinner } from '../components/Feedbacks';
 import Layout from '../components/Layout';
 import { Modal } from '../components/Modal';
 import { FormularioBase } from '../components/FormularioBase';
@@ -16,7 +14,7 @@ import toast from 'react-hot-toast';
 export const Fornecedores = () => {
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState('');
+  const [dataAbertura, setDataAbertura] = useState('');
   
   const usuarioString = localStorage.getItem('@EstoqueRaiz:usuario');
   const usuarioLogado = usuarioString ? JSON.parse(usuarioString) : null;
@@ -28,7 +26,6 @@ export const Fornecedores = () => {
   const [modalAberto, setModalAberto] = useState(false);
   const [fornecedorEditando, setFornecedorEditando] = useState<Fornecedor | null>(null);
   const [processandoAcao, setProcessandoAcao] = useState(false);
-  const { selecionados, alternarSelecao, selecionarTodos, limparSelecao } = useSelecaoLote<number>();
   
   const [formData, setFormData] = useState({
     razao_social: '', nome_fantasia: '', cnpj: '', telefone: '', email: '',
@@ -46,20 +43,47 @@ export const Fornecedores = () => {
     return `${apenasDigitos.slice(0, 2)}.${apenasDigitos.slice(2, 5)}.${apenasDigitos.slice(5, 8)}/${apenasDigitos.slice(8, 12)}-${apenasDigitos.slice(12)}`;
   };
 
+  const formatarTelefone = (valor: string) => {
+    const apenasDigitos = valor.replace(/\D/g, '').slice(0, 11);
+
+    if (apenasDigitos.length <= 2) return apenasDigitos;
+    if (apenasDigitos.length <= 6) return `(${apenasDigitos.slice(0, 2)}) ${apenasDigitos.slice(2)}`;
+    if (apenasDigitos.length <= 10) return `(${apenasDigitos.slice(0, 2)}) ${apenasDigitos.slice(2, 6)}-${apenasDigitos.slice(6)}`;
+
+    return `(${apenasDigitos.slice(0, 2)}) ${apenasDigitos.slice(2, 7)}-${apenasDigitos.slice(7)}`;
+  };
+
+  const formatarCep = (valor: string) => {
+    const apenasDigitos = valor.replace(/\D/g, '').slice(0, 8);
+
+    if (apenasDigitos.length <= 5) return apenasDigitos;
+
+    return `${apenasDigitos.slice(0, 5)}-${apenasDigitos.slice(5)}`;
+  };
+
+  const formatarData = (valor: string) => {
+    const apenasDigitos = valor.replace(/\D/g, '').slice(0, 8);
+
+    if (apenasDigitos.length <= 2) return apenasDigitos;
+    if (apenasDigitos.length <= 4) return `${apenasDigitos.slice(0, 2)}/${apenasDigitos.slice(2)}`;
+
+    return `${apenasDigitos.slice(0, 2)}/${apenasDigitos.slice(2, 4)}/${apenasDigitos.slice(4)}`;
+  };
+
   const carregarFornecedores = async () => {
     try {
       setCarregando(true);
       const dados = await fornecedorService.listarTodos();
       setFornecedores(dados);
     } catch (error) {
-      setErro('Não foi possível carregar os fornecedores.');
+      console.error(error);
     } finally {
       setCarregando(false);
     }
   };
 
   useEffect(() => { carregarFornecedores(); }, []);
-  useEffect(() => { setPaginaAtual(1); limparSelecao(); }, [buscaTexto, itensPorPagina, limparSelecao]);
+  useEffect(() => { setPaginaAtual(1); }, [buscaTexto, itensPorPagina]);
 
   const filtrados = fornecedores.filter(f => 
     f.razao_social.toLowerCase().includes(buscaTexto.toLowerCase()) || 
@@ -89,7 +113,7 @@ export const Fornecedores = () => {
           estado: data.uf || ''
         }));
         toast.success('Dados preenchidos automaticamente!', { id: toastId });
-      } catch (error) {
+      } catch {
         toast.error('CNPJ não encontrado.', { id: toastId });
       }
     }
@@ -98,15 +122,17 @@ export const Fornecedores = () => {
   const abrirModal = (forn?: Fornecedor) => {
     if (forn) {
       setFornecedorEditando(forn);
+      setDataAbertura('');
       setFormData({ ...forn, nome_fantasia: forn.nome_fantasia || '', telefone: forn.telefone || '', email: forn.email || '', cep: forn.cep || '', rua: forn.rua || '', numero: forn.numero || '', bairro: forn.bairro || '', cidade: forn.cidade || '', estado: forn.estado || '' });
     } else {
       setFornecedorEditando(null);
+      setDataAbertura('');
       setFormData({ razao_social: '', nome_fantasia: '', cnpj: '', telefone: '', email: '', cep: '', rua: '', numero: '', bairro: '', cidade: '', estado: '' });
     }
     setModalAberto(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async () => {
     setProcessandoAcao(true);
     try {
       if (fornecedorEditando) {
@@ -118,8 +144,11 @@ export const Fornecedores = () => {
       }
       setModalAberto(false);
       await carregarFornecedores();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao salvar o fornecedor. Verifique os dados e tente novamente.');
+    } catch (error: unknown) {
+      const mensagemErro = axios.isAxiosError(error)
+        ? error.response?.data?.message || 'Erro ao salvar o fornecedor. Verifique os dados e tente novamente.'
+        : 'Erro ao salvar o fornecedor. Verifique os dados e tente novamente.';
+      toast.error(mensagemErro);
     } finally {
       setProcessandoAcao(false);
     }
@@ -137,8 +166,11 @@ export const Fornecedores = () => {
               await fornecedorService.deletar(id);
               toast.success('Fornecedor excluído com sucesso!');
               await carregarFornecedores();
-            } catch (error: any) {
-              toast.error(error.response?.data?.message || 'Erro ao excluir fornecedor.');
+            } catch (error: unknown) {
+              const mensagemErro = axios.isAxiosError(error)
+                ? error.response?.data?.message || 'Erro ao excluir fornecedor.'
+                : 'Erro ao excluir fornecedor.';
+              toast.error(mensagemErro);
             }
           }}>Excluir</button>
         </div>
@@ -239,7 +271,15 @@ export const Fornecedores = () => {
             </div>
             <div className="col-span-12 md:col-span-3">
               <label className="block text-sm font-medium mb-1">Telefone</label>
-              <input type="text" className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" value={formData.telefone} onChange={e => setFormData({...formData, telefone: e.target.value})} />
+              <input
+                type="text"
+                inputMode="numeric"
+                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde"
+                value={formatarTelefone(formData.telefone)}
+                onChange={e => setFormData({...formData, telefone: e.target.value.replace(/\D/g, '').slice(0, 11)})}
+                placeholder="(11) 99999-9999"
+                maxLength={15}
+              />
             </div>
             <div className="col-span-12 md:col-span-3">
               <label className="block text-sm font-medium mb-1">E-mail</label>
@@ -248,7 +288,27 @@ export const Fornecedores = () => {
             <div className="col-span-12 border-t pt-2 mt-2"><h3 className="font-semibold text-gray-700">Endereço</h3></div>
             <div className="col-span-12 md:col-span-4">
               <label className="block text-sm font-medium mb-1">CEP</label>
-              <input type="text" className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" value={formData.cep} onChange={e => setFormData({...formData, cep: e.target.value})} />
+              <input
+                type="text"
+                inputMode="numeric"
+                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde"
+                value={formatarCep(formData.cep)}
+                onChange={e => setFormData({...formData, cep: e.target.value.replace(/\D/g, '').slice(0, 8)})}
+                placeholder="00000-000"
+                maxLength={9}
+              />
+            </div>
+            <div className="col-span-12 md:col-span-4">
+              <label className="block text-sm font-medium mb-1">Data de abertura</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde"
+                value={formatarData(dataAbertura)}
+                onChange={e => setDataAbertura(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                placeholder="DD/MM/AAAA"
+                maxLength={10}
+              />
             </div>
             <div className="col-span-12 md:col-span-6">
               <label className="block text-sm font-medium mb-1">Cidade</label>

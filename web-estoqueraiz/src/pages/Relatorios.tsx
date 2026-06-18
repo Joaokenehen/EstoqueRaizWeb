@@ -312,12 +312,37 @@ export const Relatorios = () => {
   }, [dados, estatisticas]);
 
   const getClasseBadge = (classe: 'A' | 'B' | 'C') => {
+    let badgeClass = "";
+    let tooltipText = "";
+    
     switch (classe) {
-      case 'A': return <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full font-bold text-xs">Classe A</span>;
-      case 'B': return <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full font-bold text-xs">Classe B</span>;
-      case 'C': return <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full font-bold text-xs">Classe C</span>;
+      case 'A': 
+        badgeClass = "bg-green-100 text-green-800";
+        tooltipText = "Classe A: Representa ~80% do valor total. Itens de alto impacto e prioridade máxima.";
+        break;
+      case 'B': 
+        badgeClass = "bg-yellow-100 text-yellow-800";
+        tooltipText = "Classe B: Representa ~15% do valor total. Itens de impacto intermediário.";
+        break;
+      case 'C': 
+        badgeClass = "bg-gray-100 text-gray-800";
+        tooltipText = "Classe C: Representa ~5% do valor total. Baixo impacto financeiro, mas de alto volume.";
+        break;
       default: return null;
     }
+
+    return (
+      <div className="group relative inline-flex justify-center items-center cursor-help">
+        <span className={`px-3 py-1 rounded-full font-bold text-xs ${badgeClass}`}>
+          Classe {classe}
+        </span>
+        <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block w-48 sm:w-56 bg-gray-900 text-white text-xs p-3 rounded-lg shadow-xl z-[60] text-left normal-case font-normal pointer-events-none">
+          {tooltipText}
+          {/* Triângulo apontando para baixo */}
+          <div className="absolute top-full right-6 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+        </div>
+      </div>
+    );
   };
 
   const produtosParaExibir = dados?.produtos.slice(0, limiteVisivel) || [];
@@ -534,7 +559,18 @@ export const Relatorios = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {dados.resumo.map((res) => (
               <div key={res.classe} className={`p-4 rounded-xl border ${res.classe === 'A' ? 'bg-green-50 border-green-200' : res.classe === 'B' ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'}`}>
-                <h3 className="font-bold text-lg mb-2">Classe {res.classe} ({Number(res.percentual_valor || 0).toFixed(1)}%)</h3>
+                <div className="group relative cursor-help w-max">
+                  <h3 className="font-bold text-lg mb-2">
+                    Classe {res.classe} ({Number(res.percentual_valor || 0).toFixed(1)}%)
+                  </h3>
+                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block w-64 bg-gray-900 text-white text-xs p-3 rounded-lg shadow-xl z-[60] normal-case font-normal pointer-events-none">
+                    {res.classe === 'A' ? "Classe A: Representa ~80% do valor total. Itens de alto impacto e prioridade máxima." : 
+                     res.classe === 'B' ? "Classe B: Representa ~15% do valor total. Itens de médio impacto." : 
+                     "Classe C: Representa ~5% do valor total. Baixo impacto financeiro, mas de alto volume."}
+                    {/* Triângulo apontando para baixo */}
+                    <div className="absolute top-full left-6 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
                 <p className="text-sm text-gray-700"><strong>Produtos:</strong> {res.quantidade_produtos} ({Number(res.percentual_produtos || 0).toFixed(1)}%)</p>
                 <p className="text-sm text-gray-700"><strong>Faturamento:</strong> R$ {Number(res.valor_total || 0).toFixed(2)}</p>
               </div>
@@ -632,7 +668,7 @@ export const Relatorios = () => {
 
         {!carregando && insights.length > 0 && (
           <section className="mt-6 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">Insights para apresentação</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Insights</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {insights.map((insight) => (
                 <div key={insight.titulo} className="rounded-lg border border-gray-200 p-3 bg-gray-50">

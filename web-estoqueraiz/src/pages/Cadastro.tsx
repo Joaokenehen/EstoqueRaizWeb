@@ -49,7 +49,7 @@ export const Cadastro = () => {
         setNome(''); setEmail(''); setSenha(''); setConfirmarSenha(''); setCpf('');
       }
     } catch (error: any) {
-      const erroBackend = error.response?.data?.message || 'Erro ao cadastrar';
+      const erroBackend = error.response?.data?.message || error.response?.data?.error || 'Erro ao cadastrar. Tente novamente mais tarde.';
       toast.error(erroBackend);
     }
   };
