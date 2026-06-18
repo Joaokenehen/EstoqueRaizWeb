@@ -19,9 +19,7 @@ describe('Página de Cadastro - Testes de UI', () => {
         cy.get('[data-testid="confirmar-senha-input"]').type('SenhaErrada456!');
         cy.get('[data-testid="btn-finalizar-cadastro"]').click();
 
-        cy.get('[data-testid="mensagem-feedback"]')
-          .should('be.visible')
-          .and('contain', 'As senhas não coincidem!');
+        cy.contains('As senhas não coincidem!').should('be.visible');
       });
 
       it('Deve rejeitar senha com menos de 6 caracteres', () => {
@@ -32,9 +30,7 @@ describe('Página de Cadastro - Testes de UI', () => {
         cy.get('[data-testid="confirmar-senha-input"]').type('Ab1');
         cy.get('[data-testid="btn-finalizar-cadastro"]').click();
 
-        cy.get('[data-testid="mensagem-feedback"]')
-          .should('be.visible')
-          .and('contain', 'pelo menos 6 caracteres');
+        cy.contains('pelo menos 6 caracteres').should('be.visible');
       });
 
       it('Deve rejeitar senha sem letra maiúscula', () => {
@@ -45,9 +41,7 @@ describe('Página de Cadastro - Testes de UI', () => {
         cy.get('[data-testid="confirmar-senha-input"]').type('senha123');
         cy.get('[data-testid="btn-finalizar-cadastro"]').click();
 
-        cy.get('[data-testid="mensagem-feedback"]')
-          .should('be.visible')
-          .and('contain', 'letra maiúscula');
+        cy.contains('letra maiúscula').should('be.visible');
       });
 
       it('Deve rejeitar senha sem número', () => {
@@ -58,9 +52,7 @@ describe('Página de Cadastro - Testes de UI', () => {
         cy.get('[data-testid="confirmar-senha-input"]').type('SenhaMaiuscula');
         cy.get('[data-testid="btn-finalizar-cadastro"]').click();
 
-        cy.get('[data-testid="mensagem-feedback"]')
-          .should('be.visible')
-          .and('contain', 'um número');
+        cy.contains('um número').should('be.visible');
       });
     });
 
@@ -74,9 +66,7 @@ describe('Página de Cadastro - Testes de UI', () => {
         cy.get('[data-testid="confirmar-senha-input"]').type('Senha123!');
         cy.get('[data-testid="btn-finalizar-cadastro"]').click();
 
-        cy.get('[data-testid="mensagem-feedback"]')
-          .should('be.visible')
-          .and('contain', 'CPF inválido');
+        cy.contains('CPF inválido').should('be.visible');
       });
 
       it('Deve rejeitar CPF com menos de 11 dígitos', () => {
@@ -87,9 +77,7 @@ describe('Página de Cadastro - Testes de UI', () => {
         cy.get('[data-testid="confirmar-senha-input"]').type('Senha123!');
         cy.get('[data-testid="btn-finalizar-cadastro"]').click();
 
-        cy.get('[data-testid="mensagem-feedback"]')
-          .should('be.visible')
-          .and('contain', 'CPF inválido');
+        cy.contains('CPF inválido').should('be.visible');
       });
     });
 

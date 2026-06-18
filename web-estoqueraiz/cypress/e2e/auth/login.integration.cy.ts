@@ -146,6 +146,7 @@ describe('Login - Testes de Integracao Real (Backend + DB)', () => {
 
       cy.wait('@loginBloqueado').its('response.statusCode').should('eq', 403);
       cy.url().should('include', '/login');
+      cy.contains('Conta aguardando pela aprovação do gerente').should('be.visible');
     });
   });
 });

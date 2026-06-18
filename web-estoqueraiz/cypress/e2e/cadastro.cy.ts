@@ -53,9 +53,7 @@ describe('Página de Cadastro', () => {
         cy.get('[data-testid="confirmar-senha-input"]').type('Senha123!');
         cy.get('[data-testid="btn-finalizar-cadastro"]').click();
 
-        cy.get('[data-testid="mensagem-feedback"]')
-          .should('be.visible')
-          .and('contain', 'Email já está em uso');
+        cy.contains('Email já está em uso').should('be.visible');
       });
 
       it('Deve impedir o cadastro de um CPF duplicado', () => {
@@ -80,9 +78,7 @@ describe('Página de Cadastro', () => {
         cy.get('[data-testid="confirmar-senha-input"]').type('Senha123!');
         cy.get('[data-testid="btn-finalizar-cadastro"]').click();
 
-        cy.get('[data-testid="mensagem-feedback"]')
-          .should('be.visible')
-          .and('contain', 'CPF já está em uso');
+        cy.contains('CPF já está em uso').should('be.visible');
       });
     });
   });

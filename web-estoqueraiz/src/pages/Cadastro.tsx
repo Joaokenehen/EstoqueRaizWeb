@@ -14,7 +14,6 @@ export const Cadastro = () => {
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [cpf, setCpf] = useState("");
-  const [dataNascimento, setDataNascimento] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
   const [modalSucessoAberto, setModalSucessoAberto] = useState(false);
@@ -27,15 +26,6 @@ export const Cadastro = () => {
     if (apenasDigitos.length <= 9) return `${apenasDigitos.slice(0, 3)}.${apenasDigitos.slice(3, 6)}.${apenasDigitos.slice(6)}`;
 
     return `${apenasDigitos.slice(0, 3)}.${apenasDigitos.slice(3, 6)}.${apenasDigitos.slice(6, 9)}-${apenasDigitos.slice(9)}`;
-  };
-
-  const formatarData = (valor: string) => {
-    const apenasDigitos = valor.replace(/\D/g, '').slice(0, 8);
-
-    if (apenasDigitos.length <= 2) return apenasDigitos;
-    if (apenasDigitos.length <= 4) return `${apenasDigitos.slice(0, 2)}/${apenasDigitos.slice(2)}`;
-
-    return `${apenasDigitos.slice(0, 2)}/${apenasDigitos.slice(2, 4)}/${apenasDigitos.slice(4)}`;
   };
 
   const handleCadastro = async (e: React.FormEvent) => {
@@ -52,15 +42,14 @@ export const Cadastro = () => {
         email,
         senha,
         cpf,
-        data_nascimento: dataNascimento,
       });
 
       if (response.status === 201) {
         setModalSucessoAberto(true);
-        setNome(''); setEmail(''); setSenha(''); setConfirmarSenha(''); setCpf(''); setDataNascimento('');
+        setNome(''); setEmail(''); setSenha(''); setConfirmarSenha(''); setCpf('');
       }
-    } catch (error: unknown) {
-      const erroBackend = error instanceof Error ? error.message : 'Erro ao cadastrar';
+    } catch (error: any) {
+      const erroBackend = error.response?.data?.message || error.response?.data?.error || 'Erro ao cadastrar. Tente novamente mais tarde.';
       toast.error(erroBackend);
     }
   };
@@ -132,23 +121,6 @@ export const Cadastro = () => {
               maxLength={14}
               required
               data-testid="cpf-input"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-raiz-marrom mb-1">
-              Data de nascimento
-            </label>
-            <input
-              type="text"
-              placeholder="DD/MM/AAAA"
-              className="er-input px-4 py-3"
-              value={formatarData(dataNascimento)}
-              onChange={(e) => setDataNascimento(e.target.value.replace(/\D/g, '').slice(0, 8))}
-              maxLength={10}
-              required
-              inputMode="numeric"
-              data-testid="data-nascimento-input"
             />
           </div>
 

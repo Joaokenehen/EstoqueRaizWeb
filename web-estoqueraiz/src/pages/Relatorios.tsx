@@ -632,7 +632,7 @@ export const Relatorios = () => {
 
         {!carregando && insights.length > 0 && (
           <section className="mt-6 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">Insights para apresentação</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Insights</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {insights.map((insight) => (
                 <div key={insight.titulo} className="rounded-lg border border-gray-200 p-3 bg-gray-50">
