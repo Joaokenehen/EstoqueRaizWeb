@@ -178,14 +178,23 @@ export class UsuariosService {
       unidade_id: dados.unidade_id,
     });
 
+    // Publica o evento específico de aprovação
     await publicadorEventos.publicar(
       EventosTipo.USUARIO_APROVADO,
       { id: usuario.id, email: usuario.email, cargo: dados.cargo },
       "usuarios-service"
     );
 
+    // Publica o evento genérico para invalidar caches em outros serviços (como auth-service)
+    await publicadorEventos.publicar(
+      EventosTipo.USUARIO_ATUALIZADO,
+      { id: usuario.id, email: usuario.email },
+      "usuarios-service"
+    );
+
     await cacheService.invalidar("todos", "usuarios");
     await cacheService.invalidar(`id:${id}`, "usuarios");
+    await cacheService.invalidar(`email:${usuario.email}`, "usuarios");
 
     enviarEmail(
       usuario.email,
@@ -210,14 +219,23 @@ export class UsuariosService {
 
     await usuario.update({ status: "rejeitado" });
 
+    // Publica o evento específico de rejeição
     await publicadorEventos.publicar(
       EventosTipo.USUARIO_REJEITADO,
       { id: usuario.id, email: usuario.email },
       "usuarios-service"
     );
 
+    // Publica o evento genérico para invalidar caches em outros serviços (como auth-service)
+    await publicadorEventos.publicar(
+      EventosTipo.USUARIO_ATUALIZADO,
+      { id: usuario.id, email: usuario.email },
+      "usuarios-service"
+    );
+
     await cacheService.invalidar("todos", "usuarios");
     await cacheService.invalidar(`id:${id}`, "usuarios");
+    await cacheService.invalidar(`email:${usuario.email}`, "usuarios");
 
     enviarEmail(
       usuario.email,
@@ -312,12 +330,22 @@ export class UsuariosService {
       throw new ErroNaoEncontrado("Usuário não encontrado");
     }
 
-    await usuario.update({ senha: novaSenha });
+    usuario.senha = novaSenha;
+    await usuario.save();
+
+    // Publica um evento para que outros serviços (como o auth-service)
+    // saibam que o usuário foi atualizado e possam invalidar seus caches.
+    await publicadorEventos.publicar(
+      EventosTipo.USUARIO_ATUALIZADO,
+      { id: usuario.id, email: usuario.email },
+      "usuarios-service"
+    );
 
     await cacheService.invalidar(`reset:${email}`, "usuarios");
     
     await cacheService.invalidar("todos", "usuarios");
     await cacheService.invalidar(`id:${usuario.id}`, "usuarios");
+    await cacheService.invalidar(`email:${usuario.email}`, "usuarios");
 
     enviarEmail(
       email,

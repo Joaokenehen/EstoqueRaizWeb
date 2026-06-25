@@ -5,7 +5,7 @@ import { Login } from './pages/Login';
 import { Cadastro } from './pages/Cadastro';
 import { Dashboard } from './pages/Dashboard';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { EsqueciSenha } from './pages/EqueciSenha';
+import { EsqueciSenha } from './pages/EsqueciSenha';
 import { Usuarios } from './pages/Usuarios';
 import { Unidades } from './pages/Unidades'
 import { Categorias } from './pages/Categorias';
