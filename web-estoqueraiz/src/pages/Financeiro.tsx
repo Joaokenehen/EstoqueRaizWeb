@@ -101,7 +101,6 @@ export const Financeiro = () => {
   });
 
   const listaFiltrada = abaAtiva === 'entradas_pendentes' ? movimentacoesFiltradas : produtosFiltrados;
-  const totalPaginas = Math.max(1, Math.ceil(listaFiltrada.length / itensPorPagina));
   const itensPaginados = listaFiltrada.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
   const produtosPaginados = abaAtiva !== 'entradas_pendentes' ? itensPaginados as Produto[] : [];
   const movimentacoesPaginadas = abaAtiva === 'entradas_pendentes' ? itensPaginados as Movimentacao[] : [];
