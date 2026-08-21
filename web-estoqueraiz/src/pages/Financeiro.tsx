@@ -20,13 +20,48 @@ export const Financeiro = () => {
   const [abaAtiva, setAbaAtiva] = useState<'pendentes' | 'entradas_pendentes' | 'aprovados' | 'rejeitados'>('pendentes');
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
-  
   const [modalAprovacaoAberto, setModalAprovacaoAberto] = useState(false);
   const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
   const [produtoAtivo, setProdutoAtivo] = useState<Produto | null>(null);
   const [movimentacaoAtiva, setMovimentacaoAtiva] = useState<Movimentacao | null>(null);
   const [processandoAcao, setProcessandoAcao] = useState(false);
   const [precos, setPrecos] = useState({ preco_custo: '', preco_venda: '' });
+
+  const formatarValorMoeda = (valor: string) => {
+    const apenasDigitos = valor.replace(/\D/g, '').slice(0, 14);
+
+    if (!apenasDigitos) return '';
+
+    const valorNumerico = Number(apenasDigitos) / 100;
+
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(valorNumerico);
+  };
+
+  const parseValorMoeda = (valor: string) => {
+    if (!valor) return 0;
+
+    const numeroLimpo = valor
+      .replace(/[^\d,.-]/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.');
+
+    const numero = Number(numeroLimpo);
+    return Number.isFinite(numero) ? numero : 0;
+  };
+
+  const formatarValorParaCampo = (valor: number | string | null | undefined) => {
+    if (valor === null || valor === undefined || valor === '') return '';
+    const numero = typeof valor === 'number' ? valor : Number(valor);
+
+    if (!Number.isFinite(numero)) return '';
+    const emCentavos = Math.round(numero * 100);
+    return formatarValorMoeda(String(emCentavos));
+  };
 
   const carregarDados = async () => {
     try {
@@ -75,8 +110,8 @@ export const Financeiro = () => {
     e.preventDefault();
     if (!produtoAtivo && !movimentacaoAtiva) return;
 
-    const custo = Number(precos.preco_custo);
-    const venda = Number(precos.preco_venda);
+    const custo = parseValorMoeda(precos.preco_custo);
+    const venda = parseValorMoeda(precos.preco_venda);
 
     if (venda < custo) {
       toast.error('O valor de venda não pode ser menor que o valor de custo.');
@@ -114,8 +149,8 @@ export const Financeiro = () => {
     e.preventDefault();
     if (!produtoAtivo) return;
 
-    const custo = Number(precos.preco_custo);
-    const venda = Number(precos.preco_venda);
+    const custo = parseValorMoeda(precos.preco_custo);
+    const venda = parseValorMoeda(precos.preco_venda);
 
     if (venda < custo) {
       toast.error('O valor de venda não pode ser menor que o valor de custo.');
@@ -177,8 +212,8 @@ export const Financeiro = () => {
     setMovimentacaoAtiva(mov);
     setProdutoAtivo(null);
     setPrecos({ 
-      preco_custo: produtoRelacionado?.preco_custo ? String(produtoRelacionado.preco_custo) : '', 
-      preco_venda: produtoRelacionado?.preco_venda ? String(produtoRelacionado.preco_venda) : '' 
+      preco_custo: formatarValorParaCampo(produtoRelacionado?.preco_custo),
+      preco_venda: formatarValorParaCampo(produtoRelacionado?.preco_venda)
     });
     setModalAprovacaoAberto(true);
   };
@@ -186,8 +221,8 @@ export const Financeiro = () => {
   const abrirModalEdicao = (prod: Produto) => {
     setProdutoAtivo(prod);
     setPrecos({ 
-      preco_custo: prod.preco_custo ? String(prod.preco_custo) : '', 
-      preco_venda: prod.preco_venda ? String(prod.preco_venda) : '' 
+      preco_custo: formatarValorParaCampo(prod.preco_custo),
+      preco_venda: formatarValorParaCampo(prod.preco_venda)
     });
     setModalEdicaoAberto(true);
   };
@@ -392,11 +427,27 @@ export const Financeiro = () => {
           <p className="text-sm text-gray-600 mb-2">{abaAtiva === 'entradas_pendentes' ? 'Defina os preços unitários atuais para esta NF. O estoque será atualizado ao confirmar.' : 'Defina a precificação para ativar o item no catálogo comercial.'}</p>
           <div>
             <label className="block text-sm font-medium mb-1">Custo Unitário (R$)</label>
-            <input required type="number" step="0.01" value={precos.preco_custo} onChange={e => setPrecos({...precos, preco_custo: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-500" placeholder="0.00" />
+            <input
+              required
+              type="text"
+              inputMode="decimal"
+              value={precos.preco_custo}
+              onChange={e => setPrecos({ ...precos, preco_custo: formatarValorMoeda(e.target.value) })}
+              className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="R$ 0,00"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Venda Unitária (R$)</label>
-            <input required type="number" step="0.01" value={precos.preco_venda} onChange={e => setPrecos({...precos, preco_venda: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-500" placeholder="0.00" />
+            <input
+              required
+              type="text"
+              inputMode="decimal"
+              value={precos.preco_venda}
+              onChange={e => setPrecos({ ...precos, preco_venda: formatarValorMoeda(e.target.value) })}
+              className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="R$ 0,00"
+            />
           </div>
         </FormularioBase>
       </Modal>
@@ -415,11 +466,27 @@ export const Financeiro = () => {
         >
           <div>
             <label className="block text-sm font-medium mb-1">Custo Unitário (R$)</label>
-            <input required type="number" step="0.01" value={precos.preco_custo} onChange={e => setPrecos({...precos, preco_custo: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" placeholder="0.00" />
+            <input
+              required
+              type="text"
+              inputMode="decimal"
+              value={precos.preco_custo}
+              onChange={e => setPrecos({ ...precos, preco_custo: formatarValorMoeda(e.target.value) })}
+              className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde"
+              placeholder="R$ 0,00"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Venda Unitária (R$)</label>
-            <input required type="number" step="0.01" value={precos.preco_venda} onChange={e => setPrecos({...precos, preco_venda: e.target.value})} className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde" placeholder="0.00" />
+            <input
+              required
+              type="text"
+              inputMode="decimal"
+              value={precos.preco_venda}
+              onChange={e => setPrecos({ ...precos, preco_venda: formatarValorMoeda(e.target.value) })}
+              className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-raiz-verde"
+              placeholder="R$ 0,00"
+            />
           </div>
         </FormularioBase>
       </Modal>

@@ -64,8 +64,8 @@ services:
       context: .
       dockerfile: ./auth-service/Dockerfile
     container_name: auth-service
-    ports:
-      - "${AUTH_SERVICE_PORT:-3001}:3001"
+    # ports:
+    #  - "${AUTH_SERVICE_PORT:-3001}:3001" # Oculto para obrigar passagem pelo API Gateway
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=3001
@@ -100,8 +100,8 @@ services:
       context: .
       dockerfile: ./usuarios-service/Dockerfile
     container_name: usuarios-service
-    ports:
-      - "${USUARIOS_SERVICE_PORT:-3002}:3002"
+    # ports:
+    #  - "${USUARIOS_SERVICE_PORT:-3002}:3002" # Oculto para obrigar passagem pelo API Gateway
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=3002
@@ -140,8 +140,8 @@ services:
       context: .
       dockerfile: ./unidades-service/Dockerfile
     container_name: unidades-service
-    ports:
-      - "${UNIDADES_SERVICE_PORT:-3003}:3003"
+    # ports:
+    #  - "${UNIDADES_SERVICE_PORT:-3003}:3003" # Oculto para obrigar passagem pelo API Gateway
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=3003
@@ -174,8 +174,8 @@ services:
       context: .
       dockerfile: ./categorias-service/Dockerfile
     container_name: categorias-service
-    ports:
-      - "${CATEGORIAS_SERVICE_PORT:-3004}:3004"
+    # ports:
+    #  - "${CATEGORIAS_SERVICE_PORT:-3004}:3004" # Oculto para obrigar passagem pelo API Gateway
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=3004
@@ -208,8 +208,8 @@ services:
       context: .
       dockerfile: ./fornecedores-service/Dockerfile
     container_name: fornecedores-service
-    ports:
-      - "${FORNECEDORES_SERVICE_PORT:-3008}:3008"
+    # ports:
+    #  - "${FORNECEDORES_SERVICE_PORT:-3008}:3008" # Oculto para obrigar passagem pelo API Gateway
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=3008
@@ -244,8 +244,8 @@ services:
       context: .
       dockerfile: produtos-service/Dockerfile
     container_name: produtos-service
-    ports:
-      - "3005:3005"
+    # ports:
+    #  - "3005:3005" # Oculto para obrigar passagem pelo API Gateway
     volumes:
       - ./produtos-service/uploads:/app/uploads
     environment:
@@ -280,8 +280,8 @@ services:
       context: .
       dockerfile: ./movimentacoes-service/Dockerfile
     container_name: movimentacoes-service
-    ports:
-      - "${MOVIMENTACOES_SERVICE_PORT:-3006}:3006"
+    # ports:
+    #  - "${MOVIMENTACOES_SERVICE_PORT:-3006}:3006" # Oculto para obrigar passagem pelo API Gateway
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=3006
@@ -314,8 +314,8 @@ services:
       context: .
       dockerfile: ./relatorios-service/Dockerfile
     container_name: relatorios-service
-    ports:
-      - "${RELATORIOS_SERVICE_PORT:-3007}:3007"
+    # ports:
+    #  - "${RELATORIOS_SERVICE_PORT:-3007}:3007" # Oculto para obrigar passagem pelo API Gateway
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=3007
@@ -343,8 +343,8 @@ services:
       context: .
       dockerfile: ./ia-service/Dockerfile
     container_name: ia-service
-    ports:
-      - "${IA_SERVICE_PORT:-3009}:3009"
+    # ports:
+    #  - "${IA_SERVICE_PORT:-3009}:3009" # Oculto para obrigar passagem pelo API Gateway
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=3009

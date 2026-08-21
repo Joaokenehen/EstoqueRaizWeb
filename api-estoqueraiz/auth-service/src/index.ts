@@ -77,12 +77,14 @@ const iniciar = async () => {
     await assinanteEventos.inscrever([
       EventosTipo.USUARIO_DELETADO,
       EventosTipo.USUARIO_ATUALIZADO,
+      EventosTipo.USUARIO_CRIADO,
     ]);
 
     // Manipulador para invalidar cache quando usuário for deletado
     assinanteEventos.registrarManipulador(
       EventosTipo.USUARIO_DELETADO,
       async (dados: { id: number; email: string }) => {
+        logger.info(`Evento USUARIO_DELETADO recebido, invalidando cache para:`, dados);
         if (dados && dados.email) {
           await authService.invalidarCacheUsuario(dados.email);
         }
@@ -93,7 +95,20 @@ const iniciar = async () => {
     assinanteEventos.registrarManipulador(
       EventosTipo.USUARIO_ATUALIZADO,
       async (dados: { id: number; email: string }) => {
+        logger.info(`Evento USUARIO_ATUALIZADO recebido, invalidando cache para:`, dados);
         if (dados && dados.email) {
+          await authService.invalidarCacheUsuario(dados.email);
+        }
+      }
+    );
+
+    // Manipulador para invalidar cache quando usuário for criado
+    assinanteEventos.registrarManipulador(
+      EventosTipo.USUARIO_CRIADO,
+      async (dados: { id: number; email: string }) => {
+        logger.info(`Evento USUARIO_CRIADO recebido, invalidando cache para:`, dados);
+        if (dados && dados.email) {
+          // Invalida qualquer cache 'null' que possa existir para este e-mail
           await authService.invalidarCacheUsuario(dados.email);
         }
       }
